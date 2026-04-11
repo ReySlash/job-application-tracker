@@ -50,7 +50,7 @@ job-application-tracker/
 ### 1. Clone the repository
 
 ```
-git clone https://github.com/your-username/job-application-tracker.git
+git clone https://github.com/ReySlash/job-application-tracker.git
 cd job-application-tracker
 ```
 

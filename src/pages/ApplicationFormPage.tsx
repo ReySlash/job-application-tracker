@@ -15,7 +15,6 @@ function ApplicationFormPage() {
       notes: "",
     };
 
-  // useRef test
   const formRef = useRef<HTMLFormElement>(null);
 
   const { createApplication } = useContext(ApplicationsContext);
@@ -36,7 +35,9 @@ function ApplicationFormPage() {
       id: Date.now(),
       company: String(formData.get("company") ?? ""),
       role: String(formData.get("role") ?? ""),
-      status: String(formData.get("status") ?? "applied") as Application["status"],
+      status: String(
+        formData.get("status") ?? "applied",
+      ) as Application["status"],
       appliedAt: String(formData.get("appliedAt") ?? ""),
       location: String(formData.get("location") ?? ""),
       jobUrl: String(formData.get("jobUrl") ?? ""),

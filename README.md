@@ -1,4 +1,4 @@
-<<<<<<< HEAD
+
 # 📊 Job Application Tracker
 
 A web application to manage and track job applications in a simple and structured way.
@@ -73,7 +73,7 @@ This project is part of my portfolio as a web developer, focused on building pra
 
 ## 👨‍💻 Author
 
-Built by Rey
+Built by ReySlash
 =======
 # React + TypeScript + Vite
 

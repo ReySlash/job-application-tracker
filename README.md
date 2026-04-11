@@ -1,151 +1,83 @@
+# Job Application Tracker
 
-# 📊 Job Application Tracker
+A frontend project for managing and tracking job applications in a simple and structured way.
 
-A web application to manage and track job applications in a simple and structured way.
+## Overview
 
----
+Job Application Tracker is a web application built to help users organize their job search process.
 
-## 🚀 Overview
+Instead of tracking applications in spreadsheets or scattered notes, the app provides a single place to register and manage job application data such as company, role, status, location, and notes.
 
-Job Application Tracker is a frontend-focused project built to help users organize their job search process.
+## Current Status
 
-The app allows users to create, update, and manage job applications while keeping all relevant information in one place, replacing the need for spreadsheets or scattered notes.
+This project is currently in development.
 
----
+At the moment, the focus is on building the frontend structure and core application management flow.
 
-## 🎯 Features
+## Features
 
-* Create, update, and delete job applications
-* Track key information:
+Current or intended core functionality includes:
 
-  * Company
-  * Role
-  * Status (applied, interview, rejected, etc.)
-  * Application date
-  * Location
-* Add optional job URL and notes
-* View all applications in a structured table
+- Create job applications
+- Update job applications
+- Delete job applications
+- Track application details such as:
+  - company
+  - role
+  - status
+  - application date
+  - location
+- Add optional fields such as:
+  - job URL
+  - notes
+- Display applications in a structured list or table
 
----
+## Tech Stack
 
-## 🧱 Tech Stack
+- React
+- TypeScript
+- Vite
+- Tailwind CSS
 
-* React
-* TypeScript
-* Tailwind CSS
+## Project Structure
 
----
-
-## 📂 Project Structure
-
-```
+```bash
 job-application-tracker/
-├── frontend/
-└── README.md
+├── README.md
+├── package.json
+├── src/
+└── ...
 ```
 
----
-
-## 🛠️ Getting Started
+## Getting Started
 
 ### 1. Clone the repository
 
-```
+```bash
 git clone https://github.com/ReySlash/job-application-tracker.git
 cd job-application-tracker
 ```
 
 ### 2. Install dependencies
 
-```
-cd frontend
+```bash
 npm install
+```
+
+### 3. Run the development server
+
+```bash
 npm run dev
 ```
 
----
+## Project Purpose
 
-## 📌 Project Purpose
+This project is part of my portfolio and learning process as a developer.
 
-This project is part of my portfolio as a web developer, focused on building practical applications with clean UI and solid state management.
+Its goal is to practice building a real-world CRUD-style application with clean UI, structured state management, and scalable project organization.
 
----
+## Author
 
-## 👨‍💻 Author
+Built by Rey
 
-Built by ReySlash
-=======
-# React + TypeScript + Vite
-
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
-
-Currently, two official plugins are available:
-
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
-
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
-
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
->>>>>>> cb0ae0c (Initial commit)
+GitHub: [ReySlash](https://github.com/ReySlash)

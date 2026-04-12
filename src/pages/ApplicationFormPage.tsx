@@ -1,10 +1,12 @@
-import { useContext, useRef } from "react";
-import { Link, useNavigate, useParams } from "react-router";
+import { useContext, useMemo } from "react";
+import { useNavigate, useParams } from "react-router";
 import ApplicationsContext from "../contexts/ApplicationsContext";
-import type { Application } from "../types/ApplicationType";
 import type { ApplicationInput } from "../types/ApplicationInput";
+import { type ApplicationsFormSchema } from "../schemas/ApplicationsFormSchema";
+import ApplicationForm from "../components/ApplicationForm";
 
 function ApplicationFormPage() {
+  // Route state decides whether this page creates a new record or edits one.
   const params = useParams();
   const applicationId = Number(params.id);
   const isEditing = Boolean(params.id);
@@ -12,54 +14,39 @@ function ApplicationFormPage() {
     useContext(ApplicationsContext);
   const navigate = useNavigate();
 
-  const emptyFormState: ApplicationInput = {
-    company: "",
-    role: "",
-    status: "applied",
-    appliedAt: new Date().toISOString().split("T")[0],
-    location: "",
-    jobUrl: "",
-    notes: "",
-  };
+  // Default values used when the form is opened in create mode.
+  const emptyFormState = useMemo<ApplicationInput>(
+    () => ({
+      company: "",
+      role: "",
+      status: "applied",
+      appliedAt: new Date().toISOString().split("T")[0],
+      location: "",
+      jobUrl: "",
+      notes: "",
+    }),
+    [],
+  );
 
   const applicationToUpdate = applicationsList.find(
     (application) => application.id === applicationId,
   );
 
-  const initialFormState: ApplicationInput =
-    isEditing && applicationToUpdate ? applicationToUpdate : emptyFormState;
+  // RHF reads this once on mount, then the effect below keeps edit-mode data synced.
+  const initialFormState: ApplicationInput = useMemo(
+    () =>
+      isEditing && applicationToUpdate ? applicationToUpdate : emptyFormState,
+    [applicationToUpdate, emptyFormState, isEditing],
+  );
 
-  const formRef = useRef<HTMLFormElement>(null);
-
-  const handleSubmit = (e: React.SubmitEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const form = formRef.current;
-
-    if (!form) {
-      return;
-    }
-
-    const formData = new FormData(form);
-
-    const applicationInput: ApplicationInput = {
-      company: String(formData.get("company") ?? ""),
-      role: String(formData.get("role") ?? ""),
-      status: String(
-        formData.get("status") ?? "applied",
-      ) as Application["status"],
-      appliedAt: String(formData.get("appliedAt") ?? ""),
-      location: String(formData.get("location") ?? ""),
-      jobUrl: String(formData.get("jobUrl") ?? ""),
-      notes: String(formData.get("notes") ?? ""),
-    };
-
+  // Valid data from Zod is saved through the shared applications provider.
+  const onSubmit = (applicationInput: ApplicationsFormSchema) => {
     if (isEditing && applicationToUpdate) {
       updateApplication(applicationToUpdate.id, applicationInput);
     } else {
       createApplication(applicationInput);
     }
 
-    form.reset();
     navigate("/applications");
   };
 
@@ -69,142 +56,11 @@ function ApplicationFormPage() {
         {isEditing ? "Update Application" : "New Application"}
       </h2>
 
-      <form
-        ref={formRef}
-        className="grid grid-cols-1 md:grid-cols-2 gap-4"
-        onSubmit={handleSubmit}
-      >
-        <div className="flex flex-col">
-          <label
-            htmlFor="company"
-            className="text-sm font-medium text-gray-700 mb-1"
-          >
-            Company
-          </label>
-          <input
-            className="border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-            type="text"
-            id="company"
-            name="company"
-            placeholder="e.g. Google"
-            defaultValue={initialFormState.company}
-            required
-          />
-        </div>
-        <div className="flex flex-col">
-          <label
-            htmlFor="role"
-            className="text-sm font-medium text-gray-700 mb-1"
-          >
-            Role
-          </label>
-          <input
-            className="border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-            type="text"
-            id="role"
-            name="role"
-            placeholder="e.g. Frontend Developer"
-            defaultValue={initialFormState.role}
-            required
-          />
-        </div>
-        <div className="flex flex-col">
-          <label
-            htmlFor="status"
-            className="text-sm font-medium text-gray-700 mb-1"
-          >
-            Status
-          </label>
-          <select
-            className="border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none bg-white"
-            id="status"
-            name="status"
-            defaultValue={initialFormState.status}
-          >
-            <option value="applied">Applied</option>
-            <option value="interview">Interview</option>
-            <option value="offer">Offer</option>
-            <option value="rejected">Rejected</option>
-          </select>
-        </div>
-        <div className="flex flex-col">
-          <label
-            htmlFor="appliedAt"
-            className="text-sm font-medium text-gray-700 mb-1"
-          >
-            Applied Date
-          </label>
-          <input
-            className="border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-            type="date"
-            id="appliedAt"
-            name="appliedAt"
-            defaultValue={initialFormState.appliedAt}
-          />
-        </div>
-        <div className="flex flex-col">
-          <label
-            htmlFor="location"
-            className="text-sm font-medium text-gray-700 mb-1"
-          >
-            Location
-          </label>
-          <input
-            className="border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-            type="text"
-            id="location"
-            name="location"
-            placeholder="Remote, NY, etc."
-            defaultValue={initialFormState.location}
-            required
-          />
-        </div>
-        <div className="flex flex-col">
-          <label
-            htmlFor="jobUrl"
-            className="text-sm font-medium text-gray-700 mb-1"
-          >
-            Job URL
-          </label>
-          <input
-            className="border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-            type="url"
-            id="jobUrl"
-            name="jobUrl"
-            placeholder="https://..."
-            defaultValue={initialFormState.jobUrl}
-          />
-        </div>
-        <div className="flex flex-col md:col-span-2">
-          <label
-            htmlFor="notes"
-            className="text-sm font-medium text-gray-700 mb-1"
-          >
-            Notes
-          </label>
-          <textarea
-            className="border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none min-h-25"
-            id="notes"
-            name="notes"
-            placeholder="Add any details about the interview process..."
-            defaultValue={initialFormState.notes}
-          ></textarea>
-        </div>
-        <div className="md:col-span-2 flex justify-end gap-3 mt-4">
-          <Link
-            to="/applications"
-            className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-md transition"
-          >
-            Cancel
-          </Link>
-          <button
-            type="submit"
-            className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition font-medium shadow-sm"
-          >
-            {isEditing ? "Update Application" : "Save Application"}
-          </button>
-        </div>
-      </form>
+      <ApplicationForm
+        onSubmit={onSubmit}
+        initialFormState={initialFormState}
+        isEditing={isEditing}
+      />
     </div>
   );
 }

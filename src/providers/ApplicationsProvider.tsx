@@ -33,11 +33,12 @@ function ApplicationsProvider(props: Props) {
   }, [applicationsState]);
 
   const createApplication = (application: ApplicationInput) => {
+    const now = new Date().toISOString();
     const newApplication: Application = {
       id: Date.now(),
       ...application,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      createdAt: now,
+      updatedAt: now,
     };
 
     setApplicationsState((current) => [newApplication, ...current]);

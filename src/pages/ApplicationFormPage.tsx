@@ -1,19 +1,29 @@
 import { useContext, useRef } from "react";
-import { Link, useNavigate } from "react-router";
+import { Link, useNavigate, useParams } from "react-router";
 import ApplicationsContext from "../contexts/ApplicationsContext";
 import type { Application } from "../types/ApplicationType";
+import type { ApplicationInput } from "../types/ApplicationInput";
 
 function ApplicationFormPage() {
-  const initialFormState: Omit<Application, "id" | "createdAt" | "updatedAt"> =
-    {
-      company: "",
-      role: "",
-      status: "applied",
-      appliedAt: new Date().toISOString().split("T")[0],
-      location: "",
-      jobUrl: "",
-      notes: "",
-    };
+  const { applicationsList } = useContext(ApplicationsContext);
+
+  const params = useParams();
+
+  const getInitialFormState = (): ApplicationInput => {
+    return (
+      applicationsList.find((a) => a.id === Number(params.id)) ?? {
+        company: "",
+        role: "",
+        status: "applied",
+        appliedAt: new Date().toISOString().split("T")[0],
+        location: "",
+        jobUrl: "",
+        notes: "",
+      }
+    );
+  };
+
+  const initialFormState: ApplicationInput = getInitialFormState();
 
   const formRef = useRef<HTMLFormElement>(null);
 
@@ -30,9 +40,7 @@ function ApplicationFormPage() {
 
     const formData = new FormData(form);
 
-    const now = new Date().toISOString();
-    const newApplication: Application = {
-      id: Date.now(),
+    const newApplication: ApplicationInput = {
       company: String(formData.get("company") ?? ""),
       role: String(formData.get("role") ?? ""),
       status: String(
@@ -42,8 +50,6 @@ function ApplicationFormPage() {
       location: String(formData.get("location") ?? ""),
       jobUrl: String(formData.get("jobUrl") ?? ""),
       notes: String(formData.get("notes") ?? ""),
-      createdAt: now,
-      updatedAt: now,
     };
 
     createApplication(newApplication);
@@ -53,9 +59,9 @@ function ApplicationFormPage() {
 
   return (
     <div className="max-w-2xl mx-auto mt-10 p-6 bg-white shadow-lg rounded-lg border border-gray-200">
-      <h1 className="text-2xl font-bold mb-6 text-gray-800 border-b pb-2">
+      <h2 className="text-2xl font-bold mb-6 text-gray-800 border-b pb-2">
         New Application
-      </h1>
+      </h2>
 
       <form
         ref={formRef}

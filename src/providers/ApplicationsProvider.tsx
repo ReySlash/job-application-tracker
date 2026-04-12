@@ -1,6 +1,8 @@
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import ApplicationsContext from "../contexts/ApplicationsContext";
-import { applications, type Application } from "../types/ApplicationType";
+import type { Application } from "../types/ApplicationType";
+import { applications } from "../data/ApplicationsList";
+import type { ApplicationInput } from "../types/ApplicationInput";
 
 type Props = {
   children: ReactNode;
@@ -8,21 +10,58 @@ type Props = {
 
 function ApplicationsProvider(props: Props) {
   const { children } = props;
-  const [applicationsState, setApplicationsState] = useState(applications);
-  const createApplication = (application: Application) => {
-    setApplicationsState([application, ...applicationsState]);
+
+  const getData = (): Application[] => {
+    const data = localStorage.getItem("applications");
+
+    if (!data) {
+      return applications;
+    }
+
+    try {
+      return JSON.parse(data) as Application[];
+    } catch {
+      return applications;
+    }
   };
-  const deleteApplication = (id: number) => {
-    setApplicationsState(
-      applicationsState.filter((application) => application.id !== id),
+
+  const [applicationsState, setApplicationsState] =
+    useState<Application[]>(getData);
+
+  useEffect(() => {
+    localStorage.setItem("applications", JSON.stringify(applicationsState));
+  }, [applicationsState]);
+
+  const createApplication = (application: ApplicationInput) => {
+    const newApplication: Application = {
+      id: Date.now(),
+      ...application,
+      createdAt: "",
+      updatedAt: "",
+    };
+
+    setApplicationsState((current) => [newApplication, ...current]);
+  };
+
+  const updateApplication = (id: number, updatedApplication: Application) => {
+    setApplicationsState((current) =>
+      current.map((a) => (a.id === id ? updatedApplication : a)),
     );
   };
+
+  const deleteApplication = (id: number) => {
+    setApplicationsState((current) =>
+      current.filter((application) => application.id !== id),
+    );
+  };
+
   return (
     <ApplicationsContext.Provider
       value={{
         applicationsList: applicationsState,
-        createApplication: createApplication,
-        deleteApplication: deleteApplication,
+        createApplication,
+        updateApplication,
+        deleteApplication,
       }}
     >
       {children}

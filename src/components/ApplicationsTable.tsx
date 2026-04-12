@@ -3,10 +3,11 @@ import removeIcon from "../assets/removeIcon.svg";
 import updateIcon from "../assets/updateIcon.svg";
 import viewIcon from "../assets/viewIcon.svg";
 import type { Application } from "../types/ApplicationType";
+import StatusBadge from "./StatusBadge";
 
 type Props = {
   applications: Application[];
-  onDelete: (id: number) => void;
+  onDelete: (id: number, company: string) => void;
 };
 
 function ApplicationsTable(props: Props) {
@@ -39,7 +40,11 @@ function ApplicationsTable(props: Props) {
           >
             {columns.map((column) => (
               <td className="px-1 py-1" key={column.key}>
-                {String(a[column.key] ?? "-")}
+                {column.key === "status" ? (
+                  <StatusBadge status={a[column.key]} />
+                ) : (
+                  String(a[column.key] ?? "-")
+                )}
               </td>
             ))}
             <td className="px-1 py-1 flex gap-2 justify-center">
@@ -53,7 +58,7 @@ function ApplicationsTable(props: Props) {
                 <img className="h-6" src={updateIcon} alt="update button" />
               </Link>
               <button
-                onClick={() => onDelete(a.id)}
+                onClick={() => onDelete(a.id, a.company)}
                 className="hover:cursor-pointer"
               >
                 <img className="h-6" src={removeIcon} alt="remove button" />

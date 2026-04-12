@@ -11,4 +11,4 @@ export type Application = {
   updatedAt: string;
 };
 
-type ApplicationStatus = "applied" | "interview" | "offer" | "rejected";
+export type ApplicationStatus = "applied" | "interview" | "offer" | "rejected";

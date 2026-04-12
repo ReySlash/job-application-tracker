@@ -36,16 +36,20 @@ function ApplicationsProvider(props: Props) {
     const newApplication: Application = {
       id: Date.now(),
       ...application,
-      createdAt: "",
-      updatedAt: "",
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
     };
 
     setApplicationsState((current) => [newApplication, ...current]);
   };
 
-  const updateApplication = (id: number, updatedApplication: Application) => {
+  const updateApplication = (id: number, input: ApplicationInput) => {
     setApplicationsState((current) =>
-      current.map((a) => (a.id === id ? updatedApplication : a)),
+      current.map((a) =>
+        a.id === id
+          ? { ...a, ...input, updatedAt: new Date().toISOString() }
+          : a,
+      ),
     );
   };
 

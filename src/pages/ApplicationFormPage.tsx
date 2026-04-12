@@ -5,30 +5,31 @@ import type { Application } from "../types/ApplicationType";
 import type { ApplicationInput } from "../types/ApplicationInput";
 
 function ApplicationFormPage() {
-  const { applicationsList } = useContext(ApplicationsContext);
-
   const params = useParams();
+  const applicationId = Number(params.id);
+  const isEditing = Boolean(params.id);
+  const { applicationsList, createApplication, updateApplication } =
+    useContext(ApplicationsContext);
+  const navigate = useNavigate();
 
-  const getInitialFormState = (): ApplicationInput => {
-    return (
-      applicationsList.find((a) => a.id === Number(params.id)) ?? {
-        company: "",
-        role: "",
-        status: "applied",
-        appliedAt: new Date().toISOString().split("T")[0],
-        location: "",
-        jobUrl: "",
-        notes: "",
-      }
-    );
+  const emptyFormState: ApplicationInput = {
+    company: "",
+    role: "",
+    status: "applied",
+    appliedAt: new Date().toISOString().split("T")[0],
+    location: "",
+    jobUrl: "",
+    notes: "",
   };
 
-  const initialFormState: ApplicationInput = getInitialFormState();
+  const applicationToUpdate = applicationsList.find(
+    (application) => application.id === applicationId,
+  );
+
+  const initialFormState: ApplicationInput =
+    isEditing && applicationToUpdate ? applicationToUpdate : emptyFormState;
 
   const formRef = useRef<HTMLFormElement>(null);
-
-  const { createApplication } = useContext(ApplicationsContext);
-  const navigate = useNavigate();
 
   const handleSubmit = (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -40,7 +41,7 @@ function ApplicationFormPage() {
 
     const formData = new FormData(form);
 
-    const newApplication: ApplicationInput = {
+    const applicationInput: ApplicationInput = {
       company: String(formData.get("company") ?? ""),
       role: String(formData.get("role") ?? ""),
       status: String(
@@ -52,7 +53,12 @@ function ApplicationFormPage() {
       notes: String(formData.get("notes") ?? ""),
     };
 
-    createApplication(newApplication);
+    if (isEditing && applicationToUpdate) {
+      updateApplication(applicationToUpdate.id, applicationInput);
+    } else {
+      createApplication(applicationInput);
+    }
+
     form.reset();
     navigate("/applications");
   };
@@ -60,7 +66,7 @@ function ApplicationFormPage() {
   return (
     <div className="max-w-2xl mx-auto mt-10 p-6 bg-white shadow-lg rounded-lg border border-gray-200">
       <h2 className="text-2xl font-bold mb-6 text-gray-800 border-b pb-2">
-        New Application
+        {isEditing ? "Update Application" : "New Application"}
       </h2>
 
       <form
@@ -195,7 +201,7 @@ function ApplicationFormPage() {
             type="submit"
             className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition font-medium shadow-sm"
           >
-            Save Application
+            {isEditing ? "Update Application" : "Save Application"}
           </button>
         </div>
       </form>

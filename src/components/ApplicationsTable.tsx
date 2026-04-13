@@ -25,17 +25,17 @@ function ApplicationsTable(props: Props) {
       <thead>
         <tr className="bg-gray-200">
           {columns.map((column) => (
-            <th className="px-1 py-1" key={column.key}>
+            <th className="px-1 py-1 bg-teal-600 text-white" key={column.key}>
               {column.header}
             </th>
           ))}
-          <th className="px-1 py-1">Actions</th>
+          <th className="px-1 py-1  bg-teal-600 text-white">Actions</th>
         </tr>
       </thead>
       <tbody>
         {applications.map((a: Application) => (
           <tr
-            className="odd:bg-white even:bg-gray-200 hover:bg-gray-400"
+            className="odd:bg-white even:bg-gray-200 hover:bg-gray-300"
             key={a.id}
           >
             {columns.map((column) => (

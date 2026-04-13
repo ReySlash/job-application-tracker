@@ -21,7 +21,7 @@ function AppLayout() {
         }`}
       >
         <img
-          className={`${sidebar ? "h-6" : "h-8"} transition-all duration-300 ease-in-out`}
+          className={`${sidebar ? "h-6" : "h-8"} transition-all duration-300 ease-in-out hover:cursor-pointer`}
           src={sidebar ? closeIcon : hamburgerIcon}
           alt={sidebar ? "close sidebar" : "open sidebar"}
         />

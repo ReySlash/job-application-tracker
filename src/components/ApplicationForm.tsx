@@ -44,7 +44,7 @@ function ApplicationForm(props: Props) {
           Company
         </label>
         <input
-          className="border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+          className="border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-teal-500 focus:outline-none transition-ring duration-200"
           type="text"
           id="company"
           {...register("company")}
@@ -64,7 +64,7 @@ function ApplicationForm(props: Props) {
           Role
         </label>
         <input
-          className="border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+          className="border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-teal-500 focus:outline-none transition-ring duration-200"
           type="text"
           id="role"
           {...register("role")}
@@ -84,7 +84,7 @@ function ApplicationForm(props: Props) {
           Status
         </label>
         <select
-          className="border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none bg-white"
+          className="border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-teal-500 focus:outline-none bg-white transition-ring duration-200 hover:cursor-pointer"
           id="status"
           {...register("status")}
         >
@@ -107,7 +107,7 @@ function ApplicationForm(props: Props) {
           Applied Date
         </label>
         <input
-          className="border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+          className="border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-teal-500 focus:outline-none transition-ring duration-200 hover:cursor-pointer"
           type="date"
           id="appliedAt"
           {...register("appliedAt")}
@@ -128,7 +128,7 @@ function ApplicationForm(props: Props) {
           Location
         </label>
         <input
-          className="border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+          className="border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-teal-500 focus:outline-none transition-ring duration-200"
           type="text"
           id="location"
           {...register("location")}
@@ -148,7 +148,7 @@ function ApplicationForm(props: Props) {
           Job URL
         </label>
         <input
-          className="border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+          className="border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-teal-500 focus:outline-none transition-ring duration-200"
           type="url"
           id="jobUrl"
           {...register("jobUrl")}
@@ -168,7 +168,7 @@ function ApplicationForm(props: Props) {
           Notes
         </label>
         <textarea
-          className="border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none min-h-25"
+          className="border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-teal-500 focus:outline-none min-h-25 transition-ring duration-200"
           id="notes"
           {...register("notes")}
           placeholder="Add any details about the interview process..."
@@ -182,14 +182,14 @@ function ApplicationForm(props: Props) {
       <div className="md:col-span-2 flex justify-end gap-3 mt-4">
         <Link
           to="/applications"
-          className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-md transition"
+          className="max-h-10 p-2 bg-gray-300 hover:bg-gray-200 rounded-md transition"
         >
           Cancel
         </Link>
         <button
           type="submit"
           disabled={isSubmitting}
-          className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition font-medium shadow-sm"
+          className="max-w-45 text-center rounded-md  bg-teal-600 text-white p-2 mb-2 ml-5 hover:bg-teal-500 active:bg-teal-600 transition-colors duration-200"
         >
           {isEditing ? "Update Application" : "Save Application"}
         </button>

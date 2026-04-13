@@ -44,7 +44,7 @@ function ApplicationsPage() {
           </p>
           <Link
             to="/applications/new"
-            className="border border-black rounded-md bg-gray-300 p-1 m-2"
+            className="max-w-45 text-center rounded-md  bg-teal-600 text-white p-2 mb-2 ml-5 hover:bg-teal-500 active:bg-teal-600 transition-colors duration-200"
           >
             Add New Application
           </Link>
@@ -54,7 +54,7 @@ function ApplicationsPage() {
           <div className="grid grid-cols-2">
             <Link
               to="/applications/new"
-              className="max-w-45 text-center col-span-1 border border-black rounded-md bg-gray-300 p-1 mb-2 ml-5"
+              className="max-w-45 text-center col-span-1  rounded-md  bg-teal-600 text-white p-2 mb-2 ml-5 hover:bg-teal-500 active:bg-teal-600 transition-colors duration-200"
             >
               Add New Application
             </Link>
@@ -66,7 +66,7 @@ function ApplicationsPage() {
                 value={filterStatus}
                 onChange={handleStatusFilterChange}
                 id="status-filter"
-                className="border border-black rounded-md p-1 m-2 justify-end"
+                className="border border-black rounded-md p-1 m-2 justify-end hover:cursor-pointer"
               >
                 <option value="">All</option>
                 <option value="applied">Applied</option>

@@ -3,7 +3,7 @@ import { Link } from "react-router";
 import ApplicationsContext from "../contexts/ApplicationsContext";
 import ApplicationsTable from "../components/ApplicationsTable";
 import type { FilterStatus } from "../types/StatusFilter";
-import type { DateOrderType } from "../types/DateOrderType";
+import type { SortConfig } from "../types/SortConfig";
 
 function ApplicationsPage() {
   // Shared application data and actions come from the provider.
@@ -33,25 +33,35 @@ function ApplicationsPage() {
   }, [searchedApplications, filterStatus]);
 
   // Sort state controls the applied date ordering.
-  const [sortOrder, setSortOrder] = useState<DateOrderType>("none");
+  const [sortConfig, setSortConfig] = useState<SortConfig>(null);
 
   // Sort a copy of the filtered list so the provider state stays unchanged.
-  const sortedApplications = useMemo(() => {
-    switch (sortOrder) {
-      case "newest":
-        return [...filteredApplications].sort(
-          (a, b) =>
-            new Date(b.appliedAt).getTime() - new Date(a.appliedAt).getTime(),
-        );
-      case "oldest":
-        return [...filteredApplications].sort(
-          (a, b) =>
-            new Date(a.appliedAt).getTime() - new Date(b.appliedAt).getTime(),
-        );
-      default:
-        return filteredApplications;
+  const onSort = (key: NonNullable<SortConfig>["sortKey"]) => {
+    if (!sortConfig || sortConfig.sortKey !== key) {
+      setSortConfig({
+        sortKey: key,
+        sortOrder: "asc",
+      });
+    } else {
+      setSortConfig({
+        sortKey: sortConfig.sortKey,
+        sortOrder: sortConfig.sortOrder === "asc" ? "desc" : "asc",
+      });
     }
-  }, [filteredApplications, sortOrder]);
+  };
+
+  const sortedApplications = useMemo(() => {
+    if (!sortConfig?.sortKey) return filteredApplications;
+
+    const sorted = [...filteredApplications].sort((a, b) => {
+      const aValue = a[sortConfig.sortKey];
+      const bValue = b[sortConfig.sortKey];
+      if (aValue < bValue) return sortConfig.sortOrder === "asc" ? -1 : 1;
+      if (aValue > bValue) return sortConfig.sortOrder === "asc" ? 1 : -1;
+      return 0;
+    });
+    return sorted;
+  }, [filteredApplications, sortConfig]);
 
   // Confirm before deleting so clicks in the table are not destructive by accident.
   const removeApplication = (id: number, company: string) => {
@@ -95,7 +105,7 @@ function ApplicationsPage() {
               Add New Application
             </Link>
 
-            {/* Search, Status filter and date sort */}
+            {/* Search and Status filter */}
             <div className="col-span-4 flex justify-end mr-5 items-center">
               <div className="flex row space-x-2 m-1 items-center">
                 <label className="py-4" htmlFor="search-field">
@@ -127,19 +137,6 @@ function ApplicationsPage() {
                 <option value="offer">Offer</option>
                 <option value="rejected">Rejected</option>
               </select>
-              <label className="m-1 py-4" htmlFor="sort-order">
-                Sort by applied date:
-              </label>
-              <select
-                value={sortOrder}
-                onChange={(e) => setSortOrder(e.target.value as DateOrderType)}
-                id="sort-order"
-                className="border border-black rounded-md p-1 my-3 mx-1 justify-end hover:cursor-pointer max-h-10 max-w-23"
-              >
-                <option value="none">None</option>
-                <option value="newest">Newest</option>
-                <option value="oldest">Oldest</option>
-              </select>
             </div>
           </div>
 
@@ -152,6 +149,8 @@ function ApplicationsPage() {
             <ApplicationsTable
               applications={sortedApplications}
               onDelete={removeApplication}
+              onSort={onSort}
+              sortConfig={sortConfig}
             />
           )}
         </div>

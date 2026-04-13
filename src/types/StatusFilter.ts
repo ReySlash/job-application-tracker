@@ -1,3 +1,3 @@
 import type { Application } from "./ApplicationType";
 
-export type FilterStatus = "" | Application["status"];
+export type FilterStatus = "all" | Application["status"];

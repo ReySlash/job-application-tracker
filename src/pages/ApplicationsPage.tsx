@@ -1,20 +1,41 @@
-import { useContext, useMemo, useState, type ChangeEvent } from "react";
+import { useContext, useMemo, useState } from "react";
 import { Link } from "react-router";
 import ApplicationsContext from "../contexts/ApplicationsContext";
 import ApplicationsTable from "../components/ApplicationsTable";
 import type { FilterStatus } from "../types/StatusFilter";
+import type { DateOrderType } from "../types/DateOrderType";
 
 function ApplicationsPage() {
   const { applicationsList, deleteApplication } =
     useContext(ApplicationsContext);
 
-  const [filterStatus, setFilterStatus] = useState<FilterStatus>("");
+  const [filterStatus, setFilterStatus] = useState<FilterStatus>("all");
 
   const filteredApplications = useMemo(() => {
-    return filterStatus
+    return filterStatus !== "all"
       ? applicationsList.filter((app) => app.status === filterStatus)
       : applicationsList;
   }, [applicationsList, filterStatus]);
+
+  const [applicationsOrder, setApplicationsOrder] =
+    useState<DateOrderType>("none");
+
+  const sortedApplications = useMemo(() => {
+    switch (applicationsOrder) {
+      case "newest":
+        return [...filteredApplications].sort(
+          (a, b) =>
+            new Date(b.appliedAt).getTime() - new Date(a.appliedAt).getTime(),
+        );
+      case "oldest":
+        return [...filteredApplications].sort(
+          (a, b) =>
+            new Date(a.appliedAt).getTime() - new Date(b.appliedAt).getTime(),
+        );
+      default:
+        return filteredApplications;
+    }
+  }, [filteredApplications, applicationsOrder]);
 
   const removeApplication = (id: number, company: string) => {
     if (
@@ -24,10 +45,6 @@ function ApplicationsPage() {
     ) {
       deleteApplication(id);
     }
-  };
-
-  const handleStatusFilterChange = (e: ChangeEvent<HTMLSelectElement>) => {
-    setFilterStatus(e.target.value as FilterStatus);
   };
 
   return (
@@ -64,20 +81,37 @@ function ApplicationsPage() {
               </label>
               <select
                 value={filterStatus}
-                onChange={handleStatusFilterChange}
+                onChange={(e) =>
+                  setFilterStatus(e.target.value as FilterStatus)
+                }
                 id="status-filter"
                 className="border border-black rounded-md p-1 m-2 justify-end hover:cursor-pointer"
               >
-                <option value="">All</option>
+                <option value="all">All</option>
                 <option value="applied">Applied</option>
                 <option value="interview">Interview</option>
                 <option value="offer">Offer</option>
                 <option value="rejected">Rejected</option>
               </select>
+              <label className="pt-3 " htmlFor="sort-order">
+                Sort by applied date:
+              </label>
+              <select
+                value={applicationsOrder}
+                onChange={(e) =>
+                  setApplicationsOrder(e.target.value as DateOrderType)
+                }
+                id="sort-order"
+                className="border border-black rounded-md p-1 m-2 justify-end hover:cursor-pointer"
+              >
+                <option value="none">None</option>
+                <option value="newest">Newest</option>
+                <option value="oldest">Oldest</option>
+              </select>
             </div>
           </div>
           <ApplicationsTable
-            applications={filteredApplications}
+            applications={sortedApplications}
             onDelete={removeApplication}
           />
         </div>

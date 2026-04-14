@@ -182,14 +182,14 @@ function ApplicationForm(props: Props) {
       <div className="md:col-span-2 flex justify-end gap-3 mt-4">
         <Link
           to="/applications"
-          className="max-h-10 p-2 bg-gray-300 hover:bg-gray-200 rounded-md transition"
+          className="max-h-10 p-2 bg-gray-300 hover:bg-gray-200 hover:scale-105 active:bg-gray-300 transition-all duration-200 rounded-md"
         >
           Cancel
         </Link>
         <button
           type="submit"
           disabled={isSubmitting}
-          className="max-w-45 text-center rounded-md  bg-teal-600 text-white p-2 mb-2 ml-5 hover:bg-teal-500 active:bg-teal-600 transition-colors duration-200"
+          className="max-w-45 text-center rounded-md  bg-teal-600 text-white p-2 mb-2 ml-5 hover:bg-teal-500 hover:scale-105 active:bg-teal-600 transition-all duration-200"
         >
           {isEditing ? "Update Application" : "Save Application"}
         </button>

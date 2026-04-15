@@ -1,47 +1,121 @@
 # Job Application Tracker
 
-A frontend project for managing and tracking job applications in a simple and structured way.
+A frontend-focused web app for managing and tracking job applications in a structured, practical way.
 
 ## Overview
 
-Job Application Tracker is a web application built to help users organize their job search process.
+Job Application Tracker helps users organize their job search in one place instead of relying on spreadsheets, notes, or scattered links.
 
-Instead of using spreadsheets or scattered notes, the app provides a single place to manage job application data such as company, role, status, application date, location, job URL, and notes.
+The app is designed around a simple but realistic workflow:
+
+- create applications
+- review them in a structured list
+- update existing records
+- remove records when needed
+- keep track of important job search details over time
+
+This project is also part of my portfolio and learning journey as I build real-world CRUD-style applications with scalable frontend architecture.
+
+---
 
 ## Current Status
 
-This project is currently in development.
+This project is actively in development.
 
-The current focus is on building the frontend, application management flow, and page navigation.
+The current focus is on:
 
-## Current Stack
+- building a solid frontend architecture
+- improving CRUD flows
+- making UI behavior more realistic
+- keeping the project portfolio-ready as it grows
+
+---
+
+## Tech Stack
+
+### Core
 
 - React
 - TypeScript
 - Vite
+
+### Routing
+
 - React Router
+
+### Styling
+
 - Tailwind CSS
 
-## Features
+### Forms and Validation
 
-Current or planned core functionality includes:
+- React Hook Form
+- Zod
+- `@hookform/resolvers`
+
+---
+
+## Main Goal
+
+The purpose of this project is to practice building a realistic application that includes:
+
+- page routing
+- reusable UI components
+- form handling
+- validation
+- state management
+- scalable project structure
+- portfolio-quality frontend development
+
+---
+
+## Features Implemented or In Progress
+
+### Application Management
 
 - Create job applications
-- Update job applications
-- Delete job applications
-- Track important application details:
-  - company
-  - role
-  - status
-  - application date
-  - location
-- Add optional fields:
-  - job URL
-  - notes
-- Navigate between pages with React Router
-- Display job applications in a structured UI
+- Edit existing applications
+- Delete applications
+- View application records in a structured interface
+
+### Application Fields
+
+Each application is designed to store information such as:
+
+- company
+- role
+- status
+- application date
+- location
+- job URL
+- notes
+
+### UI / UX Direction
+
+The project is being shaped to include:
+
+- clear empty states
+- validation feedback
+- better list rendering
+- cleaner application details view
+- improved responsiveness
+- more polished interaction flows
+
+### Planned Product Direction
+
+The app is being developed toward a more complete experience with:
+
+- filtering
+- sorting
+- dashboard statistics
+- improved detail views
+- portfolio-quality documentation and structure
+
+---
 
 ## Project Structure
+
+The exact structure may continue evolving, but the app is organized around a standard React + TypeScript setup.
 
 ```bash
 job-application-tracker/
@@ -51,45 +125,61 @@ job-application-tracker/
 └── ...
 ```
 
-## Getting Started
+As the project grows, the codebase is expected to remain organized around:
 
-### 1. Clone the repository
+pages
+reusable components
+routing
+form logic
+validation
+application state
 
-```bash
-git clone https://github.com/ReySlash/job-application-tracker.git
-cd job-application-tracker
-```
+### Getting Started
 
-### 2. Install dependencies
+1. Clone the repository
+   git clone https://github.com/ReySlash/job-application-tracker.git
+   cd job-application-tracker
 
-```bash
-npm install
-```
+2. Install dependencies
+   npm install
 
-### 3. Start the development server
+3. Start the development server
+   npm run dev
 
-```bash
+4. Build for production
+   npm run build
+
+5. Preview production build
+   npm run preview
+
+Available Scripts
 npm run dev
-```
+npm run build
+npm run lint
+npm run preview
+Why This Project Matters
 
-## Project Purpose
+This project is more than a simple CRUD exercise.
 
-This project is part of my portfolio and learning process as a developer.
+It is meant to help me practice the type of frontend work commonly needed in real applications:
 
-Its goal is to practice building a real-world CRUD-style application with clean UI, routing, and scalable frontend structure.
+handling user input correctly
+validating forms
+managing page navigation
+structuring medium-sized React projects
+polishing UI behavior
+preparing projects for portfolio presentation
+Roadmap
 
-## Roadmap
+Possible next steps include:
 
-Possible next steps for the project:
-
-- Improve form state handling
-- Add persistent storage or backend integration
-- Add filtering and sorting for applications
-- Add dashboard views and analytics
-- Improve validation and user feedback
-
-## Author
+improving state organization
+persisting data more robustly
+refining filter and sort behavior
+adding dashboard metrics and summaries
+improving responsive behavior for smaller screens
+polishing documentation and developer experience
+preparing for backend integration later if needed
+Author
 
 Built by ReySlash
-
-GitHub: [ReySlash](https://github.com/ReySlash)

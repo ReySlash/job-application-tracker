@@ -30,7 +30,7 @@ function ApplicationsListView(props: Props) {
   return (
     <>
       <div className="hidden md:block">
-        <table className="w-full text-center border-collapse mt-3">
+        <table className="w-full text-center border-collapse">
           <thead>
             <tr className="">
               {columns.map((column) => (

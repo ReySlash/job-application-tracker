@@ -9,6 +9,7 @@ import type {
 import ApplicationsListView from "../components/ApplicationsListView";
 import ApplicationsControls from "../components/ApplicationsControls";
 import ApplicationsEmptyState from "../components/ApplicationsEmptyState";
+import { Link } from "react-router";
 
 function ApplicationsPage() {
   // Shared application data and actions come from the provider.
@@ -92,8 +93,16 @@ function ApplicationsPage() {
 
   return (
     <>
-      <h2 className="flex justify-center text-4xl p-2 mb-5">Applications</h2>
+      <h2 className="flex justify-center text-4xl p-2 mb-2">Applications</h2>
 
+      <div className="flex justify-center md:justify-start">
+        <Link
+          to="/applications/new"
+          className="inline-block text-center whitespace-nowrap w-auto rounded-md bg-teal-600 text-white p-2 px-2 mx-5 hover:bg-teal-500 hover:scale-105 active:bg-teal-600 transition-all duration-200"
+        >
+          Add New Application
+        </Link>
+      </div>
       <ApplicationsControls
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}

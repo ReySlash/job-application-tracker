@@ -1,9 +1,8 @@
 import { useContext, useMemo, useState } from "react";
-import ApplicationsControls from "../components/ApplicationsControls";
 import ApplicationsContext from "../contexts/ApplicationsContext";
-import type { MobileSortOption } from "../types/SortConfig";
 import type { FilterStatus } from "../types/StatusFilter";
 import ApplicationsStats from "../components/ApplicationsStats";
+import DashboardControls from "../components/DashboardControls";
 
 function DashboardPage() {
   const { applicationsList } = useContext(ApplicationsContext);
@@ -24,10 +23,6 @@ function DashboardPage() {
       : searchedApplications;
   }, [applicationsList, filterStatus, searchQuery]);
 
-  const handleMobileSortChange = (value: MobileSortOption) => {
-    void value;
-  };
-
   const total = filteredApplications.length;
   const applied = filteredApplications.filter(
     (app) => app.status === "applied",
@@ -45,12 +40,11 @@ function DashboardPage() {
   return (
     <>
       <h1 className="flex justify-center text-4xl p-2 mb-2">Dashboard</h1>
-      <ApplicationsControls
+      <DashboardControls
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
         filterStatus={filterStatus}
         setFilterStatus={setFilterStatus}
-        handleMobileSortChange={handleMobileSortChange}
         filtersOpen={filtersOpen}
         setFiltersOpen={setFiltersOpen}
       />

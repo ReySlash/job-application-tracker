@@ -12,7 +12,7 @@ type Props = {
   handleMobileSortChange: (option: MobileSortOption) => void;
 };
 
-function MobileDrawer(props: Props) {
+function ApplicationsMobileDrawer(props: Props) {
   const {
     searchQuery,
     setSearchQuery,
@@ -101,4 +101,4 @@ function MobileDrawer(props: Props) {
   );
 }
 
-export default MobileDrawer;
+export default ApplicationsMobileDrawer;

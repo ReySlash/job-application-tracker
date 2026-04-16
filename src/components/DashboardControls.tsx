@@ -1,9 +1,7 @@
 import type { FilterStatus } from "../types/StatusFilter";
-import type { MobileSortOption } from "../types/SortConfig";
-
 import filterIcon from "../assets/filterIcon.svg";
-import ApplicationsMobileDrawer from "./ApplicationsMobileDrawer";
 import DesktopControls from "./DesktopControls";
+import DashboardMobileControls from "./DashboardMobileControls";
 
 type Props = {
   searchQuery: string;
@@ -12,10 +10,9 @@ type Props = {
   setFilterStatus: (status: FilterStatus) => void;
   filtersOpen: boolean;
   setFiltersOpen: (open: boolean) => void;
-  handleMobileSortChange: (option: MobileSortOption) => void;
 };
 
-function ApplicationsControls(props: Props) {
+function DashboardControls(props: Props) {
   const {
     searchQuery,
     setSearchQuery,
@@ -23,8 +20,8 @@ function ApplicationsControls(props: Props) {
     setFilterStatus,
     filtersOpen,
     setFiltersOpen,
-    handleMobileSortChange,
   } = props;
+
   return (
     <>
       <button
@@ -63,18 +60,17 @@ function ApplicationsControls(props: Props) {
           }`}
         />
 
-        <ApplicationsMobileDrawer
+        <DashboardMobileControls
           filtersOpen={filtersOpen}
           setFiltersOpen={setFiltersOpen}
           searchQuery={searchQuery}
           setSearchQuery={setSearchQuery}
           filterStatus={filterStatus}
           setFilterStatus={setFilterStatus}
-          handleMobileSortChange={handleMobileSortChange}
         />
       </div>
     </>
   );
 }
 
-export default ApplicationsControls;
+export default DashboardControls;

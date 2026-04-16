@@ -46,8 +46,13 @@ function ApplicationFormPage() {
     } else {
       createApplication(applicationInput);
     }
-
-    navigate("/applications");
+    navigate("/applications", {
+      state: {
+        successMessage: isEditing
+          ? "Application updated successfully!"
+          : "Application created successfully!",
+      },
+    });
   };
 
   return (

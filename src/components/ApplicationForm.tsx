@@ -29,12 +29,32 @@ function ApplicationForm(props: Props) {
     reset(initialFormState);
   }, [initialFormState, reset]);
 
+  const buttonText = isEditing
+    ? isSubmitting
+      ? "Updating..."
+      : "Update Application"
+    : isSubmitting
+      ? "Saving..."
+      : "Save Application";
   return (
     <form
       className="grid grid-cols-1 md:grid-cols-2 gap-4"
       onSubmit={handleSubmit(onSubmit)}
       noValidate
     >
+      {/* if exist any error, show an alert error message */}
+      {Object.keys(errors).length > 0 && (
+        <div className="md:col-span-2 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative">
+          <strong className="font-bold">
+            Please fix the highlighted fields.
+          </strong>
+          <ul className="mt-2 list-disc list-inside">
+            {Object.entries(errors).map(([field, error]) => (
+              <li key={field}>{error.message}</li>
+            ))}
+          </ul>
+        </div>
+      )}
       {/* Company field */}
       <div className="flex flex-col">
         <label
@@ -191,7 +211,7 @@ function ApplicationForm(props: Props) {
           disabled={isSubmitting}
           className="max-w-45 text-center rounded-md  bg-teal-600 text-white p-2 mb-2 ml-5 hover:bg-teal-500 hover:scale-105 active:bg-teal-600 transition-all duration-200"
         >
-          {isEditing ? "Update Application" : "Save Application"}
+          {buttonText}
         </button>
       </div>
     </form>

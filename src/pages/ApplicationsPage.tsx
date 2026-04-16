@@ -1,4 +1,4 @@
-import { useContext, useMemo, useState } from "react";
+import { useContext, useEffect, useMemo, useState } from "react";
 import ApplicationsContext from "../contexts/ApplicationsContext";
 import type { FilterStatus } from "../types/StatusFilter";
 import type {
@@ -9,9 +9,38 @@ import type {
 import ApplicationsListView from "../components/ApplicationsListView";
 import ApplicationsControls from "../components/ApplicationsControls";
 import ApplicationsEmptyState from "../components/ApplicationsEmptyState";
-import { Link } from "react-router";
+import { Link, useLocation, useNavigate } from "react-router";
+
+type ApplicationsPageLocationState = {
+  successMessage?: string;
+} | null;
 
 function ApplicationsPage() {
+  // Banner state
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  const locationState = location.state as ApplicationsPageLocationState;
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    const message = locationState?.successMessage;
+    if (!message) return;
+
+    // Safe: setting state from navigation state, no loop risk
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setSuccessMessage(message);
+
+    const timeoutId = window.setTimeout(() => {
+      setSuccessMessage(null);
+    }, 3000);
+
+    // clear route state so it doesn't persist
+    navigate(location.pathname, { replace: true, state: null });
+
+    return () => window.clearTimeout(timeoutId);
+  }, [locationState, navigate, location.pathname]);
+
   // Shared application data and actions come from the provider.
   const { applicationsList, deleteApplication } =
     useContext(ApplicationsContext);
@@ -93,6 +122,19 @@ function ApplicationsPage() {
 
   return (
     <>
+      {successMessage && (
+        <div className="flex items-center justify-between rounded border border-green-300 bg-green-100 px-4 py-2 mx-100 my-2 text-green-800">
+          <span className="text-center">{successMessage}</span>
+          <button
+            type="button"
+            onClick={() => setSuccessMessage(null)}
+            className="ml-4 rounded px-2 py-1 font-medium hover:bg-green-200"
+          >
+            Dismiss
+          </button>
+        </div>
+      )}
+
       <h2 className="flex justify-center text-4xl p-2 mb-2">Applications</h2>
 
       <div className="flex justify-center md:justify-start">

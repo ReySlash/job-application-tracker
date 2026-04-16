@@ -140,7 +140,7 @@ function ApplicationsPage() {
       <div className="flex justify-center md:justify-start">
         <Link
           to="/applications/new"
-          className="inline-block text-center whitespace-nowrap w-auto rounded-md bg-teal-600 text-white p-2 px-2 mx-5 hover:bg-teal-500 hover:scale-105 active:bg-teal-600 transition-all duration-200"
+          className="inline-block text-center whitespace-nowrap w-auto rounded-md bg-teal-600 text-white p-2 px-2 mx-15 hover:bg-teal-500 hover:scale-105 active:bg-teal-600 transition-all duration-200"
         >
           Add New Application
         </Link>

@@ -73,14 +73,14 @@ function ApplicationDetailsPage() {
         <div className="flex flex-wrap items-center gap-2">
           <Link
             to="/applications"
-            className="max-h-10 min-w-24 rounded-md bg-gray-300 p-2 text-center transition-all duration-200 hover:scale-105 hover:bg-gray-200 active:bg-gray-300"
+            className="inline-flex min-w-24 justify-center rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100"
           >
             Back
           </Link>
 
           <Link
             to={`/applications/${application.id}/edit`}
-            className="min-w-24 rounded-md bg-teal-600 p-2 text-center text-white transition-all duration-200 hover:scale-105 hover:bg-teal-500 active:bg-teal-600"
+            className="inline-flex min-w-24 justify-center rounded-md bg-teal-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:cursor-pointer hover:bg-teal-500"
           >
             Edit
           </Link>
@@ -88,7 +88,7 @@ function ApplicationDetailsPage() {
           <button
             type="button"
             onClick={handleDelete}
-            className="min-w-24 rounded-md border border-red-500 p-2 text-center text-red-500 transition-all duration-200 hover:scale-105 hover:bg-red-500 hover:text-white active:bg-red-600"
+            className="inline-flex min-w-24 justify-center rounded-md border border-red-500 px-4 py-2 text-sm font-medium text-red-500 transition-colors hover:cursor-pointer hover:bg-red-500 hover:text-white"
           >
             Delete
           </button>

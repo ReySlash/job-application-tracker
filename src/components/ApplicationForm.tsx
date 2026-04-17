@@ -1,9 +1,9 @@
-import { useForm } from "react-hook-form";
-import type { ApplicationsFormSchema } from "../schemas/ApplicationsFormSchema";
-import { zodResolver } from "@hookform/resolvers/zod";
-import applicationsFormSchema from "../schemas/ApplicationsFormSchema";
-import { useEffect } from "react";
-import { Link } from "react-router";
+import { useForm } from 'react-hook-form';
+import type { ApplicationsFormSchema } from '../schemas/ApplicationsFormSchema';
+import { zodResolver } from '@hookform/resolvers/zod';
+import applicationsFormSchema from '../schemas/ApplicationsFormSchema';
+import { useEffect } from 'react';
+import { Link } from 'react-router';
 
 type Props = {
   onSubmit: (applicationInput: ApplicationsFormSchema) => void;
@@ -31,24 +31,22 @@ function ApplicationForm(props: Props) {
 
   const buttonText = isEditing
     ? isSubmitting
-      ? "Updating..."
-      : "Update Application"
+      ? 'Updating...'
+      : 'Update Application'
     : isSubmitting
-      ? "Saving..."
-      : "Save Application";
+      ? 'Saving...'
+      : 'Save Application';
   return (
     <form
-      className="grid grid-cols-1 md:grid-cols-2 gap-4"
+      className="grid grid-cols-1 gap-4 md:grid-cols-2"
       onSubmit={handleSubmit(onSubmit)}
       noValidate
     >
       {/* if exist any error, show an alert error message */}
       {Object.keys(errors).length > 0 && (
-        <div className="md:col-span-2 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative">
-          <strong className="font-bold">
-            Please fix the highlighted fields.
-          </strong>
-          <ul className="mt-2 list-disc list-inside">
+        <div className="relative rounded border border-red-400 bg-red-100 px-4 py-3 text-red-700 md:col-span-2">
+          <strong className="font-bold">Please fix the highlighted fields.</strong>
+          <ul className="mt-2 list-inside list-disc">
             {Object.entries(errors).map(([field, error]) => (
               <li key={field}>{error.message}</li>
             ))}
@@ -57,159 +55,125 @@ function ApplicationForm(props: Props) {
       )}
       {/* Company field */}
       <div className="flex flex-col">
-        <label
-          htmlFor="company"
-          className="text-sm font-medium text-gray-700 mb-1"
-        >
+        <label htmlFor="company" className="mb-1 text-sm font-medium text-gray-700">
           Company
         </label>
         <input
-          className="border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-teal-500 focus:outline-none transition-ring duration-200"
+          className="transition-ring rounded-md border border-gray-300 p-2 duration-200 focus:ring-2 focus:ring-teal-500 focus:outline-none"
           type="text"
           id="company"
-          {...register("company")}
+          {...register('company')}
           placeholder="e.g. Google"
         />
-        {errors.company && (
-          <p className="mt-1 text-sm text-red-600">{errors.company.message}</p>
-        )}
+        {errors.company && <p className="mt-1 text-sm text-red-600">{errors.company.message}</p>}
       </div>
 
       {/* Role field */}
       <div className="flex flex-col">
-        <label
-          htmlFor="role"
-          className="text-sm font-medium text-gray-700 mb-1"
-        >
+        <label htmlFor="role" className="mb-1 text-sm font-medium text-gray-700">
           Role
         </label>
         <input
-          className="border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-teal-500 focus:outline-none transition-ring duration-200"
+          className="transition-ring rounded-md border border-gray-300 p-2 duration-200 focus:ring-2 focus:ring-teal-500 focus:outline-none"
           type="text"
           id="role"
-          {...register("role")}
+          {...register('role')}
           placeholder="e.g. Frontend Developer"
         />
-        {errors.role && (
-          <p className="mt-1 text-sm text-red-600">{errors.role.message}</p>
-        )}
+        {errors.role && <p className="mt-1 text-sm text-red-600">{errors.role.message}</p>}
       </div>
 
       {/* Application status field */}
       <div className="flex flex-col">
-        <label
-          htmlFor="status"
-          className="text-sm font-medium text-gray-700 mb-1"
-        >
+        <label htmlFor="status" className="mb-1 text-sm font-medium text-gray-700">
           Status
         </label>
         <select
-          className="border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-teal-500 focus:outline-none bg-white transition-ring duration-200 hover:cursor-pointer"
+          className="transition-ring rounded-md border border-gray-300 bg-white p-2 duration-200 hover:cursor-pointer focus:ring-2 focus:ring-teal-500 focus:outline-none"
           id="status"
-          {...register("status")}
+          {...register('status')}
         >
           <option value="applied">Applied</option>
           <option value="interview">Interview</option>
           <option value="offer">Offer</option>
           <option value="rejected">Rejected</option>
         </select>
-        {errors.status && (
-          <p className="mt-1 text-sm text-red-600">{errors.status.message}</p>
-        )}
+        {errors.status && <p className="mt-1 text-sm text-red-600">{errors.status.message}</p>}
       </div>
 
       {/* Applied date field */}
       <div className="flex flex-col">
-        <label
-          htmlFor="appliedAt"
-          className="text-sm font-medium text-gray-700 mb-1"
-        >
+        <label htmlFor="appliedAt" className="mb-1 text-sm font-medium text-gray-700">
           Applied Date
         </label>
         <input
-          className="border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-teal-500 focus:outline-none transition-ring duration-200 hover:cursor-pointer"
+          className="transition-ring rounded-md border border-gray-300 p-2 duration-200 hover:cursor-pointer focus:ring-2 focus:ring-teal-500 focus:outline-none"
           type="date"
           id="appliedAt"
-          {...register("appliedAt")}
+          {...register('appliedAt')}
         />
         {errors.appliedAt && (
-          <p className="mt-1 text-sm text-red-600">
-            {errors.appliedAt.message}
-          </p>
+          <p className="mt-1 text-sm text-red-600">{errors.appliedAt.message}</p>
         )}
       </div>
 
       {/* Location field */}
       <div className="flex flex-col">
-        <label
-          htmlFor="location"
-          className="text-sm font-medium text-gray-700 mb-1"
-        >
+        <label htmlFor="location" className="mb-1 text-sm font-medium text-gray-700">
           Location
         </label>
         <input
-          className="border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-teal-500 focus:outline-none transition-ring duration-200"
+          className="transition-ring rounded-md border border-gray-300 p-2 duration-200 focus:ring-2 focus:ring-teal-500 focus:outline-none"
           type="text"
           id="location"
-          {...register("location")}
+          {...register('location')}
           placeholder="Remote, NY, etc."
         />
-        {errors.location && (
-          <p className="mt-1 text-sm text-red-600">{errors.location.message}</p>
-        )}
+        {errors.location && <p className="mt-1 text-sm text-red-600">{errors.location.message}</p>}
       </div>
 
       {/* Job URL field */}
       <div className="flex flex-col">
-        <label
-          htmlFor="jobUrl"
-          className="text-sm font-medium text-gray-700 mb-1"
-        >
+        <label htmlFor="jobUrl" className="mb-1 text-sm font-medium text-gray-700">
           Job URL
         </label>
         <input
-          className="border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-teal-500 focus:outline-none transition-ring duration-200"
+          className="transition-ring rounded-md border border-gray-300 p-2 duration-200 focus:ring-2 focus:ring-teal-500 focus:outline-none"
           type="url"
           id="jobUrl"
-          {...register("jobUrl")}
+          {...register('jobUrl')}
           placeholder="https://..."
         />
-        {errors.jobUrl && (
-          <p className="mt-1 text-sm text-red-600">{errors.jobUrl.message}</p>
-        )}
+        {errors.jobUrl && <p className="mt-1 text-sm text-red-600">{errors.jobUrl.message}</p>}
       </div>
 
       {/* Notes field */}
       <div className="flex flex-col md:col-span-2">
-        <label
-          htmlFor="notes"
-          className="text-sm font-medium text-gray-700 mb-1"
-        >
+        <label htmlFor="notes" className="mb-1 text-sm font-medium text-gray-700">
           Notes
         </label>
         <textarea
-          className="border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-teal-500 focus:outline-none min-h-25 transition-ring duration-200"
+          className="transition-ring min-h-25 rounded-md border border-gray-300 p-2 duration-200 focus:ring-2 focus:ring-teal-500 focus:outline-none"
           id="notes"
-          {...register("notes")}
+          {...register('notes')}
           placeholder="Add any details about the interview process..."
         ></textarea>
-        {errors.notes && (
-          <p className="mt-1 text-sm text-red-600">{errors.notes.message}</p>
-        )}
+        {errors.notes && <p className="mt-1 text-sm text-red-600">{errors.notes.message}</p>}
       </div>
 
       {/* Form actions */}
-      <div className="md:col-span-2 flex justify-end gap-3 mt-4">
+      <div className="mt-4 flex justify-end gap-3 md:col-span-2">
         <Link
           to="/applications"
-          className="max-h-10 p-2 bg-gray-300 hover:bg-gray-200 hover:scale-105 active:bg-gray-300 transition-all duration-200 rounded-md"
+          className="inline-flex min-w-24 justify-center rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100"
         >
           Cancel
         </Link>
+
         <button
           type="submit"
           disabled={isSubmitting}
-          className="max-w-45 text-center rounded-md  bg-teal-600 text-white p-2 mb-2 ml-5 hover:bg-teal-500 hover:scale-105 active:bg-teal-600 transition-all duration-200"
+          className="inline-flex min-w-24 justify-center rounded-md bg-teal-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:cursor-pointer hover:bg-teal-500"
         >
           {buttonText}
         </button>

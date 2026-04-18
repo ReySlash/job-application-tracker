@@ -14,7 +14,7 @@ function formatDate(dateString: string) {
 function ApplicationDetailsPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const applicationId = Number(id);
+  const applicationId = id;
 
   const { applicationsList, deleteApplication } = useContext(ApplicationsContext);
 

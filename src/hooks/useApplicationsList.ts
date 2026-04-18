@@ -1,11 +1,9 @@
-import { useContext, useState, useMemo } from 'react';
-import ApplicationsContext from '../contexts/ApplicationsContext';
+import { useState, useMemo } from 'react';
 import type { FilterStatus } from '../types/StatusFilter';
 import type { MobileSortOption, SortConfig, SortKey } from '../types/SortConfig';
+import type { Application } from '../types/ApplicationType';
 
-function useApplications() {
-  const { applicationsList } = useContext(ApplicationsContext);
-
+function useApplications(applications: Application[]) {
   // Local state for the search query, status filter and date sort.
   const [searchQuery, setSearchQuery] = useState('');
   const [filtersOpen, setFiltersOpen] = useState(false);
@@ -13,10 +11,10 @@ function useApplications() {
   // Filtered list based on the search query, applied before status filtering and sorting.
   const searchedApplications = useMemo(() => {
     const query = searchQuery.toLowerCase();
-    return applicationsList.filter(
+    return applications.filter(
       (app) => app.company.toLowerCase().includes(query) || app.role.toLowerCase().includes(query),
     );
-  }, [applicationsList, searchQuery]);
+  }, [applications, searchQuery]);
 
   // Filter state controls which application statuses are visible.
   const [filterStatus, setFilterStatus] = useState<FilterStatus>('all');

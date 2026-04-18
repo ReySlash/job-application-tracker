@@ -5,8 +5,8 @@ import type { ApplicationInput } from "../types/ApplicationInput";
 type ApplicationsContext = {
   applicationsList: Application[];
   createApplication: (application: ApplicationInput) => void;
-  updateApplication: (id: number, updatedApplication: ApplicationInput) => void;
-  deleteApplication: (id: number) => void;
+  updateApplication: (id: string, updatedApplication: ApplicationInput) => void;
+  deleteApplication: (id: string) => void;
 };
 
 export default createContext<ApplicationsContext>({} as ApplicationsContext);

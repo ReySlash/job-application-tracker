@@ -9,7 +9,7 @@ import type { SortConfig, SortKey } from "../types/SortConfig";
 
 type Props = {
   applications: Application[];
-  onDelete: (id: number, company: string) => void;
+  onDelete: (id: string, company: string) => void;
   onSort: (sortKey: SortKey) => void;
   sortConfig: SortConfig;
 };

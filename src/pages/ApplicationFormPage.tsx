@@ -8,7 +8,7 @@ import ApplicationForm from "../components/ApplicationForm";
 function ApplicationFormPage() {
   // Route state decides whether this page creates a new record or edits one.
   const params = useParams();
-  const applicationId = Number(params.id);
+  const applicationId = params.id;
   const isEditing = Boolean(params.id);
   const { applicationsList, createApplication, updateApplication } =
     useContext(ApplicationsContext);

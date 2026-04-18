@@ -4,16 +4,16 @@ import { Link } from 'react-router';
 
 import useBanner from '../hooks/useBanner';
 import useRemove from '../hooks/useRemove';
-import useApplications from '../hooks/useApplications';
+import useApplicationsList from '../hooks/useApplicationsList';
 
-import { useContext } from 'react';
-import ApplicationsContext from '../contexts/ApplicationsContext';
 import ApplicationsEmptyState from '../components/ApplicationsEmptyState';
+import { useApplicationsQuery } from '../hooks/useApplicationsQuery';
 
 function ApplicationsPage() {
+  const { data: applications = [], isLoading, error, isFetching } = useApplicationsQuery();
+
   const { successMessage, setSuccessMessage } = useBanner();
 
-  const { applicationsList } = useContext(ApplicationsContext);
   const {
     sortedApplications,
     handleColumnSort,
@@ -25,12 +25,24 @@ function ApplicationsPage() {
     setFiltersOpen,
     filterStatus,
     setFilterStatus,
-  } = useApplications();
+  } = useApplicationsList(applications);
 
   // The remove function is also abstracted into a custom hook to keep the component focused on UI logic.
   const removeApplication = useRemove();
 
-  if (applicationsList.length === 0) {
+  if (isLoading || isFetching) {
+    return (
+      <div className="flex h-full flex-col items-center justify-center">
+        <p>Loading applications...</p>
+      </div>
+    );
+  }
+
+  if (error instanceof Error) {
+    return <p>{error.message}</p>;
+  }
+
+  if (applications.length === 0) {
     return <ApplicationsEmptyState />;
   }
   return (

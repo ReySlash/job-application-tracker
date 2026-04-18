@@ -35,7 +35,7 @@ function ApplicationsProvider(props: Props) {
   const createApplication = (application: ApplicationInput) => {
     const now = new Date().toISOString();
     const newApplication: Application = {
-      id: Date.now(),
+      id: crypto.randomUUID(),
       ...application,
       createdAt: now,
       updatedAt: now,
@@ -44,7 +44,7 @@ function ApplicationsProvider(props: Props) {
     setApplicationsState((current) => [newApplication, ...current]);
   };
 
-  const updateApplication = (id: number, input: ApplicationInput) => {
+  const updateApplication = (id: string, input: ApplicationInput) => {
     setApplicationsState((current) =>
       current.map((a) =>
         a.id === id
@@ -54,7 +54,7 @@ function ApplicationsProvider(props: Props) {
     );
   };
 
-  const deleteApplication = (id: number) => {
+  const deleteApplication = (id: string) => {
     setApplicationsState((current) =>
       current.filter((application) => application.id !== id),
     );

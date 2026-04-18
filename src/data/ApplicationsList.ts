@@ -2,7 +2,7 @@ import type { Application } from "../types/ApplicationType";
 
 export const applications: Application[] = [
   {
-    id: 1,
+    id: "1",
     company: "Google",
     role: "Data Analyst",
     status: "interview",
@@ -14,7 +14,7 @@ export const applications: Application[] = [
     updatedAt: "2026-03-25T14:30:00Z",
   },
   {
-    id: 2,
+    id: "2",
     company: "Amazon",
     role: "Business Data Analyst",
     status: "applied",
@@ -26,7 +26,7 @@ export const applications: Application[] = [
     updatedAt: "2026-04-01T08:00:00Z",
   },
   {
-    id: 3,
+    id: "3",
     company: "Meta",
     role: "Data Scientist",
     status: "rejected",
@@ -38,7 +38,7 @@ export const applications: Application[] = [
     updatedAt: "2026-02-28T09:10:00Z",
   },
   {
-    id: 4,
+    id: "4",
     company: "Stripe",
     role: "Product Data Analyst",
     status: "offer",
@@ -50,7 +50,7 @@ export const applications: Application[] = [
     updatedAt: "2026-03-30T16:00:00Z",
   },
   {
-    id: 5,
+    id: "5",
     company: "Shopify",
     role: "Data Analyst",
     status: "interview",
@@ -62,7 +62,7 @@ export const applications: Application[] = [
     updatedAt: "2026-04-05T13:25:00Z",
   },
   {
-    id: 6,
+    id: "6",
     company: "Tesla",
     role: "Operations Data Analyst",
     status: "applied",
@@ -73,7 +73,7 @@ export const applications: Application[] = [
     updatedAt: "2026-04-05T07:30:00Z",
   },
   {
-    id: 7,
+    id: "7",
     company: "Airbnb",
     role: "Data Scientist",
     status: "rejected",
@@ -85,7 +85,7 @@ export const applications: Application[] = [
     updatedAt: "2026-03-05T10:45:00Z",
   },
   {
-    id: 8,
+    id: "8",
     company: "Netflix",
     role: "Analytics Engineer",
     status: "interview",
@@ -97,7 +97,7 @@ export const applications: Application[] = [
     updatedAt: "2026-04-02T17:20:00Z",
   },
   {
-    id: 9,
+    id: "9",
     company: "Uber",
     role: "Data Analyst",
     status: "offer",
@@ -109,7 +109,7 @@ export const applications: Application[] = [
     updatedAt: "2026-03-29T18:00:00Z",
   },
   {
-    id: 10,
+    id: "10",
     company: "Spotify",
     role: "Product Analyst",
     status: "applied",

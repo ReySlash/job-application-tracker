@@ -23,7 +23,7 @@ function DashboardMobileControls(props: Props) {
   return (
     <>
       <aside
-        className={`fixed right-0 top-0 z-30 flex h-full w-80 max-w-[85vw] flex-col gap-4 bg-white p-5 shadow-lg transition-transform duration-300 ${
+        className={`fixed right-0 top-0 z-30 flex h-full w-80 max-w-[85vw] flex-col gap-4 bg-white p-5 shadow-lg transition-transform duration-300 dark:bg-slate-900 dark:text-slate-100 ${
           filtersOpen ? "translate-x-0" : "translate-x-full"
         }`}
       >
@@ -32,7 +32,7 @@ function DashboardMobileControls(props: Props) {
           <button
             type="button"
             onClick={() => setFiltersOpen(false)}
-            className="rounded-md px-3 py-1 text-2xl leading-none hover:scale-110 transition-transform duration-200 hover:cursor-pointer"
+            className="rounded-md px-3 py-1 text-2xl leading-none transition-transform duration-200 hover:scale-110 hover:cursor-pointer dark:invert"
             aria-label="Close filters"
           >
             <img className="h-6 w-6" src={closeIcon} alt="Close filters" />
@@ -46,7 +46,7 @@ function DashboardMobileControls(props: Props) {
           <input
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="h-10 w-full min-w-0 border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-teal-500 focus:outline-none transition-ring duration-200"
+            className="transition-ring h-10 w-full min-w-0 rounded-md border border-gray-300 p-2 duration-200 focus:ring-2 focus:ring-teal-500 focus:outline-none dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder:text-slate-500"
             id="mobile-search-field"
             type="text"
             placeholder="Search..."
@@ -61,7 +61,7 @@ function DashboardMobileControls(props: Props) {
             value={filterStatus}
             onChange={(e) => setFilterStatus(e.target.value as FilterStatus)}
             id="mobile-status-filter"
-            className="h-10 w-full min-w-0 border border-black rounded-md p-2 hover:cursor-pointer focus:ring-2 focus:ring-teal-500 focus:outline-none transition-ring duration-200"
+            className="transition-ring h-10 w-full min-w-0 rounded-md border border-black p-2 duration-200 hover:cursor-pointer focus:ring-2 focus:ring-teal-500 focus:outline-none dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
           >
             <option value="all">All</option>
             <option value="applied">Applied</option>

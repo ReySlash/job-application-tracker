@@ -69,7 +69,7 @@ function ApplicationsListView(props: Props) {
           </thead>
           <tbody>
             {applications.map((a: Application) => (
-              <tr className="odd:bg-white even:bg-gray-200 hover:bg-gray-300" key={a.id}>
+              <tr className="odd:bg-white even:bg-gray-200 hover:bg-gray-300 dark:odd:bg-slate-900 dark:even:bg-slate-800 dark:hover:bg-slate-700" key={a.id}>
                 {columns.map((column) => (
                   <td className="px-1 py-1" key={column.key}>
                     {column.key === 'status' ? (
@@ -86,7 +86,7 @@ function ApplicationsListView(props: Props) {
                       className="inline-flex h-8 w-8 items-center justify-center hover:cursor-pointer"
                     >
                       <img
-                        className="h-6 transition-transform duration-150 hover:scale-150"
+                        className="h-6 transition-transform duration-150 hover:scale-150 dark:invert"
                         src={viewIcon}
                         alt="view button"
                       />
@@ -96,7 +96,7 @@ function ApplicationsListView(props: Props) {
                       className="inline-flex h-8 w-8 items-center justify-center hover:cursor-pointer"
                     >
                       <img
-                        className="h-6 transition-transform duration-150 hover:scale-150"
+                        className="h-6 transition-transform duration-150 hover:scale-150 dark:invert"
                         src={updateIcon}
                         alt="update button"
                       />
@@ -107,7 +107,7 @@ function ApplicationsListView(props: Props) {
                       className="inline-flex h-8 w-8 items-center justify-center hover:cursor-pointer"
                     >
                       <img
-                        className="h-6 transition-transform duration-150 hover:scale-150"
+                        className="h-6 transition-transform duration-150 hover:scale-150 dark:invert"
                         src={removeIcon}
                         alt="remove button"
                       />
@@ -122,7 +122,7 @@ function ApplicationsListView(props: Props) {
       <div className="mx-10 my-3 flex flex-col items-center justify-center gap-4 md:m-10 md:hidden">
         {applications.map((a: Application) => (
           <div
-            className="w-full items-center rounded-md border border-gray-300 p-4 shadow-md"
+            className="w-full items-center rounded-md border border-gray-300 bg-white p-4 shadow-md dark:border-slate-700 dark:bg-slate-900"
             key={a.id}
           >
             {columns.map((column) => (
@@ -139,14 +139,14 @@ function ApplicationsListView(props: Props) {
               <strong className="text-[18px]">Actions:</strong>
               <Link to={`/applications/${a.id}`}>
                 <img
-                  className="h-6 transition-transform duration-150 hover:scale-130"
+                  className="h-6 transition-transform duration-150 hover:scale-130 dark:invert"
                   src={viewIcon}
                   alt="view button"
                 />
               </Link>
               <Link to={`/applications/${a.id}/edit`} className="hover:cursor-pointer">
                 <img
-                  className="h-6 transition-transform duration-150 hover:scale-130"
+                  className="h-6 transition-transform duration-150 hover:scale-130 dark:invert"
                   src={updateIcon}
                   alt="update button"
                 />
@@ -157,7 +157,7 @@ function ApplicationsListView(props: Props) {
                 className="hover:cursor-pointer"
               >
                 <img
-                  className="h-6 transition-transform duration-150 hover:scale-130"
+                  className="h-6 transition-transform duration-150 hover:scale-130 dark:invert"
                   src={removeIcon}
                   alt="remove button"
                 />

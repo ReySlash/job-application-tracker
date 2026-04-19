@@ -3,6 +3,7 @@ import SideBar from '../components/SideBar';
 import { useState } from 'react';
 import hamburgerIcon from '../assets/hamburgerIcon.svg';
 import closeIcon from '../assets/closeIcon.svg';
+import ThemeToggle from '../components/ThemeToggle';
 
 function AppLayout() {
   const [sidebar, setSidebar] = useState<boolean>(false);
@@ -12,10 +13,10 @@ function AppLayout() {
   };
 
   return (
-    <div className="relative h-screen overflow-hidden">
+    <div className="relative h-screen overflow-hidden bg-slate-50 text-slate-950 dark:bg-slate-950 dark:text-slate-100">
       <button
         onClick={toggleSidebar}
-        className={`fixed top-1 z-40 rounded p-2 transition-all duration-300 ease-in-out ${
+        className={`fixed top-1 z-40 rounded p-2 transition-all duration-300 ease-in-out dark:invert ${
           sidebar ? 'left-52' : 'left-3'
         }`}
       >
@@ -35,7 +36,7 @@ function AppLayout() {
       />
       <aside
         aria-hidden={!sidebar}
-        className={`fixed top-0 left-0 z-30 h-full w-64 overflow-hidden border-r border-gray-200 bg-gray-50 shadow-sm transition-transform duration-300 ease-in-out ${
+        className={`fixed top-0 left-0 z-30 h-full w-64 overflow-hidden border-r border-gray-200 bg-gray-50 shadow-sm transition-transform duration-300 ease-in-out dark:border-slate-700 dark:bg-slate-900 ${
           sidebar ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
@@ -43,6 +44,9 @@ function AppLayout() {
           <SideBar />
         </div>
       </aside>
+      <div className="fixed top-2 right-3 z-10">
+        <ThemeToggle />
+      </div>
       <main className="h-full min-w-0 overflow-auto">
         <Outlet />
       </main>

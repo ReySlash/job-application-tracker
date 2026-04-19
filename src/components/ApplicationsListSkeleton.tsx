@@ -1,7 +1,7 @@
 const columns = ['Company', 'Role', 'Status', 'Applied Date', 'Location', 'Actions'];
 
 function SkeletonBlock({ className }: { className: string }) {
-  return <div className={`animate-pulse rounded bg-gray-200 ${className}`} />;
+  return <div className={`animate-pulse rounded bg-gray-200 dark:bg-slate-700 ${className}`} />;
 }
 
 function ApplicationsListSkeleton() {
@@ -20,7 +20,7 @@ function ApplicationsListSkeleton() {
           </thead>
           <tbody>
             {Array.from({ length: 5 }).map((_, rowIndex) => (
-              <tr className="odd:bg-white even:bg-gray-200" key={rowIndex}>
+              <tr className="odd:bg-white even:bg-gray-200 dark:odd:bg-slate-900 dark:even:bg-slate-800" key={rowIndex}>
                 {columns.slice(0, -1).map((column, columnIndex) => (
                   <td className="px-3 py-3" key={column}>
                     <SkeletonBlock
@@ -52,7 +52,7 @@ function ApplicationsListSkeleton() {
       <div className="mx-10 my-3 flex flex-col items-center justify-center gap-4 md:m-10 md:hidden">
         {Array.from({ length: 3 }).map((_, cardIndex) => (
           <div
-            className="w-full rounded-md border border-gray-300 bg-white p-4 shadow-md"
+            className="w-full rounded-md border border-gray-300 bg-white p-4 shadow-md dark:border-slate-700 dark:bg-slate-900"
             key={cardIndex}
           >
             {Array.from({ length: 5 }).map((__, lineIndex) => (

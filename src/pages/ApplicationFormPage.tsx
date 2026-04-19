@@ -63,8 +63,8 @@ function ApplicationFormPage() {
   };
 
   return (
-    <div className="mx-auto mt-10 max-w-2xl rounded-lg border border-gray-200 bg-white p-6 shadow-lg">
-      <h2 className="mb-6 border-b pb-2 text-2xl font-bold text-gray-800">
+    <div className="mx-auto mt-10 max-w-2xl rounded-lg border border-gray-200 bg-white p-6 shadow-lg dark:border-slate-700 dark:bg-slate-900">
+      <h2 className="mb-6 border-b border-gray-200 pb-2 text-2xl font-bold text-gray-800 dark:border-slate-700 dark:text-slate-100">
         {isEditing ? 'Update Application' : 'New Application'}
       </h2>
 

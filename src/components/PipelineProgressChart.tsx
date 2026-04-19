@@ -9,9 +9,9 @@ function PipelineProgressChart(props: Props) {
   const maxCount = Math.max(...data.map((item) => item.count), 0);
 
   return (
-    <section className="rounded border border-gray-200 bg-white p-4 shadow lg:col-span-2">
-      <h2 className="text-xl font-semibold text-slate-900">Pipeline Progress</h2>
-      <p className="mt-1 text-sm text-slate-500">A quick scan of volume by application status.</p>
+    <section className="rounded border border-gray-200 bg-white p-4 shadow dark:border-slate-700 dark:bg-slate-900 lg:col-span-2">
+      <h2 className="text-xl font-semibold text-slate-900 dark:text-slate-100">Pipeline Progress</h2>
+      <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">A quick scan of volume by application status.</p>
 
       <div className="mt-5 grid gap-4">
         {data.map((item) => {
@@ -22,13 +22,13 @@ function PipelineProgressChart(props: Props) {
               <div className="flex items-center justify-between gap-3">
                 <div className="flex min-w-0 items-center gap-2">
                   <span className={`h-3 w-3 shrink-0 rounded-full ${item.colorClass}`} />
-                  <span className="truncate text-sm font-medium text-slate-700">{item.label}</span>
+                  <span className="truncate text-sm font-medium text-slate-700 dark:text-slate-200">{item.label}</span>
                 </div>
-                <span className="text-sm text-slate-500">
+                <span className="text-sm text-slate-500 dark:text-slate-400">
                   {item.count} · {item.percent}%
                 </span>
               </div>
-              <div className="h-3 overflow-hidden rounded bg-gray-100">
+              <div className="h-3 overflow-hidden rounded bg-gray-100 dark:bg-slate-800">
                 <div
                   aria-label={`${item.label}: ${item.count} applications`}
                   className={`h-full rounded ${item.colorClass}`}

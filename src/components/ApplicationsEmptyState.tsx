@@ -3,10 +3,10 @@ import { Link } from "react-router";
 function ApplicationsEmptyState() {
   return (
     <div className="flex flex-col items-center">
-      <p className="text-center text-gray-500 text-3xl">
+      <p className="text-center text-3xl text-gray-500 dark:text-slate-400">
         No applications found.
       </p>
-      <p className="text-center text-gray-500 text-2xl">
+      <p className="text-center text-2xl text-gray-500 dark:text-slate-400">
         Create a new application to get started.
       </p>
       <Link

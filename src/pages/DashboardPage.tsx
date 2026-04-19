@@ -55,7 +55,7 @@ function DashboardPage() {
   }
 
   if (error instanceof Error) {
-    return <p>{error.message}</p>;
+    return <p className="p-4 text-red-600 dark:text-red-400">{error.message}</p>;
   }
 
   return (
@@ -71,7 +71,7 @@ function DashboardPage() {
       />
       <div className="mx-auto grid max-w-6xl gap-8 px-4 pb-8">
         <section>
-          <h2 className="mb-3 text-xl font-semibold text-slate-900">Overview</h2>
+          <h2 className="mb-3 text-xl font-semibold text-slate-900 dark:text-slate-100">Overview</h2>
           <ApplicationsStats cards={metrics.overviewCards} />
         </section>
 
@@ -85,33 +85,33 @@ function DashboardPage() {
         </div>
 
         <section>
-          <h2 className="mb-3 text-xl font-semibold text-slate-900">Status Breakdown</h2>
+          <h2 className="mb-3 text-xl font-semibold text-slate-900 dark:text-slate-100">Status Breakdown</h2>
           <ApplicationsStats cards={metrics.statusCards} />
         </section>
 
         <div className="grid gap-6 lg:grid-cols-2">
           <section>
-            <h2 className="mb-3 text-xl font-semibold text-slate-900">Recent Applications</h2>
+            <h2 className="mb-3 text-xl font-semibold text-slate-900 dark:text-slate-100">Recent Applications</h2>
             {metrics.recentApplications.length === 0 ? (
-              <p className="rounded border border-gray-200 bg-white p-4 text-center text-slate-500 shadow">
+              <p className="rounded border border-gray-200 bg-white p-4 text-center text-slate-500 shadow dark:border-slate-700 dark:bg-slate-900 dark:text-slate-400">
                 No recent applications match your filters.
               </p>
             ) : (
               <div className="grid gap-3">
                 {metrics.recentApplications.map((application) => (
                   <Link
-                    className="rounded border border-gray-200 bg-white p-4 shadow transition-colors hover:border-teal-400"
+                    className="rounded border border-gray-200 bg-white p-4 shadow transition-colors hover:border-teal-400 dark:border-slate-700 dark:bg-slate-900 dark:hover:border-teal-500"
                     key={application.id}
                     to={`/applications/${application.id}`}
                   >
                     <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                       <div>
-                        <h3 className="font-semibold text-slate-900">{application.role}</h3>
-                        <p className="text-sm text-slate-600">{application.company}</p>
+                        <h3 className="font-semibold text-slate-900 dark:text-slate-100">{application.role}</h3>
+                        <p className="text-sm text-slate-600 dark:text-slate-400">{application.company}</p>
                       </div>
                       <StatusBadge status={application.status} />
                     </div>
-                    <p className="mt-3 text-sm text-slate-500">
+                    <p className="mt-3 text-sm text-slate-500 dark:text-slate-400">
                       Applied {formatDate(application.appliedAt)}
                     </p>
                   </Link>
@@ -121,29 +121,29 @@ function DashboardPage() {
           </section>
 
           <section>
-            <h2 className="mb-3 text-xl font-semibold text-slate-900">Needs Follow-Up</h2>
+            <h2 className="mb-3 text-xl font-semibold text-slate-900 dark:text-slate-100">Needs Follow-Up</h2>
             {metrics.followUpApplications.length === 0 ? (
-              <p className="rounded border border-green-100 bg-white p-4 text-center text-slate-600 shadow">
+              <p className="rounded border border-green-100 bg-white p-4 text-center text-slate-600 shadow dark:border-green-900/60 dark:bg-slate-900 dark:text-slate-300">
                 No follow-ups needed right now.
               </p>
             ) : (
               <div className="grid gap-3">
                 {metrics.followUpApplications.map((application) => (
                   <Link
-                    className="rounded border border-yellow-100 bg-white p-4 shadow transition-colors hover:border-yellow-400"
+                    className="rounded border border-yellow-100 bg-white p-4 shadow transition-colors hover:border-yellow-400 dark:border-yellow-900/60 dark:bg-slate-900 dark:hover:border-yellow-500"
                     key={application.id}
                     to={`/applications/${application.id}`}
                   >
                     <div className="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between">
                       <div>
-                        <h3 className="font-semibold text-slate-900">{application.role}</h3>
-                        <p className="text-sm text-slate-600">{application.company}</p>
+                        <h3 className="font-semibold text-slate-900 dark:text-slate-100">{application.role}</h3>
+                        <p className="text-sm text-slate-600 dark:text-slate-400">{application.company}</p>
                       </div>
-                      <p className="text-sm font-medium text-yellow-700">
+                      <p className="text-sm font-medium text-yellow-700 dark:text-yellow-300">
                         {application.daysSinceApplied} days
                       </p>
                     </div>
-                    <p className="mt-3 text-sm text-slate-500">
+                    <p className="mt-3 text-sm text-slate-500 dark:text-slate-400">
                       Applied {formatDate(application.appliedAt)}
                     </p>
                   </Link>

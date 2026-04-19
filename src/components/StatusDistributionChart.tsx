@@ -12,9 +12,9 @@ function StatusDistributionChart(props: Props) {
   let accumulatedPercent = 0;
 
   return (
-    <section className="rounded border border-gray-200 bg-white p-4 shadow">
-      <h2 className="text-xl font-semibold text-slate-900">Status Distribution</h2>
-      <p className="mt-1 text-sm text-slate-500">Where your applications currently stand.</p>
+    <section className="rounded border border-gray-200 bg-white p-4 shadow dark:border-slate-700 dark:bg-slate-900">
+      <h2 className="text-xl font-semibold text-slate-900 dark:text-slate-100">Status Distribution</h2>
+      <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Where your applications currently stand.</p>
 
       <div className="mt-5 grid gap-5 sm:grid-cols-[auto_1fr] sm:items-center">
         <div className="relative mx-auto h-44 w-44">
@@ -25,7 +25,7 @@ function StatusDistributionChart(props: Props) {
               cy="60"
               fill="none"
               r={radius}
-              stroke="#e5e7eb"
+              className="stroke-gray-200 dark:stroke-slate-800"
               strokeWidth="14"
             />
             {total > 0 &&
@@ -51,8 +51,8 @@ function StatusDistributionChart(props: Props) {
               })}
           </svg>
           <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-            <span className="text-3xl font-bold text-slate-950">{total}</span>
-            <span className="text-xs text-slate-500">applications</span>
+            <span className="text-3xl font-bold text-slate-950 dark:text-slate-50">{total}</span>
+            <span className="text-xs text-slate-500 dark:text-slate-400">applications</span>
           </div>
         </div>
 
@@ -61,15 +61,15 @@ function StatusDistributionChart(props: Props) {
             <div className="flex items-center justify-between gap-3" key={item.status}>
               <div className="flex min-w-0 items-center gap-2">
                 <span className={`h-3 w-3 shrink-0 rounded-full ${item.colorClass}`} />
-                <span className="truncate text-sm font-medium text-slate-700">{item.label}</span>
+                <span className="truncate text-sm font-medium text-slate-700 dark:text-slate-200">{item.label}</span>
               </div>
-              <span className="text-sm text-slate-500">
+              <span className="text-sm text-slate-500 dark:text-slate-400">
                 {item.count} · {item.percent}%
               </span>
             </div>
           ))}
           {total === 0 && (
-            <p className="rounded bg-gray-50 p-3 text-sm text-slate-500">
+            <p className="rounded bg-gray-50 p-3 text-sm text-slate-500 dark:bg-slate-800 dark:text-slate-400">
               No applications match your current filters yet.
             </p>
           )}

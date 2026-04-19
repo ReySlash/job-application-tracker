@@ -46,17 +46,17 @@ function ApplicationDetailsPage() {
   if (!application) {
     return (
       <section className="mx-auto max-w-3xl px-4 py-8">
-        <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-          <h1 className="text-2xl font-bold text-slate-900">Application not found</h1>
+        <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-900">
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Application not found</h1>
 
-          <p className="mt-3 text-slate-600">
+          <p className="mt-3 text-slate-600 dark:text-slate-400">
             The application you are looking for does not exist or may have been deleted.
           </p>
 
           <div className="mt-6">
             <Link
               to="/applications"
-              className="inline-flex rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-700"
+              className="inline-flex rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-700 dark:bg-teal-600 dark:hover:bg-teal-500"
             >
               Back to Applications
             </Link>
@@ -70,15 +70,15 @@ function ApplicationDetailsPage() {
     <section className="mx-auto max-w-4xl px-4 py-8">
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <p className="text-sm font-medium text-slate-500">Application Details</p>
-          <h1 className="mt-1 text-3xl font-bold text-slate-900">{application.role}</h1>
-          <p className="mt-2 text-lg text-slate-600">{application.company}</p>
+          <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Application Details</p>
+          <h1 className="mt-1 text-3xl font-bold text-slate-900 dark:text-slate-100">{application.role}</h1>
+          <p className="mt-2 text-lg text-slate-600 dark:text-slate-400">{application.company}</p>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
           <Link
             to="/applications"
-            className="inline-flex min-w-24 justify-center rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100"
+            className="inline-flex min-w-24 justify-center rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
           >
             Back
           </Link>
@@ -101,48 +101,48 @@ function ApplicationDetailsPage() {
       </div>
 
       <div className="grid gap-6">
-        <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-          <h2 className="text-lg font-semibold text-slate-900">Overview</h2>
+        <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-900">
+          <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Overview</h2>
 
           <dl className="mt-4 grid gap-4 sm:grid-cols-2">
             <div>
-              <dt className="text-sm font-medium text-slate-500">Company</dt>
-              <dd className="mt-1 text-base text-slate-900">{application.company}</dd>
+              <dt className="text-sm font-medium text-slate-500 dark:text-slate-400">Company</dt>
+              <dd className="mt-1 text-base text-slate-900 dark:text-slate-100">{application.company}</dd>
             </div>
 
             <div>
-              <dt className="text-sm font-medium text-slate-500">Role</dt>
-              <dd className="mt-1 text-base text-slate-900">{application.role}</dd>
+              <dt className="text-sm font-medium text-slate-500 dark:text-slate-400">Role</dt>
+              <dd className="mt-1 text-base text-slate-900 dark:text-slate-100">{application.role}</dd>
             </div>
 
             <div>
-              <dt className="text-sm font-medium text-slate-500">Status</dt>
+              <dt className="text-sm font-medium text-slate-500 dark:text-slate-400">Status</dt>
               <dd className="mt-1">
                 <StatusBadge status={application.status} />
               </dd>
             </div>
 
             <div>
-              <dt className="text-sm font-medium text-slate-500">Applied Date</dt>
-              <dd className="mt-1 text-base text-slate-900">{formatDate(application.appliedAt)}</dd>
+              <dt className="text-sm font-medium text-slate-500 dark:text-slate-400">Applied Date</dt>
+              <dd className="mt-1 text-base text-slate-900 dark:text-slate-100">{formatDate(application.appliedAt)}</dd>
             </div>
 
             <div>
-              <dt className="text-sm font-medium text-slate-500">Location</dt>
-              <dd className="mt-1 text-base text-slate-900">
+              <dt className="text-sm font-medium text-slate-500 dark:text-slate-400">Location</dt>
+              <dd className="mt-1 text-base text-slate-900 dark:text-slate-100">
                 {application.location || 'Not provided'}
               </dd>
             </div>
 
             <div>
-              <dt className="text-sm font-medium text-slate-500">Job URL</dt>
-              <dd className="mt-1 text-base text-slate-900">
+              <dt className="text-sm font-medium text-slate-500 dark:text-slate-400">Job URL</dt>
+              <dd className="mt-1 text-base text-slate-900 dark:text-slate-100">
                 {application.jobUrl ? (
                   <a
                     href={application.jobUrl}
                     target="_blank"
                     rel="noreferrer"
-                    className="break-all text-blue-600 hover:underline"
+                    className="break-all text-blue-600 hover:underline dark:text-blue-400"
                   >
                     View job posting
                   </a>
@@ -154,25 +154,25 @@ function ApplicationDetailsPage() {
           </dl>
         </div>
 
-        <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-          <h2 className="text-lg font-semibold text-slate-900">Notes</h2>
-          <p className="mt-4 whitespace-pre-wrap text-slate-700">
+        <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-900">
+          <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Notes</h2>
+          <p className="mt-4 whitespace-pre-wrap text-slate-700 dark:text-slate-300">
             {application.notes?.trim() || 'No notes added yet.'}
           </p>
         </div>
 
-        <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-          <h2 className="text-lg font-semibold text-slate-900">Record Info</h2>
+        <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-900">
+          <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Record Info</h2>
 
           <dl className="mt-4 grid gap-4 sm:grid-cols-2">
             <div>
-              <dt className="text-sm font-medium text-slate-500">Created At</dt>
-              <dd className="mt-1 text-base text-slate-900">{formatDate(application.createdAt)}</dd>
+              <dt className="text-sm font-medium text-slate-500 dark:text-slate-400">Created At</dt>
+              <dd className="mt-1 text-base text-slate-900 dark:text-slate-100">{formatDate(application.createdAt)}</dd>
             </div>
 
             <div>
-              <dt className="text-sm font-medium text-slate-500">Last Updated</dt>
-              <dd className="mt-1 text-base text-slate-900">{formatDate(application.updatedAt)}</dd>
+              <dt className="text-sm font-medium text-slate-500 dark:text-slate-400">Last Updated</dt>
+              <dd className="mt-1 text-base text-slate-900 dark:text-slate-100">{formatDate(application.updatedAt)}</dd>
             </div>
           </dl>
         </div>

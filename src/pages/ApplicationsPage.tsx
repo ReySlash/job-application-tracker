@@ -39,7 +39,7 @@ function ApplicationsPage() {
       <>
         <h2 className="mb-2 flex justify-center p-2 text-4xl">Applications</h2>
         <div className="flex justify-center md:justify-start">
-          <div className="mx-15 h-9 w-36 animate-pulse rounded-md bg-gray-200" />
+          <div className="mx-15 h-9 w-36 animate-pulse rounded-md bg-gray-200 dark:bg-slate-800" />
         </div>
         <ApplicationsListSkeleton />
       </>
@@ -47,7 +47,7 @@ function ApplicationsPage() {
   }
 
   if (error instanceof Error) {
-    return <p>{error.message}</p>;
+    return <p className="p-4 text-red-600 dark:text-red-400">{error.message}</p>;
   }
 
   if (applications.length === 0) {
@@ -56,12 +56,12 @@ function ApplicationsPage() {
   return (
     <>
       {successMessage && (
-        <div className="mx-auto my-2 flex max-w-xl items-center justify-between rounded border border-green-300 bg-green-100 px-4 py-2 text-green-800">
+        <div className="mx-auto my-2 flex max-w-xl items-center justify-between rounded border border-green-300 bg-green-100 px-4 py-2 text-green-800 dark:border-green-800 dark:bg-green-950/70 dark:text-green-200">
           <span className="text-center">{successMessage}</span>
           <button
             type="button"
             onClick={() => setSuccessMessage(null)}
-            className="ml-4 rounded px-2 py-1 font-medium hover:bg-green-200"
+            className="ml-4 rounded px-2 py-1 font-medium hover:bg-green-200 dark:hover:bg-green-900"
           >
             Dismiss
           </button>
@@ -90,7 +90,7 @@ function ApplicationsPage() {
 
       {/* Applications table */}
       {sortedApplications.length === 0 ? (
-        <p className="mt-5 text-center text-gray-500">
+        <p className="mt-5 text-center text-gray-500 dark:text-slate-400">
           No applications match the search and filter criteria.
         </p>
       ) : (

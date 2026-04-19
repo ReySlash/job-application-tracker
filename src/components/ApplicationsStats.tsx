@@ -1,35 +1,31 @@
+import type { DashboardMetricCard } from '../utils/dashboardMetrics';
+
 type Props = {
-  total: number;
-  applied: number;
-  interview: number;
-  offer: number;
-  rejected: number;
+  cards: DashboardMetricCard[];
+};
+
+const toneClasses: Record<NonNullable<DashboardMetricCard['tone']>, string> = {
+  neutral: 'border-gray-100',
+  positive: 'border-green-100',
+  warning: 'border-yellow-100',
+  danger: 'border-red-100',
 };
 
 function ApplicationsStats(props: Props) {
-  const { total, applied, interview, offer, rejected } = props;
-
-  const stats = [
-    { label: "Total Applications", value: total },
-    { label: "Applied", value: applied },
-    { label: "Interview", value: interview },
-    { label: "Offer", value: offer },
-    { label: "Rejected", value: rejected },
-  ];
+  const { cards } = props;
   return (
-    <main className="flex flex-row justify-center items-start h-full">
-      <div className="flex flex-row items-center justify-center flex-wrap gap-5 md:gap-auto">
-        {stats.map((stat) => (
-          <div
-            key={stat.label}
-            className="flex flex-col items-center justify-center text-center wrap-break-words p-2 gap-2 bg-white rounded border border-gray-100 shadow w-30 h-30"
-          >
-            <h2 className="text-xl font-semibold">{stat.label}</h2>
-            <p className="text-3xl font-bold">{stat.value}</p>
-          </div>
-        ))}
-      </div>
-    </main>
+    <div className="flex flex-row flex-wrap items-stretch justify-center gap-5 md:justify-start">
+      {cards.map((stat) => (
+        <div
+          key={stat.label}
+          className={`flex min-h-32 w-36 flex-col items-center justify-center gap-2 rounded border bg-white p-3 text-center shadow ${toneClasses[stat.tone ?? 'neutral']}`}
+        >
+          <h2 className="text-base font-semibold text-slate-700">{stat.label}</h2>
+          <p className="text-3xl font-bold text-slate-950">{stat.value}</p>
+          {stat.helperText && <p className="text-xs text-slate-500">{stat.helperText}</p>}
+        </div>
+      ))}
+    </div>
   );
 }
 

@@ -1,9 +1,11 @@
 import { useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router';
 import type { ApplicationInput } from '../types/ApplicationInput';
-import { type ApplicationsFormSchema } from '../schemas/ApplicationsFormSchema';
+import type { ApplicationsFormSchema } from '../schemas/ApplicationsFormSchema';
 import ApplicationForm from '../components/ApplicationForm';
 import { useApplicationsQuery } from '../hooks/useApplicationsQuery';
+import { queryClient } from '../lib/queryClient';
+import { supabase } from '../lib/supabase';
 
 function ApplicationFormPage() {
   const { data: applicationsList = [] } = useApplicationsQuery();
@@ -40,12 +42,36 @@ function ApplicationFormPage() {
   );
 
   // Valid data from Zod is saved through the shared applications provider.
-  const onSubmit = (applicationInput: ApplicationsFormSchema) => {
-    // if (isEditing && applicationToUpdate) {
-    //   updateApplication(applicationToUpdate.id, applicationInput);
-    // } else {
-    //   createApplication(applicationInput);
-    // }
+  const onSubmit = async (data: ApplicationsFormSchema) => {
+    const payload = {
+      company: data.company,
+      role: data.role,
+      status: data.status,
+      applied_at: data.appliedAt,
+      location: data.location,
+      job_url: data.jobUrl || null,
+      notes: data.notes || null,
+    };
+
+    if (isEditing && applicationId) {
+      const { error } = await supabase
+        .from('applications')
+        .update(payload)
+        .eq('id', applicationId);
+
+      if (error) {
+        throw new Error(error.message || 'Failed to update application');
+      }
+    } else {
+      const { error } = await supabase.from('applications').insert(payload);
+
+      if (error) {
+        throw new Error(error.message || 'Failed to create application');
+      }
+    }
+
+    await queryClient.invalidateQueries({ queryKey: ['applications'] });
+
     navigate('/applications', {
       state: {
         successMessage: isEditing

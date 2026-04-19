@@ -3,7 +3,7 @@ import ApplicationsControls from '../components/ApplicationsControls';
 import { Link } from 'react-router';
 
 import useBanner from '../hooks/useBanner';
-import useApplicationsList from '../hooks/useApplicationsList';
+import useApplicationsList from '../hooks/useApplicationsController';
 
 import ApplicationsEmptyState from '../components/ApplicationsEmptyState';
 import { useApplicationsQuery } from '../hooks/useApplicationsQuery';

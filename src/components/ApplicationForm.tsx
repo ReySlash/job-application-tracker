@@ -6,13 +6,13 @@ import { useEffect } from 'react';
 import { Link } from 'react-router';
 
 type Props = {
-  onSubmit: (applicationInput: ApplicationsFormSchema) => void;
+  onSubmit: (data: ApplicationsFormSchema) => Promise<void>;
   initialFormState: ApplicationsFormSchema;
   isEditing: boolean;
 };
 
 function ApplicationForm(props: Props) {
-  const { onSubmit, initialFormState, isEditing } = props;
+  const { initialFormState, isEditing, onSubmit } = props;
 
   const {
     register,

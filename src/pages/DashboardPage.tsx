@@ -3,7 +3,7 @@ import { useMemo } from 'react';
 import ApplicationsStats from '../components/ApplicationsStats';
 import DashboardControls from '../components/DashboardControls';
 import { useApplicationsQuery } from '../hooks/useApplicationsQuery';
-import useApplicationsList from '../hooks/useApplicationsList';
+import useApplicationsList from '../hooks/useApplicationsController';
 
 function DashboardPage() {
   const { data: applicationsList = [] } = useApplicationsQuery();

@@ -3,7 +3,6 @@ import ApplicationsControls from '../components/ApplicationsControls';
 import { Link } from 'react-router';
 
 import useBanner from '../hooks/useBanner';
-import useRemove from '../hooks/useRemove';
 import useApplicationsList from '../hooks/useApplicationsList';
 
 import ApplicationsEmptyState from '../components/ApplicationsEmptyState';
@@ -26,9 +25,6 @@ function ApplicationsPage() {
     filterStatus,
     setFilterStatus,
   } = useApplicationsList(applications);
-
-  // The remove function is also abstracted into a custom hook to keep the component focused on UI logic.
-  const removeApplication = useRemove();
 
   if (isLoading || isFetching) {
     return (
@@ -88,7 +84,6 @@ function ApplicationsPage() {
       ) : (
         <ApplicationsListView
           applications={sortedApplications}
-          onDelete={(id, company) => removeApplication(id, company)}
           onSort={handleColumnSort}
           sortConfig={sortConfig}
         />

@@ -1,45 +1,42 @@
-import { useContext, useMemo, useState } from "react";
-import ApplicationsContext from "../contexts/ApplicationsContext";
-import type { FilterStatus } from "../types/StatusFilter";
-import ApplicationsStats from "../components/ApplicationsStats";
-import DashboardControls from "../components/DashboardControls";
+import { useMemo } from 'react';
+
+import ApplicationsStats from '../components/ApplicationsStats';
+import DashboardControls from '../components/DashboardControls';
+import { useApplicationsQuery } from '../hooks/useApplicationsQuery';
+import useApplicationsList from '../hooks/useApplicationsList';
 
 function DashboardPage() {
-  const { applicationsList } = useContext(ApplicationsContext);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [filterStatus, setFilterStatus] = useState<FilterStatus>("all");
-  const [filtersOpen, setFiltersOpen] = useState(false);
+  const { data: applicationsList = [] } = useApplicationsQuery();
+
+  const {
+    searchQuery,
+    setSearchQuery,
+    filtersOpen,
+    setFiltersOpen,
+    filterStatus,
+    setFilterStatus,
+  } = useApplicationsList(applicationsList);
 
   const filteredApplications = useMemo(() => {
     const query = searchQuery.toLowerCase();
     const searchedApplications = applicationsList.filter(
-      (app) =>
-        app.company.toLowerCase().includes(query) ||
-        app.role.toLowerCase().includes(query),
+      (app) => app.company.toLowerCase().includes(query) || app.role.toLowerCase().includes(query),
     );
 
-    return filterStatus !== "all"
+    return filterStatus !== 'all'
       ? searchedApplications.filter((app) => app.status === filterStatus)
       : searchedApplications;
   }, [applicationsList, filterStatus, searchQuery]);
 
   const total = filteredApplications.length;
-  const applied = filteredApplications.filter(
-    (app) => app.status === "applied",
-  ).length;
-  const interview = filteredApplications.filter(
-    (app) => app.status === "interview",
-  ).length;
-  const offer = filteredApplications.filter(
-    (app) => app.status === "offer",
-  ).length;
-  const rejected = filteredApplications.filter(
-    (app) => app.status === "rejected",
-  ).length;
+  const applied = filteredApplications.filter((app) => app.status === 'applied').length;
+  const interview = filteredApplications.filter((app) => app.status === 'interview').length;
+  const offer = filteredApplications.filter((app) => app.status === 'offer').length;
+  const rejected = filteredApplications.filter((app) => app.status === 'rejected').length;
 
   return (
     <>
-      <h1 className="flex justify-center text-4xl p-2 mb-2">Dashboard</h1>
+      <h1 className="mb-2 flex justify-center p-2 text-4xl">Dashboard</h1>
       <DashboardControls
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}

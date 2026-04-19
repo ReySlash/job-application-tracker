@@ -1,7 +1,6 @@
-import { useContext } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
-import ApplicationsContext from '../contexts/ApplicationsContext';
 import StatusBadge from '../components/StatusBadge';
+import { useApplicationsQuery } from '../hooks/useApplicationsQuery';
 
 function formatDate(dateString: string) {
   return new Date(dateString).toLocaleDateString('en-GB', {
@@ -15,8 +14,7 @@ function ApplicationDetailsPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const applicationId = id;
-
-  const { applicationsList, deleteApplication } = useContext(ApplicationsContext);
+  const { data: applicationsList = [] } = useApplicationsQuery();
 
   const application = applicationsList.find((item) => item.id === applicationId);
 
@@ -28,8 +26,6 @@ function ApplicationDetailsPage() {
     );
 
     if (!confirmed) return;
-
-    deleteApplication(application.id);
 
     navigate('/applications', {
       state: {

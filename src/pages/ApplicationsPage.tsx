@@ -6,11 +6,12 @@ import useBanner from '../hooks/useBanner';
 import useApplicationsList from '../hooks/useApplicationsController';
 
 import ApplicationsEmptyState from '../components/ApplicationsEmptyState';
+import ApplicationsListSkeleton from '../components/ApplicationsListSkeleton';
 import { useApplicationsQuery } from '../hooks/useApplicationsQuery';
 import { useDeleteApplicationMutation } from '../hooks/useApplicationMutations';
 
 function ApplicationsPage() {
-  const { data: applications = [], isLoading, error, isFetching } = useApplicationsQuery();
+  const { data: applications = [], isLoading, error } = useApplicationsQuery();
   const deleteApplicationMutation = useDeleteApplicationMutation();
 
   const { successMessage, setSuccessMessage } = useBanner();
@@ -33,11 +34,15 @@ function ApplicationsPage() {
     setSuccessMessage('Application deleted successfully!');
   };
 
-  if (isLoading || isFetching) {
+  if (isLoading) {
     return (
-      <div className="flex h-full flex-col items-center justify-center">
-        <p>Loading applications...</p>
-      </div>
+      <>
+        <h2 className="mb-2 flex justify-center p-2 text-4xl">Applications</h2>
+        <div className="flex justify-center md:justify-start">
+          <div className="mx-15 h-9 w-36 animate-pulse rounded-md bg-gray-200" />
+        </div>
+        <ApplicationsListSkeleton />
+      </>
     );
   }
 

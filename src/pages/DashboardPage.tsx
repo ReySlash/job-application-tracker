@@ -1,12 +1,13 @@
 import { useMemo } from 'react';
 
 import ApplicationsStats from '../components/ApplicationsStats';
+import ApplicationsStatsSkeleton from '../components/ApplicationsStatsSkeleton';
 import DashboardControls from '../components/DashboardControls';
 import { useApplicationsQuery } from '../hooks/useApplicationsQuery';
 import useApplicationsList from '../hooks/useApplicationsController';
 
 function DashboardPage() {
-  const { data: applicationsList = [] } = useApplicationsQuery();
+  const { data: applicationsList = [], isLoading, error } = useApplicationsQuery();
 
   const {
     searchQuery,
@@ -33,6 +34,19 @@ function DashboardPage() {
   const interview = filteredApplications.filter((app) => app.status === 'interview').length;
   const offer = filteredApplications.filter((app) => app.status === 'offer').length;
   const rejected = filteredApplications.filter((app) => app.status === 'rejected').length;
+
+  if (isLoading) {
+    return (
+      <>
+        <h1 className="mb-2 flex justify-center p-2 text-4xl">Dashboard</h1>
+        <ApplicationsStatsSkeleton />
+      </>
+    );
+  }
+
+  if (error instanceof Error) {
+    return <p>{error.message}</p>;
+  }
 
   return (
     <>

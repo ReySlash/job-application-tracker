@@ -1,185 +1,160 @@
 # Job Application Tracker
 
-A frontend-focused web app for managing and tracking job applications in a structured, practical way.
+A React and Supabase app for managing private job applications, tracking progress, and reviewing job-search activity from a dashboard.
 
 ## Overview
 
 Job Application Tracker helps users organize their job search in one place instead of relying on spreadsheets, notes, or scattered links.
 
-The app is designed around a simple but realistic workflow:
+Users can:
 
-- create applications
-- review them in a structured list
+- create job applications
+- review applications in a searchable, sortable list
 - update existing records
-- remove records when needed
-- keep track of important job search details over time
+- delete applications
+- track dashboard metrics and status breakdowns
+- keep their data private with Supabase Auth and Row Level Security
 
-This project is also part of my portfolio and learning journey as I build real-world CRUD-style applications with scalable frontend architecture.
-
----
-
-## Current Status
-
-This project is actively in development.
-
-The current focus is on:
-
-- building a solid frontend architecture
-- improving CRUD flows
-- making UI behavior more realistic
-- keeping the project portfolio-ready as it grows
-
----
+This project is part of my portfolio and learning journey as I build real-world CRUD-style applications with scalable frontend architecture.
 
 ## Tech Stack
-
-### Core
 
 - React
 - TypeScript
 - Vite
-
-### Routing
-
 - React Router
-
-### Styling
-
+- TanStack Query
+- Supabase Auth and Postgres
 - Tailwind CSS
-
-### Forms and Validation
-
 - React Hook Form
 - Zod
-- `@hookform/resolvers`
 
----
+## Features
 
-## Main Goal
+- Email/password authentication
+- Protected dashboard and application routes
+- Private per-user application records
+- Create, read, update, and delete applications
+- Search, filtering, and sorting
+- Dashboard metrics and lightweight charts
+- Responsive desktop and mobile layouts
+- Light and dark mode
+- Skeleton loading states
 
-The purpose of this project is to practice building a realistic application that includes:
+## Supabase Setup
 
-- page routing
-- reusable UI components
-- form handling
-- validation
-- state management
-- scalable project structure
-- portfolio-quality frontend development
+This app expects a Supabase project with email/password auth enabled and the private `applications` schema from `supabase/migrations`.
 
----
+1. Create a Supabase project.
 
-## Features Implemented or In Progress
+2. In Supabase, enable email/password authentication:
 
-### Application Management
+   Authentication -> Providers -> Email
 
-- Create job applications
-- Edit existing applications
-- Delete applications
-- View application records in a structured interface
+3. Apply the database migration:
 
-### Application Fields
+   - Open the SQL file in `supabase/migrations`.
+   - Copy the contents of `20260419000000_create_private_applications_schema.sql`.
+   - Run it in the Supabase SQL Editor.
 
-Each application is designed to store information such as:
+The migration creates the `applications` table, enables Row Level Security, and adds policies so authenticated users can only access their own application records.
 
-- company
-- role
-- status
-- application date
-- location
-- job URL
-- notes
+## Environment Variables
 
-### UI / UX Direction
+Create a local `.env` file from the example:
 
-The project is being shaped to include:
+```bash
+cp .env.example .env
+```
 
-- clear empty states
-- validation feedback
-- better list rendering
-- cleaner application details view
-- improved responsiveness
-- more polished interaction flows
+Then fill in your Supabase values:
 
-### Planned Product Direction
+```bash
+VITE_SUPABASE_URL=https://your-project-ref.supabase.co
+VITE_SUPABASE_ANON_KEY=your-supabase-anon-key
+```
 
-The app is being developed toward a more complete experience with:
+You can find these values in Supabase:
 
-- filtering
-- sorting
-- dashboard statistics
-- improved detail views
-- portfolio-quality documentation and structure
+Project Settings -> API
 
----
+## Getting Started
+
+1. Clone the repository:
+
+```bash
+git clone https://github.com/ReySlash/job-application-tracker.git
+cd job-application-tracker
+```
+
+2. Install dependencies:
+
+```bash
+npm install
+```
+
+3. Configure Supabase:
+
+```bash
+cp .env.example .env
+```
+
+Update `.env` with your Supabase project URL and anon key, then apply the migration in the Supabase SQL Editor.
+
+4. Start the development server:
+
+```bash
+npm run dev
+```
+
+5. Build for production:
+
+```bash
+npm run build
+```
+
+## Available Scripts
+
+```bash
+npm run dev
+npm run build
+npm run lint
+npm run preview
+```
 
 ## Project Structure
-
-The exact structure may continue evolving, but the app is organized around a standard React + TypeScript setup.
 
 ```bash
 job-application-tracker/
 ├── README.md
 ├── package.json
+├── supabase/
+│   └── migrations/
 ├── src/
+│   ├── api/
+│   ├── app/
+│   ├── components/
+│   ├── hooks/
+│   ├── layouts/
+│   ├── pages/
+│   ├── providers/
+│   ├── types/
+│   └── utils/
 └── ...
 ```
 
-As the project grows, the codebase is expected to remain organized around:
+## Why This Project Matters
 
-pages
-reusable components
-routing
-form logic
-validation
-application state
+This project is more than a simple CRUD exercise. It is meant to practice frontend work commonly needed in real applications:
 
-### Getting Started
+- handling user input correctly
+- validating forms
+- managing page navigation
+- working with server state
+- protecting private user data
+- structuring medium-sized React projects
+- polishing UI behavior for a portfolio-ready experience
 
-1. Clone the repository
-   git clone https://github.com/ReySlash/job-application-tracker.git
-   cd job-application-tracker
+## Author
 
-2. Install dependencies
-   npm install
-
-3. Start the development server
-   npm run dev
-
-4. Build for production
-   npm run build
-
-5. Preview production build
-   npm run preview
-
-Available Scripts
-npm run dev
-npm run build
-npm run lint
-npm run preview
-Why This Project Matters
-
-This project is more than a simple CRUD exercise.
-
-It is meant to help me practice the type of frontend work commonly needed in real applications:
-
-handling user input correctly
-validating forms
-managing page navigation
-structuring medium-sized React projects
-polishing UI behavior
-preparing projects for portfolio presentation
-Roadmap
-
-Possible next steps include:
-
-improving state organization
-persisting data more robustly
-refining filter and sort behavior
-adding dashboard metrics and summaries
-improving responsive behavior for smaller screens
-polishing documentation and developer experience
-preparing for backend integration later if needed
-Author
-
-Built by ReySlash
+Built by ReySlash.

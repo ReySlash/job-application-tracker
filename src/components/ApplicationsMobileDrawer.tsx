@@ -1,6 +1,6 @@
-import type { MobileSortOption } from "../types/SortConfig";
-import type { FilterStatus } from "../types/StatusFilter";
-import closeIcon from "../assets/closeIcon.svg";
+import type { MobileSortOption } from '../types/SortConfig';
+import type { FilterStatus } from '../types/StatusFilter';
+import closeIcon from '../assets/closeIcon.svg';
 
 type Props = {
   searchQuery: string;
@@ -25,8 +25,8 @@ function ApplicationsMobileDrawer(props: Props) {
 
   return (
     <aside
-      className={`fixed right-0 top-0 z-30 flex h-full w-80 max-w-[85vw] flex-col gap-4 bg-white p-5 shadow-lg transition-transform duration-300 dark:bg-slate-900 dark:text-slate-100 ${
-        filtersOpen ? "translate-x-0" : "translate-x-full"
+      className={`fixed top-0 right-0 z-30 flex h-full w-80 max-w-[85vw] flex-col gap-4 bg-white p-5 shadow-lg transition-transform duration-300 dark:bg-slate-900 dark:text-slate-100 ${
+        filtersOpen ? 'translate-x-0' : 'translate-x-full'
       }`}
     >
       <div className="flex items-center justify-between">
@@ -37,7 +37,7 @@ function ApplicationsMobileDrawer(props: Props) {
           className="rounded-md px-3 py-1 text-2xl leading-none transition-transform duration-200 hover:scale-110 hover:cursor-pointer dark:invert"
           aria-label="Close filters"
         >
-          <img className="h-6 w-6" src={closeIcon} alt="Close filters" />
+          <img className="h-6 w-6 dark:brightness-200" src={closeIcon} alt="Close filters" />
         </button>
       </div>
 
@@ -78,9 +78,7 @@ function ApplicationsMobileDrawer(props: Props) {
           Sort by:
         </label>
         <select
-          onChange={(e) =>
-            handleMobileSortChange(e.target.value as MobileSortOption)
-          }
+          onChange={(e) => handleMobileSortChange(e.target.value as MobileSortOption)}
           id="mobile-sort-filter"
           className="transition-ring h-10 w-full min-w-0 rounded-md border border-black p-2 duration-200 hover:cursor-pointer focus:ring-2 focus:ring-teal-500 focus:outline-none dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
         >

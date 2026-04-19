@@ -12,9 +12,13 @@ type ApplicationWritePayload = {
   location: string;
   job_url: string | null;
   notes: string | null;
+  user_id: string;
 };
 
-function mapFormToApplicationPayload(input: ApplicationsFormSchema): ApplicationWritePayload {
+function mapFormToApplicationPayload(
+  input: ApplicationsFormSchema,
+  userId: string,
+): ApplicationWritePayload {
   return {
     company: input.company,
     role: input.role,
@@ -23,6 +27,7 @@ function mapFormToApplicationPayload(input: ApplicationsFormSchema): Application
     location: input.location,
     job_url: input.jobUrl || null,
     notes: input.notes || null,
+    user_id: userId,
   };
 }
 
@@ -39,8 +44,10 @@ export async function fetchApplications(): Promise<Application[]> {
   return ((data ?? []) as ApplicationRow[]).map(mapRowToApplication);
 }
 
-export async function createApplication(input: ApplicationsFormSchema): Promise<void> {
-  const { error } = await supabase.from('applications').insert(mapFormToApplicationPayload(input));
+export async function createApplication(input: ApplicationsFormSchema, userId: string): Promise<void> {
+  const { error } = await supabase
+    .from('applications')
+    .insert(mapFormToApplicationPayload(input, userId));
 
   if (error) {
     throw new Error(error.message || 'Failed to create application');
@@ -48,9 +55,19 @@ export async function createApplication(input: ApplicationsFormSchema): Promise<
 }
 
 export async function updateApplication(id: string, input: ApplicationsFormSchema): Promise<void> {
+  const payload = {
+    company: input.company,
+    role: input.role,
+    status: input.status,
+    applied_at: input.appliedAt,
+    location: input.location,
+    job_url: input.jobUrl || null,
+    notes: input.notes || null,
+  };
+
   const { error } = await supabase
     .from('applications')
-    .update(mapFormToApplicationPayload(input))
+    .update(payload)
     .eq('id', id);
 
   if (error) {

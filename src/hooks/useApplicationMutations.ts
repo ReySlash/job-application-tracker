@@ -6,12 +6,20 @@ import {
 } from '../api/applications';
 import type { ApplicationsFormSchema } from '../schemas/ApplicationsFormSchema';
 import type { Application } from '../types/ApplicationType';
+import { useAuth } from './useAuth';
 
 export function useCreateApplicationMutation() {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
 
   return useMutation({
-    mutationFn: createApplication,
+    mutationFn: (input: ApplicationsFormSchema) => {
+      if (!user) {
+        throw new Error('You must be signed in to create an application');
+      }
+
+      return createApplication(input, user.id);
+    },
     onSuccess: () => {
       return queryClient.invalidateQueries({ queryKey: ['applications'] });
     },

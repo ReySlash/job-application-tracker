@@ -88,7 +88,6 @@ function ApplicationsPage() {
         setFiltersOpen={setFiltersOpen}
       />
 
-      {/* Applications table */}
       {sortedApplications.length === 0 ? (
         <p className="mt-5 text-center text-gray-500 dark:text-slate-400">
           No applications match the search and filter criteria.

@@ -9,6 +9,8 @@ import ApplicationDetailsPage from "../pages/ApplicationDetailsPage";
 import ApplicationFormPage from "../pages/ApplicationFormPage";
 import NotFoundPage from "../pages/NotFoundPage";
 import SignupPage from "../pages/SignupPage";
+import ProtectedRoute from "../components/ProtectedRoute";
+import PublicOnlyRoute from "../components/PublicOnlyRoute";
 
 const router = createBrowserRouter([
   {
@@ -16,19 +18,29 @@ const router = createBrowserRouter([
     Component: PublicLayout,
     children: [
       { index: true, Component: HomePage },
-      { path: "login", Component: LoginPage },
-      { path: "signup", Component: SignupPage },
+      {
+        Component: PublicOnlyRoute,
+        children: [
+          { path: "login", Component: LoginPage },
+          { path: "signup", Component: SignupPage },
+        ],
+      },
     ],
   },
   {
     path: "/",
-    Component: AppLayout,
+    Component: ProtectedRoute,
     children: [
-      { path: "dashboard", Component: DashboardPage },
-      { path: "applications", Component: ApplicationsPage },
-      { path: "applications/new", Component: ApplicationFormPage },
-      { path: "applications/:id", Component: ApplicationDetailsPage },
-      { path: "applications/:id/edit", Component: ApplicationFormPage },
+      {
+        Component: AppLayout,
+        children: [
+          { path: "dashboard", Component: DashboardPage },
+          { path: "applications", Component: ApplicationsPage },
+          { path: "applications/new", Component: ApplicationFormPage },
+          { path: "applications/:id", Component: ApplicationDetailsPage },
+          { path: "applications/:id/edit", Component: ApplicationFormPage },
+        ],
+      },
     ],
   },
   { path: "*", Component: NotFoundPage },

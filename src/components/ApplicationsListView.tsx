@@ -8,13 +8,29 @@ import StatusBadge from './StatusBadge';
 import type { SortConfig, SortKey } from '../types/SortConfig';
 
 type Props = {
+  deleteApplication: (id: string) => Promise<void>;
   applications: Application[];
   onSort: (sortKey: SortKey) => void;
   sortConfig: SortConfig;
 };
 
 function ApplicationsListView(props: Props) {
-  const { applications, onSort, sortConfig } = props;
+  const { applications, deleteApplication, onSort, sortConfig } = props;
+
+  const handleDelete = async (application: Application) => {
+    const confirmed = window.confirm(
+      `Delete the application for "${application.role}" at "${application.company}"?`,
+    );
+
+    if (!confirmed) return;
+
+    try {
+      await deleteApplication(application.id);
+    } catch (error) {
+      console.error('Failed to delete application:', error);
+      alert('Failed to delete application. Please try again.');
+    }
+  };
 
   const columns: {
     header: string;
@@ -85,7 +101,11 @@ function ApplicationsListView(props: Props) {
                         alt="update button"
                       />
                     </Link>
-                    <button className="inline-flex h-8 w-8 items-center justify-center hover:cursor-pointer">
+                    <button
+                      type="button"
+                      onClick={() => handleDelete(a)}
+                      className="inline-flex h-8 w-8 items-center justify-center hover:cursor-pointer"
+                    >
                       <img
                         className="h-6 transition-transform duration-150 hover:scale-150"
                         src={removeIcon}
@@ -131,7 +151,11 @@ function ApplicationsListView(props: Props) {
                   alt="update button"
                 />
               </Link>
-              <button className="hover:cursor-pointer">
+              <button
+                type="button"
+                onClick={() => handleDelete(a)}
+                className="hover:cursor-pointer"
+              >
                 <img
                   className="h-6 transition-transform duration-150 hover:scale-130"
                   src={removeIcon}

@@ -7,9 +7,11 @@ import useApplicationsList from '../hooks/useApplicationsController';
 
 import ApplicationsEmptyState from '../components/ApplicationsEmptyState';
 import { useApplicationsQuery } from '../hooks/useApplicationsQuery';
+import { useDeleteApplicationMutation } from '../hooks/useApplicationMutations';
 
 function ApplicationsPage() {
   const { data: applications = [], isLoading, error, isFetching } = useApplicationsQuery();
+  const deleteApplicationMutation = useDeleteApplicationMutation();
 
   const { successMessage, setSuccessMessage } = useBanner();
 
@@ -25,6 +27,11 @@ function ApplicationsPage() {
     filterStatus,
     setFilterStatus,
   } = useApplicationsList(applications);
+
+  const handleDeleteApplication = async (id: string) => {
+    await deleteApplicationMutation.mutateAsync(id);
+    setSuccessMessage('Application deleted successfully!');
+  };
 
   if (isLoading || isFetching) {
     return (
@@ -86,6 +93,7 @@ function ApplicationsPage() {
           applications={sortedApplications}
           onSort={handleColumnSort}
           sortConfig={sortConfig}
+          deleteApplication={handleDeleteApplication}
         />
       )}
     </>

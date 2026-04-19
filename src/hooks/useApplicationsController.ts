@@ -41,6 +41,7 @@ function useApplications(applications: Application[]) {
       });
     }
   };
+
   // handle mobile sort change from the dropdown
   const handleMobileSortChange = (value: MobileSortOption) => {
     if (value === 'none') {

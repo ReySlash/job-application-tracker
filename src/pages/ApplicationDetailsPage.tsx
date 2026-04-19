@@ -1,6 +1,7 @@
 import { Link, useNavigate, useParams } from 'react-router';
 import StatusBadge from '../components/StatusBadge';
 import { useApplicationsQuery } from '../hooks/useApplicationsQuery';
+import { useDeleteApplicationMutation } from '../hooks/useApplicationMutations';
 
 function formatDate(dateString: string) {
   return new Date(dateString).toLocaleDateString('en-GB', {
@@ -15,10 +16,11 @@ function ApplicationDetailsPage() {
   const navigate = useNavigate();
   const applicationId = id;
   const { data: applicationsList = [] } = useApplicationsQuery();
+  const deleteApplicationMutation = useDeleteApplicationMutation();
 
   const application = applicationsList.find((item) => item.id === applicationId);
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (!application) return;
 
     const confirmed = window.confirm(
@@ -27,11 +29,18 @@ function ApplicationDetailsPage() {
 
     if (!confirmed) return;
 
-    navigate('/applications', {
-      state: {
-        successMessage: 'Application deleted successfully!',
-      },
-    });
+    try {
+      await deleteApplicationMutation.mutateAsync(application.id);
+
+      navigate('/applications', {
+        state: {
+          successMessage: 'Application deleted successfully!',
+        },
+      });
+    } catch (error) {
+      console.error('Failed to delete application:', error);
+      alert('Failed to delete application. Please try again.');
+    }
   };
 
   if (!application) {

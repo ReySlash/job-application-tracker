@@ -4,8 +4,10 @@ import type { ApplicationInput } from '../types/ApplicationInput';
 import type { ApplicationsFormSchema } from '../schemas/ApplicationsFormSchema';
 import ApplicationForm from '../components/ApplicationForm';
 import { useApplicationsQuery } from '../hooks/useApplicationsQuery';
-import { queryClient } from '../lib/queryClient';
-import { supabase } from '../lib/supabase';
+import {
+  useCreateApplicationMutation,
+  useUpdateApplicationMutation,
+} from '../hooks/useApplicationMutations';
 
 function ApplicationFormPage() {
   const { data: applicationsList = [] } = useApplicationsQuery();
@@ -16,6 +18,8 @@ function ApplicationFormPage() {
   const isEditing = Boolean(params.id);
 
   const navigate = useNavigate();
+  const createApplicationMutation = useCreateApplicationMutation();
+  const updateApplicationMutation = useUpdateApplicationMutation();
 
   // Default values used when the form is opened in create mode.
   const emptyFormState = useMemo<ApplicationInput>(
@@ -43,34 +47,11 @@ function ApplicationFormPage() {
 
   // Valid data from Zod is saved through the shared applications provider.
   const onSubmit = async (data: ApplicationsFormSchema) => {
-    const payload = {
-      company: data.company,
-      role: data.role,
-      status: data.status,
-      applied_at: data.appliedAt,
-      location: data.location,
-      job_url: data.jobUrl || null,
-      notes: data.notes || null,
-    };
-
     if (isEditing && applicationId) {
-      const { error } = await supabase
-        .from('applications')
-        .update(payload)
-        .eq('id', applicationId);
-
-      if (error) {
-        throw new Error(error.message || 'Failed to update application');
-      }
+      await updateApplicationMutation.mutateAsync({ id: applicationId, input: data });
     } else {
-      const { error } = await supabase.from('applications').insert(payload);
-
-      if (error) {
-        throw new Error(error.message || 'Failed to create application');
-      }
+      await createApplicationMutation.mutateAsync(data);
     }
-
-    await queryClient.invalidateQueries({ queryKey: ['applications'] });
 
     navigate('/applications', {
       state: {

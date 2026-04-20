@@ -98,18 +98,18 @@ function HomePage() {
               </p>
             )}
 
-            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+            <div className="mt-8 flex gap-3">
               <button
                 type="button"
                 disabled={isStartingDemo || isAuthLoading}
                 onClick={handleStartDemo}
-                className="rounded-md bg-teal-600 px-5 py-3 text-sm font-medium text-white transition-colors hover:bg-teal-500 disabled:cursor-not-allowed disabled:opacity-70"
+                className="min-w-0 flex-1 rounded-md bg-teal-600 px-3 py-3 text-sm font-medium text-white transition-colors hover:bg-teal-500 disabled:cursor-not-allowed disabled:opacity-70 sm:px-5"
               >
                 {demoButtonLabel}
               </button>
               <Link
                 to="/signup"
-                className="rounded-md border border-slate-300/70 bg-white px-5 py-3 text-center text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100 dark:border-slate-700/70 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
+                className="min-w-0 flex-1 rounded-md border border-slate-300/70 bg-white px-3 py-3 text-center text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100 sm:px-5 dark:border-slate-700/70 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
               >
                 Create account
               </Link>

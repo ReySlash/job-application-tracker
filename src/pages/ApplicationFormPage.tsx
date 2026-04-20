@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { useNavigate, useParams } from 'react-router';
+import { Link, useNavigate, useParams } from 'react-router';
 import type { ApplicationInput } from '../types/ApplicationInput';
 import type { ApplicationsFormSchema } from '../schemas/ApplicationsFormSchema';
 import ApplicationForm from '../components/ApplicationForm';
@@ -10,7 +10,7 @@ import {
 } from '../hooks/useApplicationMutations';
 
 function ApplicationFormPage() {
-  const { data: applicationsList = [] } = useApplicationsQuery();
+  const { data: applicationsList = [], error, isLoading } = useApplicationsQuery();
 
   // Route state decides whether this page creates a new record or edits one.
   const params = useParams();
@@ -61,6 +61,42 @@ function ApplicationFormPage() {
       },
     });
   };
+
+  if (isEditing && isLoading) {
+    return (
+      <div className="mx-auto mt-10 max-w-2xl rounded-lg border border-gray-200 bg-white p-6 shadow-lg dark:border-slate-700 dark:bg-slate-900">
+        <div className="h-8 w-48 animate-pulse rounded bg-gray-200 dark:bg-slate-800" />
+        <div className="mt-6 grid gap-4 md:grid-cols-2">
+          {Array.from({ length: 6 }).map((_, index) => (
+            <div className="h-16 animate-pulse rounded bg-gray-200 dark:bg-slate-800" key={index} />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (error instanceof Error) {
+    return <p className="p-4 text-red-600 dark:text-red-400">{error.message}</p>;
+  }
+
+  if (isEditing && !applicationToUpdate) {
+    return (
+      <section className="mx-auto max-w-3xl px-4 py-8">
+        <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-900">
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Application not found</h1>
+          <p className="mt-3 text-slate-600 dark:text-slate-400">
+            The application you are trying to edit does not exist or may have been deleted.
+          </p>
+          <Link
+            to="/applications"
+            className="mt-6 inline-flex rounded-md bg-teal-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-teal-500"
+          >
+            Back to Applications
+          </Link>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <div className="mx-auto mt-10 max-w-2xl rounded-lg border border-gray-200 bg-white p-6 shadow-lg dark:border-slate-700 dark:bg-slate-900">

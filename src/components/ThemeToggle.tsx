@@ -10,7 +10,7 @@ function ThemeToggle() {
     <button
       type="button"
       onClick={toggleTheme}
-      className="mx-12 rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm transition-colors hover:bg-slate-100 md:mx-3 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800"
+      className="rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm transition-colors hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800"
       aria-label={`Switch to ${isDark ? 'light' : 'dark'} mode`}
     >
       <img

@@ -1,13 +1,37 @@
 import { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router';
+import { resetDemoApplications } from '../api/applications';
 import { useAuth } from '../hooks/useAuth';
 import { queryClient } from '../lib/queryClient';
+import ThemeToggle from './ThemeToggle';
 
 function SideBar() {
   const { signOut, user } = useAuth();
   const navigate = useNavigate();
   const [isSigningOut, setIsSigningOut] = useState(false);
   const [signOutError, setSignOutError] = useState<string | null>(null);
+  const [isResettingDemo, setIsResettingDemo] = useState(false);
+  const [demoResetMessage, setDemoResetMessage] = useState<string | null>(null);
+  const [demoResetError, setDemoResetError] = useState<string | null>(null);
+  const isDemoUser = Boolean(user?.is_anonymous);
+
+  const handleResetDemo = async () => {
+    if (!user || !isDemoUser || isResettingDemo) return;
+
+    setDemoResetError(null);
+    setDemoResetMessage(null);
+    setIsResettingDemo(true);
+
+    try {
+      await resetDemoApplications(user.id);
+      await queryClient.invalidateQueries({ queryKey: ['applications'] });
+      setDemoResetMessage('Demo data restored.');
+    } catch (error) {
+      setDemoResetError(error instanceof Error ? error.message : 'Failed to reset demo data.');
+    } finally {
+      setIsResettingDemo(false);
+    }
+  };
 
   const handleSignOut = async () => {
     if (isSigningOut) return;
@@ -32,6 +56,9 @@ function SideBar() {
   return (
     <nav className="flex flex-col gap-4">
       <h2 className="mb-4 text-center text-xl font-bold text-gray-800 dark:text-slate-100">Menu</h2>
+      <div className="flex justify-center">
+        <ThemeToggle />
+      </div>
       <ul className="flex flex-col gap-2">
         <li className="w-full">
           <NavLink
@@ -60,6 +87,27 @@ function SideBar() {
             {user.email}
           </p>
         )}
+        {isDemoUser && (
+          <p className="mb-3 text-center text-sm text-slate-500 dark:text-slate-400">
+            Demo workspace
+          </p>
+        )}
+        {demoResetMessage && (
+          <p
+            className="mb-3 rounded border border-green-300 bg-green-100 px-3 py-2 text-sm text-green-800 dark:border-green-800 dark:bg-green-950/70 dark:text-green-200"
+            role="status"
+          >
+            {demoResetMessage}
+          </p>
+        )}
+        {demoResetError && (
+          <p
+            className="mb-3 rounded border border-red-300 bg-red-100 px-3 py-2 text-sm text-red-700 dark:border-red-800 dark:bg-red-950/60 dark:text-red-200"
+            role="alert"
+          >
+            {demoResetError}
+          </p>
+        )}
         {signOutError && (
           <p
             className="mb-3 rounded border border-red-300 bg-red-100 px-3 py-2 text-sm text-red-700 dark:border-red-800 dark:bg-red-950/60 dark:text-red-200"
@@ -67,6 +115,16 @@ function SideBar() {
           >
             {signOutError}
           </p>
+        )}
+        {isDemoUser && (
+          <button
+            type="button"
+            disabled={isResettingDemo}
+            onClick={handleResetDemo}
+            className="mb-3 w-full rounded-md border border-teal-300 px-4 py-2 text-sm font-medium text-teal-700 transition-colors hover:bg-teal-50 disabled:cursor-not-allowed disabled:opacity-70 dark:border-teal-800 dark:text-teal-300 dark:hover:bg-teal-950/50"
+          >
+            {isResettingDemo ? 'Resetting...' : 'Reset demo data'}
+          </button>
         )}
         <button
           type="button"

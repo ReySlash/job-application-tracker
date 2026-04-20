@@ -21,6 +21,16 @@ export async function signIn(email: string, password: string) {
   return data;
 }
 
+export async function signInAnonymously() {
+  const { data, error } = await supabase.auth.signInAnonymously();
+
+  if (error) {
+    throw new Error(error.message || 'Failed to start demo session');
+  }
+
+  return data;
+}
+
 export async function signOut() {
   const { error } = await supabase.auth.signOut();
 

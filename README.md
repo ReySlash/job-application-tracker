@@ -32,6 +32,7 @@ This project is part of my portfolio and learning journey as I build real-world 
 ## Features
 
 - Email/password authentication
+- One-click anonymous demo mode
 - Protected dashboard and application routes
 - Private per-user application records
 - Create, read, update, and delete applications
@@ -43,7 +44,7 @@ This project is part of my portfolio and learning journey as I build real-world 
 
 ## Supabase Setup
 
-This app expects a Supabase project with email/password auth enabled and the private `applications` schema from `supabase/migrations`.
+This app expects a Supabase project with email/password auth, anonymous sign-ins, Supabase Cron, and the private `applications` schema from `supabase/migrations`.
 
 1. Create a Supabase project.
 
@@ -51,13 +52,43 @@ This app expects a Supabase project with email/password auth enabled and the pri
 
    Authentication -> Providers -> Email
 
-3. Apply the database migration:
+3. Enable anonymous sign-ins for the portfolio demo:
 
-   - Open the SQL file in `supabase/migrations`.
-   - Copy the contents of `20260419000000_create_private_applications_schema.sql`.
-   - Run it in the Supabase SQL Editor.
+   Authentication -> Providers -> Anonymous Sign-Ins
 
-The migration creates the `applications` table, enables Row Level Security, and adds policies so authenticated users can only access their own application records.
+4. Enable Supabase Cron for automatic demo cleanup:
+
+   Integrations -> Cron
+
+5. Apply the database migrations in order:
+
+   - Open each SQL file in `supabase/migrations`.
+   - Run `20260419000000_create_private_applications_schema.sql` in the Supabase SQL Editor.
+   - Run `20260420000000_schedule_anonymous_demo_cleanup.sql` in the Supabase SQL Editor.
+
+The migration creates the `applications` table, enables Row Level Security, and adds policies so authenticated users, including anonymous demo users, can only access their own application records.
+
+### Demo User Cleanup
+
+Anonymous demo users are useful for recruiters because they can try the app without creating an account. The cleanup migration schedules a Supabase Cron job named `cleanup-anonymous-demo-users-hourly`, which runs every hour and deletes anonymous users older than 1 hour.
+
+Application rows are removed automatically because `applications.user_id` references `auth.users(id)` with `on delete cascade`.
+
+You can confirm the cron job exists with:
+
+```sql
+select jobid, jobname, schedule, command, active
+from cron.job
+where jobname = 'cleanup-anonymous-demo-users-hourly';
+```
+
+If you need to clean up manually, run:
+
+```sql
+delete from auth.users
+where is_anonymous is true
+  and created_at < now() - interval '1 hour';
+```
 
 ## Environment Variables
 
@@ -99,7 +130,7 @@ npm install
 cp .env.example .env
 ```
 
-Update `.env` with your Supabase project URL and anon key, then apply the migration in the Supabase SQL Editor.
+Update `.env` with your Supabase project URL and anon key, enable email/password auth, anonymous sign-ins, and Supabase Cron, then apply the migrations in the Supabase SQL Editor.
 
 4. Start the development server:
 

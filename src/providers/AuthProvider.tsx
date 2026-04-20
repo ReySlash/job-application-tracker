@@ -4,6 +4,7 @@ import type { Session } from '@supabase/supabase-js';
 import {
   getSession,
   onAuthStateChange,
+  signInAnonymously,
   signIn as signInWithPassword,
   signOut as signOutFromSupabase,
   signUp as signUpWithPassword,
@@ -63,6 +64,16 @@ export function AuthProvider({ children }: Props) {
         const data = await signUpWithPassword(email, password);
         setSession(data.session);
         return { hasSession: Boolean(data.session) };
+      },
+      startDemoSession: async () => {
+        const data = await signInAnonymously();
+
+        if (!data.session || !data.user) {
+          throw new Error('Failed to start demo session');
+        }
+
+        setSession(data.session);
+        return { userId: data.user.id };
       },
       signOut: async () => {
         await signOutFromSupabase();

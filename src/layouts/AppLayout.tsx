@@ -3,7 +3,6 @@ import SideBar from '../components/SideBar';
 import { useState } from 'react';
 import hamburgerIcon from '../assets/hamburgerIcon.svg';
 import closeIcon from '../assets/closeIcon.svg';
-import ThemeToggle from '../components/ThemeToggle';
 
 function AppLayout() {
   const [sidebar, setSidebar] = useState<boolean>(false);
@@ -44,9 +43,6 @@ function AppLayout() {
           <SideBar />
         </div>
       </aside>
-      <div className="fixed top-2 right-3 z-10">
-        <ThemeToggle />
-      </div>
       <main className="h-full min-w-0 overflow-auto">
         <Outlet />
       </main>

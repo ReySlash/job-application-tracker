@@ -60,6 +60,7 @@ function renderApp(options: RenderOptions = {}) {
         session,
         user: session?.user ?? null,
         isAuthLoading: false,
+        isPasswordRecovery: false,
         signIn:
           signInImplementation ??
           (async () => {
@@ -79,6 +80,8 @@ function renderApp(options: RenderOptions = {}) {
             } as AuthContextValue['session']);
           }),
         signUp: vi.fn(),
+        requestPasswordReset: vi.fn(),
+        updatePassword: vi.fn(),
         startDemoSession: vi.fn(),
         signOut: vi.fn(),
       }),

@@ -34,6 +34,7 @@ describe('PublicOnlyRoute', () => {
   it('redirects authenticated users away from auth pages', () => {
     useAuthMock.mockReturnValue({
       isAuthLoading: false,
+      isPasswordRecovery: false,
       user: { id: 'user-123' },
     });
 
@@ -46,6 +47,7 @@ describe('PublicOnlyRoute', () => {
   it('renders public auth pages for unauthenticated users', () => {
     useAuthMock.mockReturnValue({
       isAuthLoading: false,
+      isPasswordRecovery: false,
       user: null,
     });
 
@@ -58,6 +60,7 @@ describe('PublicOnlyRoute', () => {
   it('shows the loading state before deciding access', () => {
     useAuthMock.mockReturnValue({
       isAuthLoading: true,
+      isPasswordRecovery: false,
       user: null,
     });
 
@@ -65,6 +68,28 @@ describe('PublicOnlyRoute', () => {
 
     expect(screen.getByText('Restoring your session...')).toBeInTheDocument();
     expect(screen.queryByText('Login form')).not.toBeInTheDocument();
+    expect(screen.queryByText('Dashboard page')).not.toBeInTheDocument();
+  });
+
+  it('allows recovery users to access the reset password page', () => {
+    useAuthMock.mockReturnValue({
+      isAuthLoading: false,
+      isPasswordRecovery: true,
+      user: { id: 'user-123' },
+    });
+
+    render(
+      <MemoryRouter initialEntries={['/reset-password']}>
+        <Routes>
+          <Route path="/" element={<PublicOnlyRoute />}>
+            <Route path="reset-password" element={<div>Reset password form</div>} />
+          </Route>
+          <Route path="/dashboard" element={<div>Dashboard page</div>} />
+        </Routes>
+      </MemoryRouter>,
+    );
+
+    expect(screen.getByText('Reset password form')).toBeInTheDocument();
     expect(screen.queryByText('Dashboard page')).not.toBeInTheDocument();
   });
 });

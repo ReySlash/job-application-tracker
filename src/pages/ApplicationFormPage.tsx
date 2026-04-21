@@ -42,7 +42,7 @@ function ApplicationFormPage() {
     (application) => application.id === applicationId,
   );
 
-  // RHF reads this once on mount, then the effect below keeps edit-mode data synced.
+  // The form component is remounted per record, so these values are the source of truth for create/edit mode.
   const initialFormState: ApplicationInput = useMemo(
     () => (isEditing && applicationToUpdate ? applicationToUpdate : emptyFormState),
     [applicationToUpdate, emptyFormState, isEditing],
@@ -114,6 +114,7 @@ function ApplicationFormPage() {
       </h2>
 
       <ApplicationForm
+        // Force a fresh RHF instance when switching between create mode and a specific record.
         key={applicationId ?? 'new'}
         onSubmit={onSubmit}
         initialFormState={initialFormState}

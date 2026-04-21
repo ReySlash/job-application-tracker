@@ -32,6 +32,7 @@ This project is part of my portfolio and learning journey as I build real-world 
 ## Features
 
 - Email/password authentication
+- Password reset by email
 - One-click anonymous demo mode
 - Protected dashboard and application routes
 - Private per-user application records
@@ -44,13 +45,15 @@ This project is part of my portfolio and learning journey as I build real-world 
 
 ## Supabase Setup
 
-This app expects a Supabase project with email/password auth, anonymous sign-ins, Supabase Cron, and the private `applications` schema from `supabase/migrations`.
+This app expects a Supabase project with email/password auth, password recovery, anonymous sign-ins, Supabase Cron, and the private `applications` schema from `supabase/migrations`.
 
 1. Create a Supabase project.
 
-2. In Supabase, enable email/password authentication:
+2. In Supabase, enable email/password authentication and password recovery:
 
    Authentication -> Providers -> Email
+
+   Make sure password recovery is enabled for the Email provider.
 
 3. Enable anonymous sign-ins for the portfolio demo:
 
@@ -109,6 +112,22 @@ You can find these values in Supabase:
 
 Project Settings -> API
 
+## Auth Redirect URLs
+
+For password reset to work in local development and on GitHub Pages, configure these Supabase Auth settings:
+
+- Site URL
+
+  - Local: `http://localhost:5173`
+  - GitHub Pages: `https://reyslash.github.io/job-application-tracker/`
+
+- Additional Redirect URLs
+
+  - `http://localhost:5173/reset-password`
+  - `https://reyslash.github.io/job-application-tracker/reset-password`
+
+Supabase uses the reset URL to return the browser to the app with a recovery token, and the app finishes the password update on the `/reset-password` route.
+
 ## Getting Started
 
 1. Clone the repository:
@@ -130,7 +149,28 @@ npm install
 cp .env.example .env
 ```
 
-Update `.env` with your Supabase project URL and anon key, enable email/password auth, anonymous sign-ins, and Supabase Cron, then apply the migrations in the Supabase SQL Editor.
+Update `.env` with your Supabase project URL and anon key, enable email/password auth, password recovery, anonymous sign-ins, and Supabase Cron, then apply the migrations in the Supabase SQL Editor.
+
+## GitHub Pages Routing
+
+The app now builds with a `/job-application-tracker/` base path and includes a `public/404.html` fallback so direct links like `/reset-password` or `/applications/123` can resolve correctly on GitHub Pages.
+
+## GitHub Pages Deployment
+
+This repository includes a GitHub Actions workflow at `.github/workflows/deploy-pages.yml` that builds the app and deploys `dist/` to GitHub Pages on every push to `main`.
+
+Before the first deploy:
+
+1. In GitHub, open `Settings -> Pages`.
+2. Set `Source` to `GitHub Actions`.
+3. In `Settings -> Secrets and variables -> Actions`, add these repository secrets:
+   - `VITE_SUPABASE_URL`
+   - `VITE_SUPABASE_ANON_KEY`
+4. In Supabase Auth, keep these production URLs configured:
+   - Site URL: `https://reyslash.github.io/job-application-tracker/`
+   - Redirect URL: `https://reyslash.github.io/job-application-tracker/reset-password`
+
+Without those GitHub secrets, the Pages build will fail because the Vite build injects the Supabase URL and anon key at build time.
 
 4. Start the development server:
 

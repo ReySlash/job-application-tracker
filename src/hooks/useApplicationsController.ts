@@ -4,11 +4,10 @@ import type { MobileSortOption, SortConfig, SortKey } from '../types/SortConfig'
 import type { Application } from '../types/ApplicationType';
 
 function useApplications(applications: Application[]) {
-  // Local state for the search query, status filter and date sort.
   const [searchQuery, setSearchQuery] = useState('');
   const [filtersOpen, setFiltersOpen] = useState(false);
 
-  // Filtered list based on the search query, applied before status filtering and sorting.
+  // Apply search first so the later filter/sort steps work on a smaller list.
   const searchedApplications = useMemo(() => {
     const query = searchQuery.toLowerCase();
     return applications.filter(
@@ -16,21 +15,17 @@ function useApplications(applications: Application[]) {
     );
   }, [applications, searchQuery]);
 
-  // Filter state controls which application statuses are visible.
   const [filterStatus, setFilterStatus] = useState<FilterStatus>('all');
 
-  // Apply the selected status filter before sorting.
   const filteredApplications = useMemo(() => {
     return filterStatus !== 'all'
       ? searchedApplications.filter((app) => app.status === filterStatus)
       : searchedApplications;
   }, [searchedApplications, filterStatus]);
 
-  // Sort state controls the applied date ordering.
   const [sortConfig, setSortConfig] = useState<SortConfig>(null);
 
-  // Sort a copy of the filtered list so the provider state stays unchanged.
-  // handle column header sort click
+  // Clicking the same column toggles direction; a new column starts in ascending order.
   const handleColumnSort = (key: SortKey) => {
     if (!sortConfig || sortConfig.sortKey !== key) {
       setSortConfig({ sortKey: key, sortOrder: 'asc' });
@@ -42,7 +37,7 @@ function useApplications(applications: Application[]) {
     }
   };
 
-  // handle mobile sort change from the dropdown
+  // Mobile uses a single select, so the key and direction are encoded in one value.
   const handleMobileSortChange = (value: MobileSortOption) => {
     if (value === 'none') {
       setSortConfig(null);
@@ -55,6 +50,7 @@ function useApplications(applications: Application[]) {
   const sortedApplications = useMemo(() => {
     if (!sortConfig?.sortKey) return filteredApplications;
 
+    // Sort a copy so the original query result stays untouched for other consumers.
     const sorted = [...filteredApplications].sort((a, b) => {
       const aValue = a[sortConfig.sortKey];
       const bValue = b[sortConfig.sortKey];

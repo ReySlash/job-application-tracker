@@ -48,6 +48,7 @@ export function useDeleteApplicationMutation() {
 
       const previousApplications = queryClient.getQueryData<Application[]>(['applications']) ?? [];
 
+      // Remove the row immediately for snappier UI, then roll back if the request fails.
       queryClient.setQueryData<Application[]>(['applications'], (currentApplications = []) =>
         currentApplications.filter((application) => application.id !== id),
       );

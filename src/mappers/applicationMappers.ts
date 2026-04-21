@@ -26,6 +26,7 @@ function parseApplicationStatus(value: string): ApplicationStatus {
   const normalized = value.trim().toLowerCase();
   const mapped = statusMap[normalized];
 
+  // Accept older/synonym values from the database and collapse them into the UI status set.
   if (mapped) {
     return mapped;
   }
@@ -57,6 +58,7 @@ export function mapFormToCreatePayload(
     status: input.status,
     applied_at: input.appliedAt,
     location: input.location,
+    // Supabase stores optional text fields as null so empty strings do not count as real values.
     job_url: input.jobUrl || null,
     notes: input.notes || null,
     user_id: userId,

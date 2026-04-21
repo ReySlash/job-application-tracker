@@ -3,7 +3,6 @@ import { useLocation, useNavigate } from 'react-router';
 import type { ApplicationsPageLocationState } from '../types/ApplicationsPageLocationState';
 
 function useBanner() {
-  // Banner state
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -14,7 +13,7 @@ function useBanner() {
     const message = locationState?.successMessage;
     if (!message) return;
 
-    // Safe: setting state from navigation state, no loop risk
+    // This copies one-time navigation state into local UI state before clearing the route state.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setSuccessMessage(message);
 

@@ -77,6 +77,7 @@ function getDateDaysAgo(daysAgo: number) {
 }
 
 function mapDemoSeedsToPayloads(userId: string): ApplicationWritePayload[] {
+  // Demo data is generated per-user so seeded records still respect RLS policies.
   return demoApplicationSeeds.map((seed) => ({
     company: seed.company,
     role: seed.role,
@@ -127,6 +128,7 @@ export async function deleteApplicationById(id: string): Promise<void> {
 }
 
 export async function resetDemoApplications(userId: string): Promise<void> {
+  // Replace the full demo dataset so repeat resets always return to the same baseline.
   const { error: deleteError } = await supabase.from('applications').delete().eq('user_id', userId);
 
   if (deleteError) {

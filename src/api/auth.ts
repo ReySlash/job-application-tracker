@@ -21,6 +21,26 @@ export async function signIn(email: string, password: string) {
   return data;
 }
 
+export async function requestPasswordReset(email: string, redirectTo: string) {
+  const { data, error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo });
+
+  if (error) {
+    throw new Error(error.message || 'Failed to send password reset email');
+  }
+
+  return data;
+}
+
+export async function updatePassword(password: string) {
+  const { data, error } = await supabase.auth.updateUser({ password });
+
+  if (error) {
+    throw new Error(error.message || 'Failed to update password');
+  }
+
+  return data;
+}
+
 export async function signInAnonymously() {
   const { data, error } = await supabase.auth.signInAnonymously();
 

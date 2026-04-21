@@ -12,6 +12,22 @@
   </head>
   <body>
     <div id="root"></div>
+    <script>
+      (function restoreGithubPagesRoute() {
+        const searchParams = new URLSearchParams(window.location.search);
+        const redirectedPath = searchParams.get('p');
+
+        if (!redirectedPath) {
+          return;
+        }
+
+        const redirectedQuery = searchParams.get('q');
+        const normalizedBasePath = window.location.pathname.replace(/\/$/, '');
+        const nextUrl = `${normalizedBasePath}${redirectedPath}${redirectedQuery ? `?${redirectedQuery.replace(/~and~/g, '&')}` : ''}${window.location.hash}`;
+
+        window.history.replaceState(null, '', nextUrl);
+      })();
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

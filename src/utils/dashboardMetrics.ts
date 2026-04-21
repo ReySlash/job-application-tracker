@@ -73,6 +73,7 @@ function getMonthKey(date: Date) {
 }
 
 function getMonthlyActivityData(applications: Application[], today: Date) {
+  // Always return the last six calendar months so the chart shape stays stable.
   const months = Array.from({ length: 6 }).map((_, index) => {
     const monthDate = new Date(today.getFullYear(), today.getMonth() - 5 + index, 1);
     return {
@@ -151,6 +152,7 @@ export function getDashboardMetrics(applications: Application[], today = new Dat
       ...application,
       daysSinceApplied: getDaysSince(application.appliedAt, today),
     }))
+    // Only untouched applied jobs older than two weeks show up as follow-up candidates.
     .filter((application) => application.daysSinceApplied > 14)
     .sort((a, b) => b.daysSinceApplied - a.daysSinceApplied);
 

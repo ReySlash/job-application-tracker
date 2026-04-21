@@ -57,6 +57,7 @@ describe('ApplicationFormPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     useAuthMock.mockReturnValue({
+      isPasswordRecovery: false,
       user: { id: 'user-123' },
     });
     fetchApplicationsMock.mockResolvedValue([]);

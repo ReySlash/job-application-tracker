@@ -53,7 +53,10 @@ export function AuthProvider({ children }: Props) {
       setSession(nextSession);
 
       // Keep the reset-password page open while Supabase swaps into its temporary recovery session.
-      if (event === 'PASSWORD_RECOVERY' || (event === 'INITIAL_SESSION' && hasPasswordRecoveryHash())) {
+      if (
+        event === 'PASSWORD_RECOVERY' ||
+        (event === 'INITIAL_SESSION' && hasPasswordRecoveryHash())
+      ) {
         setIsPasswordRecovery(true);
       }
 

@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import type { FormEvent } from 'react';
+import type { SubmitEventHandler } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router';
+import PasswordVisibilityToggle from '../components/PasswordVisibilityToggle';
 import { useAuth } from '../hooks/useAuth';
 
 type LocationState = {
@@ -19,10 +20,11 @@ function LoginPage() {
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit: SubmitEventHandler<HTMLFormElement> = async (event) => {
     event.preventDefault();
     setErrorMessage(null);
     setIsSubmitting(true);
@@ -59,7 +61,10 @@ function LoginPage() {
 
         <form className="mt-6 grid gap-4" onSubmit={handleSubmit}>
           <div className="grid gap-1">
-            <label className="text-sm font-medium text-slate-700 dark:text-slate-200" htmlFor="email">
+            <label
+              className="text-sm font-medium text-slate-700 dark:text-slate-200"
+              htmlFor="email"
+            >
               Email
             </label>
             <input
@@ -74,22 +79,34 @@ function LoginPage() {
           </div>
 
           <div className="grid gap-1">
-            <label className="text-sm font-medium text-slate-700 dark:text-slate-200" htmlFor="password">
+            <label
+              className="text-sm font-medium text-slate-700 dark:text-slate-200"
+              htmlFor="password"
+            >
               Password
             </label>
-            <input
-              autoComplete="current-password"
-              className="rounded-md border border-gray-300 p-2 focus:ring-2 focus:ring-teal-500 focus:outline-none dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
-              id="password"
-              onChange={(event) => setPassword(event.target.value)}
-              required
-              type="password"
-              value={password}
-            />
+            <div className="relative">
+              <input
+                autoComplete="current-password"
+                className="w-full rounded-md border border-gray-300 p-2 pr-11 focus:ring-2 focus:ring-teal-500 focus:outline-none dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
+                id="password"
+                onChange={(event) => setPassword(event.target.value)}
+                required
+                type={isPasswordVisible ? 'text' : 'password'}
+                value={password}
+              />
+              <PasswordVisibilityToggle
+                isVisible={isPasswordVisible}
+                onToggle={() => setIsPasswordVisible((currentValue) => !currentValue)}
+              />
+            </div>
           </div>
 
           <div className="flex justify-end">
-            <Link className="text-sm font-medium text-teal-700 hover:underline dark:text-teal-300" to="/forgot-password">
+            <Link
+              className="text-sm font-medium text-teal-700 hover:underline dark:text-teal-300"
+              to="/forgot-password"
+            >
               Forgot your password?
             </Link>
           </div>
@@ -105,7 +122,10 @@ function LoginPage() {
 
         <p className="mt-5 text-center text-sm text-slate-600 dark:text-slate-400">
           Need an account?{' '}
-          <Link className="font-medium text-teal-700 hover:underline dark:text-teal-300" to="/signup">
+          <Link
+            className="font-medium text-teal-700 hover:underline dark:text-teal-300"
+            to="/signup"
+          >
             Sign up
           </Link>
         </p>

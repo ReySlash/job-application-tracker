@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import type { FormEvent } from 'react';
+import type { SubmitEventHandler } from 'react';
 import { Link, useNavigate } from 'react-router';
+import PasswordVisibilityToggle from '../components/PasswordVisibilityToggle';
 import { useAuth } from '../hooks/useAuth';
 
 function SignupPage() {
@@ -10,11 +11,13 @@ function SignupPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
+  const [isConfirmPasswordVisible, setIsConfirmPasswordVisible] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [infoMessage, setInfoMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit: SubmitEventHandler<HTMLFormElement> = async (event) => {
     event.preventDefault();
     setErrorMessage(null);
     setInfoMessage(null);
@@ -81,16 +84,22 @@ function SignupPage() {
             <label className="text-sm font-medium text-slate-700 dark:text-slate-200" htmlFor="password">
               Password
             </label>
-            <input
-              autoComplete="new-password"
-              className="rounded-md border border-gray-300 p-2 focus:ring-2 focus:ring-teal-500 focus:outline-none dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
-              id="password"
-              minLength={6}
-              onChange={(event) => setPassword(event.target.value)}
-              required
-              type="password"
-              value={password}
-            />
+            <div className="relative">
+              <input
+                autoComplete="new-password"
+                className="w-full rounded-md border border-gray-300 p-2 pr-11 focus:ring-2 focus:ring-teal-500 focus:outline-none dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
+                id="password"
+                minLength={6}
+                onChange={(event) => setPassword(event.target.value)}
+                required
+                type={isPasswordVisible ? 'text' : 'password'}
+                value={password}
+              />
+              <PasswordVisibilityToggle
+                isVisible={isPasswordVisible}
+                onToggle={() => setIsPasswordVisible((currentValue) => !currentValue)}
+              />
+            </div>
           </div>
 
           <div className="grid gap-1">
@@ -100,16 +109,22 @@ function SignupPage() {
             >
               Confirm password
             </label>
-            <input
-              autoComplete="new-password"
-              className="rounded-md border border-gray-300 p-2 focus:ring-2 focus:ring-teal-500 focus:outline-none dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
-              id="confirm-password"
-              minLength={6}
-              onChange={(event) => setConfirmPassword(event.target.value)}
-              required
-              type="password"
-              value={confirmPassword}
-            />
+            <div className="relative">
+              <input
+                autoComplete="new-password"
+                className="w-full rounded-md border border-gray-300 p-2 pr-11 focus:ring-2 focus:ring-teal-500 focus:outline-none dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
+                id="confirm-password"
+                minLength={6}
+                onChange={(event) => setConfirmPassword(event.target.value)}
+                required
+                type={isConfirmPasswordVisible ? 'text' : 'password'}
+                value={confirmPassword}
+              />
+              <PasswordVisibilityToggle
+                isVisible={isConfirmPasswordVisible}
+                onToggle={() => setIsConfirmPasswordVisible((currentValue) => !currentValue)}
+              />
+            </div>
           </div>
 
           <button

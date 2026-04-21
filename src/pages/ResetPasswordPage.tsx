@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import type { FormEvent } from 'react';
+import type { SubmitEventHandler } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { useAuth } from '../hooks/useAuth';
 
@@ -11,7 +11,7 @@ function ResetPasswordPage() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit: SubmitEventHandler<HTMLFormElement> = async (event) => {
     event.preventDefault();
     setErrorMessage(null);
 

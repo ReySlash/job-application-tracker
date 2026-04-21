@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
 import type { ApplicationInput } from '../types/ApplicationInput';
 import type { ApplicationsFormSchema } from '../schemas/ApplicationsFormSchema';
@@ -20,6 +20,9 @@ function ApplicationFormPage() {
   const navigate = useNavigate();
   const createApplicationMutation = useCreateApplicationMutation();
   const updateApplicationMutation = useUpdateApplicationMutation();
+  const [submitError, setSubmitError] = useState<string | null>(null);
+
+  const today = new Date().toISOString().split('T')[0] ?? '';
 
   // Default values used when the form is opened in create mode.
   const emptyFormState = useMemo<ApplicationInput>(
@@ -27,12 +30,12 @@ function ApplicationFormPage() {
       company: '',
       role: '',
       status: 'applied',
-      appliedAt: new Date().toISOString().split('T')[0],
+      appliedAt: today,
       location: '',
       jobUrl: '',
       notes: '',
     }),
-    [],
+    [today],
   );
 
   const applicationToUpdate = applicationsList.find(
@@ -47,19 +50,25 @@ function ApplicationFormPage() {
 
   // Valid data from Zod is saved through the shared applications provider.
   const onSubmit = async (data: ApplicationsFormSchema) => {
-    if (isEditing && applicationId) {
-      await updateApplicationMutation.mutateAsync({ id: applicationId, input: data });
-    } else {
-      await createApplicationMutation.mutateAsync(data);
-    }
+    setSubmitError(null);
 
-    navigate('/applications', {
-      state: {
-        successMessage: isEditing
-          ? 'Application updated successfully!'
-          : 'Application created successfully!',
-      },
-    });
+    try {
+      if (isEditing && applicationId) {
+        await updateApplicationMutation.mutateAsync({ id: applicationId, input: data });
+      } else {
+        await createApplicationMutation.mutateAsync(data);
+      }
+
+      navigate('/applications', {
+        state: {
+          successMessage: isEditing
+            ? 'Application updated successfully!'
+            : 'Application created successfully!',
+        },
+      });
+    } catch (error) {
+      setSubmitError(error instanceof Error ? error.message : 'Failed to save application');
+    }
   };
 
   if (isEditing && isLoading) {
@@ -105,9 +114,12 @@ function ApplicationFormPage() {
       </h2>
 
       <ApplicationForm
+        key={applicationId ?? 'new'}
         onSubmit={onSubmit}
         initialFormState={initialFormState}
         isEditing={isEditing}
+        submitError={submitError}
+        onSubmitErrorChange={setSubmitError}
       />
     </div>
   );

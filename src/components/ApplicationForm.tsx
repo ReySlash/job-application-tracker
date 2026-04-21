@@ -9,10 +9,12 @@ type Props = {
   onSubmit: (data: ApplicationsFormSchema) => Promise<void>;
   initialFormState: ApplicationsFormSchema;
   isEditing: boolean;
+  submitError?: string | null;
+  onSubmitErrorChange?: (error: string | null) => void;
 };
 
 function ApplicationForm(props: Props) {
-  const { initialFormState, isEditing, onSubmit } = props;
+  const { initialFormState, isEditing, onSubmit, submitError, onSubmitErrorChange } = props;
 
   const {
     register,
@@ -40,6 +42,11 @@ function ApplicationForm(props: Props) {
     <form
       className="grid grid-cols-1 gap-4 md:grid-cols-2"
       onSubmit={handleSubmit(onSubmit)}
+      onChangeCapture={() => {
+        if (submitError && onSubmitErrorChange) {
+          onSubmitErrorChange(null);
+        }
+      }}
       noValidate
     >
       {/* if exist any error, show an alert error message */}
@@ -51,6 +58,14 @@ function ApplicationForm(props: Props) {
               <li key={field}>{error.message}</li>
             ))}
           </ul>
+        </div>
+      )}
+      {submitError && (
+        <div
+          role="alert"
+          className="rounded border border-red-400 bg-red-100 px-4 py-3 text-red-700 dark:border-red-800 dark:bg-red-950/60 dark:text-red-200 md:col-span-2"
+        >
+          {submitError}
         </div>
       )}
       {/* Company field */}

@@ -1,19 +1,13 @@
 import { supabase } from '../lib/supabase';
-import { mapRowToApplication } from '../mappers/applicationMappers';
+import {
+  mapFormToCreatePayload,
+  mapFormToUpdatePayload,
+  mapRowToApplication,
+  type ApplicationWritePayload,
+} from '../mappers/applicationMappers';
 import type { ApplicationRow } from '../types/ApplicationRow';
 import type { Application } from '../types/ApplicationType';
 import type { ApplicationsFormSchema } from '../schemas/ApplicationsFormSchema';
-
-type ApplicationWritePayload = {
-  company: string;
-  role: string;
-  status: ApplicationsFormSchema['status'];
-  applied_at: string;
-  location: string;
-  job_url: string | null;
-  notes: string | null;
-  user_id: string;
-};
 
 type DemoApplicationSeed = Omit<ApplicationWritePayload, 'applied_at' | 'user_id'> & {
   daysAgo: number;
@@ -95,22 +89,6 @@ function mapDemoSeedsToPayloads(userId: string): ApplicationWritePayload[] {
   }));
 }
 
-function mapFormToApplicationPayload(
-  input: ApplicationsFormSchema,
-  userId: string,
-): ApplicationWritePayload {
-  return {
-    company: input.company,
-    role: input.role,
-    status: input.status,
-    applied_at: input.appliedAt,
-    location: input.location,
-    job_url: input.jobUrl || null,
-    notes: input.notes || null,
-    user_id: userId,
-  };
-}
-
 export async function fetchApplications(): Promise<Application[]> {
   const { data, error } = await supabase
     .from('applications')
@@ -125,9 +103,7 @@ export async function fetchApplications(): Promise<Application[]> {
 }
 
 export async function createApplication(input: ApplicationsFormSchema, userId: string): Promise<void> {
-  const { error } = await supabase
-    .from('applications')
-    .insert(mapFormToApplicationPayload(input, userId));
+  const { error } = await supabase.from('applications').insert(mapFormToCreatePayload(input, userId));
 
   if (error) {
     throw new Error(error.message || 'Failed to create application');
@@ -135,20 +111,7 @@ export async function createApplication(input: ApplicationsFormSchema, userId: s
 }
 
 export async function updateApplication(id: string, input: ApplicationsFormSchema): Promise<void> {
-  const payload = {
-    company: input.company,
-    role: input.role,
-    status: input.status,
-    applied_at: input.appliedAt,
-    location: input.location,
-    job_url: input.jobUrl || null,
-    notes: input.notes || null,
-  };
-
-  const { error } = await supabase
-    .from('applications')
-    .update(payload)
-    .eq('id', id);
+  const { error } = await supabase.from('applications').update(mapFormToUpdatePayload(input)).eq('id', id);
 
   if (error) {
     throw new Error(error.message || 'Failed to update application');

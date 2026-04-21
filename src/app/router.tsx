@@ -1,49 +1,49 @@
-import { createBrowserRouter } from "react-router";
-import AppLayout from "../layouts/AppLayout";
-import HomePage from "../pages/HomePage";
-import LoginPage from "../pages/LoginPage";
-import PublicLayout from "../layouts/PublicLayout";
-import DashboardPage from "../pages/DashboardPage";
-import ApplicationsPage from "../pages/ApplicationsPage";
-import ApplicationDetailsPage from "../pages/ApplicationDetailsPage";
-import ApplicationFormPage from "../pages/ApplicationFormPage";
-import NotFoundPage from "../pages/NotFoundPage";
-import SignupPage from "../pages/SignupPage";
-import ProtectedRoute from "../components/ProtectedRoute";
-import PublicOnlyRoute from "../components/PublicOnlyRoute";
+import { createHashRouter } from 'react-router';
+import AppLayout from '../layouts/AppLayout';
+import PublicLayout from '../layouts/PublicLayout';
+import ProtectedRoute from '../components/ProtectedRoute';
+import PublicOnlyRoute from '../components/PublicOnlyRoute';
 
-const router = createBrowserRouter([
+function lazyPage(importPage: () => Promise<{ default: React.ComponentType }>) {
+  return async () => {
+    const module = await importPage();
+
+    return { Component: module.default };
+  };
+}
+
+const router = createHashRouter([
   {
-    path: "/",
+    path: '/',
     Component: PublicLayout,
     children: [
-      { index: true, Component: HomePage },
+      { index: true, lazy: lazyPage(() => import('../pages/HomePage')) },
       {
         Component: PublicOnlyRoute,
         children: [
-          { path: "login", Component: LoginPage },
-          { path: "signup", Component: SignupPage },
+          { path: 'login', lazy: lazyPage(() => import('../pages/LoginPage')) },
+          { path: 'signup', lazy: lazyPage(() => import('../pages/SignupPage')) },
         ],
       },
     ],
   },
   {
-    path: "/",
+    path: '/',
     Component: ProtectedRoute,
     children: [
       {
         Component: AppLayout,
         children: [
-          { path: "dashboard", Component: DashboardPage },
-          { path: "applications", Component: ApplicationsPage },
-          { path: "applications/new", Component: ApplicationFormPage },
-          { path: "applications/:id", Component: ApplicationDetailsPage },
-          { path: "applications/:id/edit", Component: ApplicationFormPage },
+          { path: 'dashboard', lazy: lazyPage(() => import('../pages/DashboardPage')) },
+          { path: 'applications', lazy: lazyPage(() => import('../pages/ApplicationsPage')) },
+          { path: 'applications/new', lazy: lazyPage(() => import('../pages/ApplicationFormPage')) },
+          { path: 'applications/:id', lazy: lazyPage(() => import('../pages/ApplicationDetailsPage')) },
+          { path: 'applications/:id/edit', lazy: lazyPage(() => import('../pages/ApplicationFormPage')) },
         ],
       },
     ],
   },
-  { path: "*", Component: NotFoundPage },
+  { path: '*', lazy: lazyPage(() => import('../pages/NotFoundPage')) },
 ]);
 
 export default router;

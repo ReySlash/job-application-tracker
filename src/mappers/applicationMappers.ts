@@ -1,5 +1,17 @@
 import type { Application, ApplicationStatus } from '../types/ApplicationType';
 import type { ApplicationRow } from '../types/ApplicationRow';
+import type { ApplicationsFormSchema } from '../schemas/ApplicationsFormSchema';
+
+export type ApplicationWritePayload = {
+  company: string;
+  role: string;
+  status: ApplicationsFormSchema['status'];
+  applied_at: string;
+  location: string;
+  job_url: string | null;
+  notes: string | null;
+  user_id: string;
+};
 
 const statusMap: Record<string, ApplicationStatus> = {
   applied: 'applied',
@@ -32,5 +44,33 @@ export function mapRowToApplication(row: ApplicationRow): Application {
     notes: row.notes ?? '',
     createdAt: row.created_at ?? '',
     updatedAt: row.updated_at ?? '',
+  };
+}
+
+export function mapFormToCreatePayload(
+  input: ApplicationsFormSchema,
+  userId: string,
+): ApplicationWritePayload {
+  return {
+    company: input.company,
+    role: input.role,
+    status: input.status,
+    applied_at: input.appliedAt,
+    location: input.location,
+    job_url: input.jobUrl || null,
+    notes: input.notes || null,
+    user_id: userId,
+  };
+}
+
+export function mapFormToUpdatePayload(input: ApplicationsFormSchema): Omit<ApplicationWritePayload, 'user_id'> {
+  return {
+    company: input.company,
+    role: input.role,
+    status: input.status,
+    applied_at: input.appliedAt,
+    location: input.location,
+    job_url: input.jobUrl || null,
+    notes: input.notes || null,
   };
 }

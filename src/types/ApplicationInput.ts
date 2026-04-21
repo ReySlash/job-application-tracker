@@ -1,6 +1,3 @@
-import type { Application } from "./ApplicationType";
+import type { Application } from './ApplicationType';
 
-export type ApplicationInput = Omit<
-  Application,
-  "id" | "createdAt" | "updatedAt"
->;
+export type ApplicationInput = Omit<Application, 'id' | 'createdAt' | 'updatedAt'>;

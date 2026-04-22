@@ -1,11 +1,21 @@
 import { supabase } from '../lib/supabase';
 import type { AuthChangeEvent, Session } from '@supabase/supabase-js';
 
-export async function signUp(email: string, password: string) {
-  const { data, error } = await supabase.auth.signUp({ email, password });
+export async function signUp(email: string, password: string, emailRedirectTo: string) {
+  const { data, error } = await supabase.auth.signUp({
+    email,
+    password,
+    options: { emailRedirectTo },
+  });
 
   if (error) {
     throw new Error(error.message || 'Failed to sign up');
+  }
+
+  // Supabase may obfuscate existing confirmed accounts by returning a user-like payload
+  // with no session and no identities instead of an explicit error.
+  if (!data.session && Array.isArray(data.user?.identities) && data.user.identities.length === 0) {
+    throw new Error('An account with this email already exists. Sign in instead.');
   }
 
   return data;

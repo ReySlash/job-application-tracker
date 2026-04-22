@@ -13,7 +13,11 @@ import {
 } from '../api/auth';
 import { AuthContext } from '../context/authContext';
 import type { AuthContextValue } from '../context/authContext';
-import { getResetPasswordRedirectUrl, hasPasswordRecoveryHash } from '../lib/authRedirects';
+import {
+  getResetPasswordRedirectUrl,
+  getSignupRedirectUrl,
+  hasPasswordRecoveryHash,
+} from '../lib/authRedirects';
 
 type Props = {
   children: ReactNode;
@@ -89,7 +93,7 @@ export function AuthProvider({ children }: Props) {
         setIsPasswordRecovery(false);
       },
       signUp: async (email, password) => {
-        const data = await signUpWithPassword(email, password);
+        const data = await signUpWithPassword(email, password, getSignupRedirectUrl());
         setSession(data.session);
         return { hasSession: Boolean(data.session) };
       },

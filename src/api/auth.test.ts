@@ -39,8 +39,28 @@ describe('auth API wrappers', () => {
     const data = { user: { id: 'user-1' }, session: null };
     authMock.signUp.mockResolvedValue({ data, error: null });
 
-    await expect(signUp('user@example.com', 'secret123')).resolves.toEqual(data);
-    expect(authMock.signUp).toHaveBeenCalledWith({ email: 'user@example.com', password: 'secret123' });
+    await expect(signUp('user@example.com', 'secret123', 'https://example.com/login')).resolves.toEqual(data);
+    expect(authMock.signUp).toHaveBeenCalledWith({
+      email: 'user@example.com',
+      password: 'secret123',
+      options: { emailRedirectTo: 'https://example.com/login' },
+    });
+  });
+
+  it('signUp throws when Supabase obfuscates an already-registered email', async () => {
+    const data = {
+      user: {
+        id: 'user-1',
+        email: 'user@example.com',
+        identities: [],
+      },
+      session: null,
+    };
+    authMock.signUp.mockResolvedValue({ data, error: null });
+
+    await expect(signUp('user@example.com', 'secret123', 'https://example.com/login')).rejects.toThrow(
+      'An account with this email already exists. Sign in instead.',
+    );
   });
 
   it('signIn forwards credentials and returns Supabase data', async () => {
@@ -118,7 +138,9 @@ describe('auth API wrappers', () => {
     authMock.signOut.mockResolvedValue({ error: { message: 'Network error during sign out' } });
     authMock.getSession.mockResolvedValue({ data: { session: null }, error: { message: 'Session restore failed' } });
 
-    await expect(signUp('user@example.com', 'secret123')).rejects.toThrow('Email already registered');
+    await expect(signUp('user@example.com', 'secret123', 'https://example.com/login')).rejects.toThrow(
+      'Email already registered',
+    );
     await expect(signIn('user@example.com', 'secret123')).rejects.toThrow('Invalid login credentials');
     await expect(requestPasswordReset('user@example.com', 'https://example.com/reset-password')).rejects.toThrow(
       'Reset flow unavailable',
@@ -138,7 +160,9 @@ describe('auth API wrappers', () => {
     authMock.signOut.mockResolvedValue({ error: { message: '' } });
     authMock.getSession.mockResolvedValue({ data: { session: null }, error: { message: '' } });
 
-    await expect(signUp('user@example.com', 'secret123')).rejects.toThrow('Failed to sign up');
+    await expect(signUp('user@example.com', 'secret123', 'https://example.com/login')).rejects.toThrow(
+      'Failed to sign up',
+    );
     await expect(signIn('user@example.com', 'secret123')).rejects.toThrow('Failed to sign in');
     await expect(requestPasswordReset('user@example.com', 'https://example.com/reset-password')).rejects.toThrow(
       'Failed to send password reset email',

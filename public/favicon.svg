@@ -1,6 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Job Application Tracker">
-  <rect width="64" height="64" rx="12" fill="#0f766e" />
-  <path d="M20 22h24v24H20z" fill="#f8fafc" />
-  <path d="M24 18h16v8H24z" fill="#ccfbf1" />
-  <path d="M26 33h12M26 39h8" stroke="#0f766e" stroke-width="4" stroke-linecap="round" />
+  <path
+    d="M13 14h24c8.8 0 15 5.7 15 13.8 0 6.1-3.4 10.3-8.4 12.2L54 51H43.9L35 41.2H25.5V51H13V14Zm12.5 10.5v7.3h11.1c1.9 0 3.3-.2 4.3-.8 1.3-.7 2.1-1.9 2.1-3.8 0-1.9-.8-3.1-2.1-3.8-1-.6-2.4-.8-4.3-.8H25.5Z"
+    fill="#94A3B8"
+  />
+  <path d="M10 54 49.8 10h4.2L14.2 54H10Z" fill="#94A3B8" />
 </svg>

@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { Link } from 'react-router';
-import logoMark from '../assets/logoMark.ico';
+import logoMark from '../assets/logoMark.png';
 
 type Props = {
   action?: ReactNode;

@@ -17,13 +17,19 @@ function TopBar({ action }: Props) {
           <img className="h-8 w-8" src={logoMark} alt="" />
         </a>
         <div className="col-start-2 flex min-w-0 items-center justify-center gap-10 text-sm font-medium md:gap-20">
-          <Link className="shrink-0 hover:text-teal-600 dark:hover:text-teal-300" to="/">
+          <Link className="shrink-0 font-bold hover:text-teal-600 dark:hover:text-teal-300" to="/">
             Home
           </Link>
-          <Link className="shrink-0 hover:text-teal-600 dark:hover:text-teal-300" to="/login">
+          <Link
+            className="shrink-0 font-bold hover:text-teal-600 dark:hover:text-teal-300"
+            to="/login"
+          >
             Login
           </Link>
-          <Link className="shrink-0 hover:text-teal-600 dark:hover:text-teal-300" to="/signup">
+          <Link
+            className="shrink-0 font-bold hover:text-teal-600 dark:hover:text-teal-300"
+            to="/signup"
+          >
             Signup
           </Link>
         </div>

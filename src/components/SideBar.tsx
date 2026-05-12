@@ -47,7 +47,9 @@ function SideBar() {
       queryClient.clear();
       navigate('/login', { replace: true });
     } catch (error) {
-      setSignOutError(error instanceof Error ? error.message : 'Failed to sign out. Please try again.');
+      setSignOutError(
+        error instanceof Error ? error.message : 'Failed to sign out. Please try again.',
+      );
     } finally {
       setIsSigningOut(false);
     }
@@ -64,7 +66,7 @@ function SideBar() {
           <NavLink
             to="/dashboard"
             className={({ isActive }) =>
-              `block rounded-md px-4 py-2 text-center transition-colors ${isActive ? 'bg-teal-600 font-bold text-white' : 'text-gray-800 hover:bg-gray-300 dark:text-slate-200 dark:hover:bg-slate-800'}`
+              `block rounded-md px-4 py-2 text-center transition-colors ${isActive ? 'bg-teal-600 font-bold text-white' : 'border border-slate-300 text-gray-800 hover:bg-gray-300 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800'}`
             }
           >
             Dashboard
@@ -74,7 +76,7 @@ function SideBar() {
           <NavLink
             to="/applications"
             className={({ isActive }) =>
-              `block rounded-md px-4 py-2 text-center transition-colors ${isActive ? 'bg-teal-600 font-bold text-white' : 'text-gray-800 hover:bg-gray-300 dark:text-slate-200 dark:hover:bg-slate-800'}`
+              `block rounded-md px-4 py-2 text-center transition-colors ${isActive ? 'bg-teal-600 font-bold text-white' : 'border border-slate-300 text-gray-800 hover:bg-gray-300 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800'}`
             }
           >
             Applications

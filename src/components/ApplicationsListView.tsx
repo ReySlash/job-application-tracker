@@ -6,29 +6,32 @@ import viewIcon from '../assets/viewIcon.svg';
 import type { Application } from '../types/ApplicationType';
 import StatusBadge from './StatusBadge';
 import type { SortConfig, SortKey } from '../types/SortConfig';
+import { useState } from 'react';
+import DeleteApplicationDialog from './DeleteApplicationDialog';
 
 type Props = {
   deleteApplication: (id: string) => Promise<void>;
   applications: Application[];
   onSort: (sortKey: SortKey) => void;
   sortConfig: SortConfig;
+  isDeleting: boolean;
 };
 
 function ApplicationsListView(props: Props) {
-  const { applications, deleteApplication, onSort, sortConfig } = props;
+  const { applications, deleteApplication, onSort, sortConfig, isDeleting } = props;
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [selectedApplication, setSelectedApplication] = useState<Application | null>(null);
 
-  const handleDelete = async (application: Application) => {
-    const confirmed = window.confirm(
-      `Delete the application for "${application.role}" at "${application.company}"?`,
-    );
-
-    if (!confirmed) return;
-
+  const handleDelete = async (applicationId: string | null) => {
+    if (!applicationId) return;
     try {
-      await deleteApplication(application.id);
+      await deleteApplication(applicationId);
     } catch (error) {
       console.error('Failed to delete application:', error);
       alert('Failed to delete application. Please try again.');
+    } finally {
+      setDialogOpen(false);
+      setSelectedApplication(null);
     }
   };
 
@@ -69,7 +72,10 @@ function ApplicationsListView(props: Props) {
           </thead>
           <tbody>
             {applications.map((a: Application) => (
-              <tr className="odd:bg-white even:bg-gray-200 hover:bg-gray-300 dark:odd:bg-slate-900 dark:even:bg-slate-800 dark:hover:bg-slate-700" key={a.id}>
+              <tr
+                className="odd:bg-white even:bg-gray-200 hover:bg-gray-300 dark:odd:bg-slate-900 dark:even:bg-slate-800 dark:hover:bg-slate-700"
+                key={a.id}
+              >
                 {columns.map((column) => (
                   <td className="px-1 py-1" key={column.key}>
                     {column.key === 'status' ? (
@@ -103,7 +109,10 @@ function ApplicationsListView(props: Props) {
                     </Link>
                     <button
                       type="button"
-                      onClick={() => handleDelete(a)}
+                      onClick={() => {
+                        setSelectedApplication(a);
+                        setDialogOpen(true);
+                      }}
                       className="inline-flex h-8 w-8 items-center justify-center hover:cursor-pointer"
                     >
                       <img
@@ -153,7 +162,10 @@ function ApplicationsListView(props: Props) {
               </Link>
               <button
                 type="button"
-                onClick={() => handleDelete(a)}
+                onClick={() => {
+                  setSelectedApplication(a);
+                  setDialogOpen(true);
+                }}
                 className="hover:cursor-pointer"
               >
                 <img
@@ -166,6 +178,14 @@ function ApplicationsListView(props: Props) {
           </div>
         ))}
       </div>
+      {dialogOpen && (
+        <DeleteApplicationDialog
+          deleteApplication={handleDelete}
+          applicationId={selectedApplication?.id ?? ''}
+          onClose={() => setDialogOpen(false)}
+          isDeleting={isDeleting}
+        />
+      )}
     </>
   );
 }

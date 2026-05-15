@@ -2,6 +2,8 @@ import { Link, useNavigate, useParams } from 'react-router';
 import StatusBadge from '../components/StatusBadge';
 import { useApplicationsQuery } from '../hooks/useApplicationsQuery';
 import { useDeleteApplicationMutation } from '../hooks/useApplicationMutations';
+import { useState } from 'react';
+import DeleteApplicationDialog from '../components/DeleteApplicationDialog';
 
 function formatDate(dateString: string) {
   return new Date(dateString).toLocaleDateString('en-GB', {
@@ -14,24 +16,17 @@ function formatDate(dateString: string) {
 function ApplicationDetailsPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const applicationId = id;
   const { data: applicationsList = [] } = useApplicationsQuery();
   const deleteApplicationMutation = useDeleteApplicationMutation();
+  const [dialogOpen, setDialogOpen] = useState(false);
 
-  const application = applicationsList.find((item) => item.id === applicationId);
+  const application = applicationsList.find((item) => item.id === id);
+  const { isPending } = deleteApplicationMutation;
 
   const handleDelete = async () => {
     if (!application) return;
-
-    const confirmed = window.confirm(
-      `Are you sure you want to delete the application for "${application.role}" at "${application.company}"?`,
-    );
-
-    if (!confirmed) return;
-
     try {
       await deleteApplicationMutation.mutateAsync(application.id);
-
       navigate('/applications', {
         state: {
           successMessage: 'Application deleted successfully!',
@@ -47,7 +42,9 @@ function ApplicationDetailsPage() {
     return (
       <section className="mx-auto max-w-3xl px-4 py-8">
         <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-900">
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Application not found</h1>
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">
+            Application not found
+          </h1>
 
           <p className="mt-3 text-slate-600 dark:text-slate-400">
             The application you are looking for does not exist or may have been deleted.
@@ -70,8 +67,12 @@ function ApplicationDetailsPage() {
     <section className="mx-auto max-w-4xl px-4 py-8">
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Application Details</p>
-          <h1 className="mt-1 text-3xl font-bold text-slate-900 dark:text-slate-100">{application.role}</h1>
+          <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
+            Application Details
+          </p>
+          <h1 className="mt-1 text-3xl font-bold text-slate-900 dark:text-slate-100">
+            {application.role}
+          </h1>
           <p className="mt-2 text-lg text-slate-600 dark:text-slate-400">{application.company}</p>
         </div>
 
@@ -92,7 +93,7 @@ function ApplicationDetailsPage() {
 
           <button
             type="button"
-            onClick={handleDelete}
+            onClick={() => setDialogOpen(true)}
             className="inline-flex min-w-24 justify-center rounded-md border border-red-500 px-4 py-2 text-sm font-medium text-red-500 transition-colors hover:cursor-pointer hover:bg-red-500 hover:text-white"
           >
             Delete
@@ -107,12 +108,16 @@ function ApplicationDetailsPage() {
           <dl className="mt-4 grid gap-4 sm:grid-cols-2">
             <div>
               <dt className="text-sm font-medium text-slate-500 dark:text-slate-400">Company</dt>
-              <dd className="mt-1 text-base text-slate-900 dark:text-slate-100">{application.company}</dd>
+              <dd className="mt-1 text-base text-slate-900 dark:text-slate-100">
+                {application.company}
+              </dd>
             </div>
 
             <div>
               <dt className="text-sm font-medium text-slate-500 dark:text-slate-400">Role</dt>
-              <dd className="mt-1 text-base text-slate-900 dark:text-slate-100">{application.role}</dd>
+              <dd className="mt-1 text-base text-slate-900 dark:text-slate-100">
+                {application.role}
+              </dd>
             </div>
 
             <div>
@@ -123,8 +128,12 @@ function ApplicationDetailsPage() {
             </div>
 
             <div>
-              <dt className="text-sm font-medium text-slate-500 dark:text-slate-400">Applied Date</dt>
-              <dd className="mt-1 text-base text-slate-900 dark:text-slate-100">{formatDate(application.appliedAt)}</dd>
+              <dt className="text-sm font-medium text-slate-500 dark:text-slate-400">
+                Applied Date
+              </dt>
+              <dd className="mt-1 text-base text-slate-900 dark:text-slate-100">
+                {formatDate(application.appliedAt)}
+              </dd>
             </div>
 
             <div>
@@ -167,16 +176,30 @@ function ApplicationDetailsPage() {
           <dl className="mt-4 grid gap-4 sm:grid-cols-2">
             <div>
               <dt className="text-sm font-medium text-slate-500 dark:text-slate-400">Created At</dt>
-              <dd className="mt-1 text-base text-slate-900 dark:text-slate-100">{formatDate(application.createdAt)}</dd>
+              <dd className="mt-1 text-base text-slate-900 dark:text-slate-100">
+                {formatDate(application.createdAt)}
+              </dd>
             </div>
 
             <div>
-              <dt className="text-sm font-medium text-slate-500 dark:text-slate-400">Last Updated</dt>
-              <dd className="mt-1 text-base text-slate-900 dark:text-slate-100">{formatDate(application.updatedAt)}</dd>
+              <dt className="text-sm font-medium text-slate-500 dark:text-slate-400">
+                Last Updated
+              </dt>
+              <dd className="mt-1 text-base text-slate-900 dark:text-slate-100">
+                {formatDate(application.updatedAt)}
+              </dd>
             </div>
           </dl>
         </div>
       </div>
+      {dialogOpen && (
+        <DeleteApplicationDialog
+          applicationId={application.id}
+          deleteApplication={handleDelete}
+          onClose={() => setDialogOpen(false)}
+          isDeleting={isPending}
+        />
+      )}
     </section>
   );
 }

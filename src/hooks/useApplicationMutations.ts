@@ -1,9 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import {
-  createApplication,
-  deleteApplicationById,
-  updateApplication,
-} from '../api/applications';
+import { createApplication, deleteApplicationById, updateApplication } from '../api/applications';
 import type { ApplicationsFormSchema } from '../schemas/ApplicationsFormSchema';
 import type { Application } from '../types/ApplicationType';
 import { useAuth } from './useAuth';

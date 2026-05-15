@@ -29,6 +29,8 @@ function ApplicationsPage() {
     setFilterStatus,
   } = useApplicationsList(applications);
 
+  const { isPending } = deleteApplicationMutation;
+
   const handleDeleteApplication = async (id: string) => {
     await deleteApplicationMutation.mutateAsync(id);
     setSuccessMessage('Application deleted successfully!');
@@ -105,6 +107,7 @@ function ApplicationsPage() {
           onSort={handleColumnSort}
           sortConfig={sortConfig}
           deleteApplication={handleDeleteApplication}
+          isDeleting={isPending}
         />
       )}
     </>

@@ -64,7 +64,6 @@ This app expects a Supabase project with email/password auth, password recovery,
    Integrations -> Cron
 
 5. Apply the database migrations in order:
-
    - Open each SQL file in `supabase/migrations`.
    - Run `20260419000000_create_private_applications_schema.sql` in the Supabase SQL Editor.
    - Run `20260420000000_schedule_anonymous_demo_cleanup.sql` in the Supabase SQL Editor.
@@ -117,12 +116,10 @@ Project Settings -> API
 For password reset to work in local development and on GitHub Pages, configure these Supabase Auth settings:
 
 - Site URL
-
   - Local: `http://localhost:5173`
   - GitHub Pages: `https://reyslash.github.io/job-application-tracker/`
 
 - Additional Redirect URLs
-
   - `http://localhost:5173/reset-password`
   - `https://reyslash.github.io/job-application-tracker/reset-password`
 
@@ -140,7 +137,7 @@ cd job-application-tracker
 2. Install dependencies:
 
 ```bash
-npm install
+pnpm install
 ```
 
 3. Configure Supabase:
@@ -175,22 +172,22 @@ Without those GitHub secrets, the Pages build will fail because the Vite build i
 4. Start the development server:
 
 ```bash
-npm run dev
+pnpm dev
 ```
 
 5. Build for production:
 
 ```bash
-npm run build
+pnpm build
 ```
 
 ## Available Scripts
 
 ```bash
-npm run dev
-npm run build
-npm run lint
-npm run preview
+pnpm dev
+pnpm build
+pnpm lint
+pnpm preview
 ```
 
 ## Project Structure

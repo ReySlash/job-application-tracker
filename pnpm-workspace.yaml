@@ -1,7 +1,14 @@
 packages:
-  - apps/*
+  - 'apps/*'
+
 allowBuilds:
-  '@prisma/engines': true
-  bcrypt: true
-  esbuild: true
-  prisma: true
+  '@prisma/engines': set this to true or false
+  bcrypt: set this to true or false
+  esbuild: set this to true or false
+  prisma: set this to true or false
+
+onlyBuiltDependencies:
+  - '@prisma/engines'
+  - bcrypt
+  - esbuild
+  - prisma

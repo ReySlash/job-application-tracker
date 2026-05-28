@@ -1,227 +1,140 @@
 # Job Application Tracker
 
-A React and Supabase app for managing private job applications, tracking progress, and reviewing job-search activity from a dashboard.
+Job Application Tracker is being migrated from a frontend-direct Supabase app to a monorepo full-stack architecture:
 
-## Overview
+```txt
+React frontend -> Express API -> Prisma -> Neon Postgres
+```
 
-Job Application Tracker helps users organize their job search in one place instead of relying on spreadsheets, notes, or scattered links.
+The stable deployed app still lives on the Supabase-based implementation, while the active migration work happens on `migration/express-prisma-neon`.
 
-Users can:
+## Current Status
 
-- create job applications
-- review applications in a searchable, sortable list
-- update existing records
-- delete applications
-- track dashboard metrics and status breakdowns
-- keep their data private with Supabase Auth and Row Level Security
+- `apps/frontend` contains the existing React application
+- `apps/backend` contains the new Express/Prisma backend scaffold
+- Prisma is configured to use the repo-root `.env`
+- Neon connectivity has been verified
+- the Neon schema has been reset to the planned baseline models
+- Prisma migration history has been initialized with a baseline migration
 
-This project is part of my portfolio and learning journey as I build real-world CRUD-style applications with scalable frontend architecture.
+The backend application logic is not complete yet. The current backend work is foundational setup for the migration plan in [backend-migration-plan.md](/Users/reynaldocarmenatearias/Documents/ReactProjects/job-application-tracker/backend-migration-plan.md).
 
 ## Tech Stack
+
+### Frontend
 
 - React
 - TypeScript
 - Vite
 - React Router
 - TanStack Query
-- Supabase Auth and Postgres
 - Tailwind CSS
 - React Hook Form
 - Zod
+- Supabase client integration for the current stable version
 
-## Features
+### Backend Migration Target
 
-- Email/password authentication
-- Password reset by email
-- One-click anonymous demo mode
-- Protected dashboard and application routes
-- Private per-user application records
-- Create, read, update, and delete applications
-- Search, filtering, and sorting
-- Dashboard metrics and lightweight charts
-- Responsive desktop and mobile layouts
-- Light and dark mode
-- Skeleton loading states
+- Express
+- TypeScript
+- Prisma
+- Neon Postgres
+- Zod
+- bcrypt
+- jsonwebtoken
+- cookie-parser
+- cors
+- dotenv
 
-## Supabase Setup
+## Workspace Structure
 
-This app expects a Supabase project with email/password auth, password recovery, anonymous sign-ins, Supabase Cron, and the private `applications` schema from `supabase/migrations`.
-
-1. Create a Supabase project.
-
-2. In Supabase, enable email/password authentication and password recovery:
-
-   Authentication -> Providers -> Email
-
-   Make sure password recovery is enabled for the Email provider.
-
-3. Enable anonymous sign-ins for the portfolio demo:
-
-   Authentication -> Providers -> Anonymous Sign-Ins
-
-4. Enable Supabase Cron for automatic demo cleanup:
-
-   Integrations -> Cron
-
-5. Apply the database migrations in order:
-   - Open each SQL file in `supabase/migrations`.
-   - Run `20260419000000_create_private_applications_schema.sql` in the Supabase SQL Editor.
-   - Run `20260420000000_schedule_anonymous_demo_cleanup.sql` in the Supabase SQL Editor.
-
-The migration creates the `applications` table, enables Row Level Security, and adds policies so authenticated users, including anonymous demo users, can only access their own application records.
-
-### Demo User Cleanup
-
-Anonymous demo users are useful for recruiters because they can try the app without creating an account. The cleanup migration schedules a Supabase Cron job named `cleanup-anonymous-demo-users-hourly`, which runs every hour and deletes anonymous users older than 1 hour.
-
-Application rows are removed automatically because `applications.user_id` references `auth.users(id)` with `on delete cascade`.
-
-You can confirm the cron job exists with:
-
-```sql
-select jobid, jobname, schedule, command, active
-from cron.job
-where jobname = 'cleanup-anonymous-demo-users-hourly';
-```
-
-If you need to clean up manually, run:
-
-```sql
-delete from auth.users
-where is_anonymous is true
-  and created_at < now() - interval '1 hour';
+```txt
+job-application-tracker/
+├── apps/
+│   ├── backend/
+│   │   ├── prisma/
+│   │   └── src/
+│   └── frontend/
+│       ├── public/
+│       └── src/
+├── README.md
+├── backend-migration-plan.md
+├── AGENTS.md
+├── package.json
+├── pnpm-workspace.yaml
+└── .env
 ```
 
 ## Environment Variables
 
-Create a local `.env` file from the example:
+The repo-root `.env` is currently the source of truth for Prisma and backend database access.
 
-```bash
-cp .env.example .env
+Current required variable:
+
+```env
+DATABASE_URL=your-neon-connection-string
 ```
 
-Then fill in your Supabase values:
-
-```bash
-VITE_SUPABASE_URL=https://your-project-ref.supabase.co
-VITE_SUPABASE_ANON_KEY=your-supabase-anon-key
-```
-
-You can find these values in Supabase:
-
-Project Settings -> API
-
-## Auth Redirect URLs
-
-For password reset to work in local development and on GitHub Pages, configure these Supabase Auth settings:
-
-- Site URL
-  - Local: `http://localhost:5173`
-  - GitHub Pages: `https://reyslash.github.io/job-application-tracker/`
-
-- Additional Redirect URLs
-  - `http://localhost:5173/reset-password`
-  - `https://reyslash.github.io/job-application-tracker/reset-password`
-
-Supabase uses the reset URL to return the browser to the app with a recovery token, and the app finishes the password update on the `/reset-password` route.
+Prisma is configured in `apps/backend/prisma.config.ts` to load the root `.env` explicitly.
 
 ## Getting Started
 
-1. Clone the repository:
-
-```bash
-git clone https://github.com/ReySlash/job-application-tracker.git
-cd job-application-tracker
-```
-
-2. Install dependencies:
+1. Install dependencies:
 
 ```bash
 pnpm install
 ```
 
-3. Configure Supabase:
-
-```bash
-cp .env.example .env
-```
-
-Update `.env` with your Supabase project URL and anon key, enable email/password auth, password recovery, anonymous sign-ins, and Supabase Cron, then apply the migrations in the Supabase SQL Editor.
-
-## GitHub Pages Routing
-
-The app now builds with a `/job-application-tracker/` base path and includes a `public/404.html` fallback so direct links like `/reset-password` or `/applications/123` can resolve correctly on GitHub Pages.
-
-## GitHub Pages Deployment
-
-This repository includes a GitHub Actions workflow at `.github/workflows/deploy-pages.yml` that builds the app and deploys `dist/` to GitHub Pages on every push to `main`.
-
-Before the first deploy:
-
-1. In GitHub, open `Settings -> Pages`.
-2. Set `Source` to `GitHub Actions`.
-3. In `Settings -> Secrets and variables -> Actions`, add these repository secrets:
-   - `VITE_SUPABASE_URL`
-   - `VITE_SUPABASE_ANON_KEY`
-4. In Supabase Auth, keep these production URLs configured:
-   - Site URL: `https://reyslash.github.io/job-application-tracker/`
-   - Redirect URL: `https://reyslash.github.io/job-application-tracker/reset-password`
-
-Without those GitHub secrets, the Pages build will fail because the Vite build injects the Supabase URL and anon key at build time.
-
-4. Start the development server:
+2. Start the workspace apps:
 
 ```bash
 pnpm dev
 ```
 
-5. Build for production:
+3. Run the frontend only:
 
 ```bash
-pnpm build
+pnpm dev:frontend
 ```
 
-## Available Scripts
+4. Run the backend only:
 
 ```bash
-pnpm dev
-pnpm build
-pnpm lint
-pnpm preview
+pnpm dev:backend
 ```
 
-## Project Structure
+## Prisma Commands
+
+Run Prisma commands through the backend workspace package:
 
 ```bash
-job-application-tracker/
-├── README.md
-├── package.json
-├── supabase/
-│   └── migrations/
-├── src/
-│   ├── api/
-│   ├── app/
-│   ├── components/
-│   ├── hooks/
-│   ├── layouts/
-│   ├── pages/
-│   ├── providers/
-│   ├── types/
-│   └── utils/
-└── ...
+pnpm --filter backend exec prisma validate
+pnpm --filter backend exec prisma db pull --print
+pnpm --filter backend exec prisma migrate status
+pnpm --filter backend prisma:generate
+pnpm --filter backend prisma:migrate
 ```
 
-## Why This Project Matters
+## Database State
 
-This project is more than a simple CRUD exercise. It is meant to practice frontend work commonly needed in real applications:
+The Neon database has been aligned to the current planned Prisma schema with these models:
 
-- handling user input correctly
-- validating forms
-- managing page navigation
-- working with server state
-- protecting private user data
-- structuring medium-sized React projects
-- polishing UI behavior for a portfolio-ready experience
+- `User`
+- `Application`
+- `RefreshToken`
+- `ApplicationStatus`
+
+A baseline migration exists at:
+
+```txt
+apps/backend/prisma/migrations/20260528120000_init/migration.sql
+```
+
+## Notes
+
+- The old Supabase migrations still exist in the repository for historical reference.
+- The current production deployment should not be switched to the new backend until the migration is complete and manually verified.
+- For the implementation roadmap, use [backend-migration-plan.md](/Users/reynaldocarmenatearias/Documents/ReactProjects/job-application-tracker/backend-migration-plan.md).
 
 ## Author
 

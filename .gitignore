@@ -51,3 +51,7 @@ vite.config.ts.timestamp-*
 # Migration Plan
 AGENTS.MD
 backend-migration-plan.md
+
+/prisma/apps/backend/prisma
+
+

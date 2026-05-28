@@ -27,6 +27,7 @@ testsPlan.md
 
 # Tool caches
 .cache/
+.pnpm-store/
 .parcel-cache/
 .eslintcache
 .stylelintcache
@@ -45,3 +46,8 @@ testsPlan.md
 # Vite temporary files
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
+
+
+# Migration Plan
+AGENTS.MD
+backend-migration-plan.md

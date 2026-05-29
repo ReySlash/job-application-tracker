@@ -15,9 +15,8 @@ model User {
   isEmailVerified Boolean        @default(false)
   createdAt       DateTime       @default(now())
   updatedAt       DateTime       @updatedAt
-
-  applications  Application[]
-  refreshTokens RefreshToken[]
+  applications    Application[]
+  refreshTokens   RefreshToken[]
 }
 
 model Application {
@@ -32,8 +31,7 @@ model Application {
   userId    String
   createdAt DateTime          @default(now())
   updatedAt DateTime          @updatedAt
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      User              @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
 }
@@ -45,8 +43,7 @@ model RefreshToken {
   expiresAt DateTime
   revokedAt DateTime?
   createdAt DateTime  @default(now())
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([tokenHash])

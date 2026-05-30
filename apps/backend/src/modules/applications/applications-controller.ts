@@ -1,54 +1,39 @@
-import prisma from '../../db.js';
-import type { Application, ApplicationStatus as ApplicationStatusType } from '../../generated/prisma/client.js';
-import { ApplicationStatus } from '../../generated/prisma/enums.js';
+import type { RequestHandler } from 'express';
+import z from 'zod';
 import applicationsFormSchema from './applications-schema.js';
-import type { ApplicationInput } from '../../types/application-input-type.js'
+import { createApplication, getApplicationsList } from './applications-service.js';
 
-const applicationStatusMap: Record<ApplicationInput['status'], ApplicationStatusType> = {
-  applied: ApplicationStatus.APPLIED,
-  interview: ApplicationStatus.INTERVIEWING,
-  offer: ApplicationStatus.OFFER,
-  rejected: ApplicationStatus.REJECTED,
+export const getApplicationsListHandler: RequestHandler = async (_req, res) => {
+  try {
+    const applicationsList = await getApplicationsList();
+    return res.status(200).json({ applicationsList });
+  } catch (error) {
+    console.error('Failed to fetch applications', error);
+    return res.status(500).json({ message: 'Failed to fetch applications' });
+  }
 };
 
+export const createApplicationHandler: RequestHandler = async (req, res) => {
+  const validationResult = applicationsFormSchema.safeParse(req.body);
 
-// Get all applications
-export async function getApplicationsList() {
-  const applicationsList: Application[] = await prisma.application.findMany();
-  return applicationsList;
-}
+  if (!validationResult.success) {
+    return res.status(400).json({
+      message: 'Invalid application data',
+      errors: z.flattenError(validationResult.error),
+    });
+  }
 
-// Validate request payloads before mapping them into database writes.
-export function validateApplicationData(data: unknown) {
-  return applicationsFormSchema.safeParse(data);
-}
+  const userId = req.header('x-user-id');
 
-// Create a new application
-export async function createApplication(data: ApplicationInput, userId: string) {
-  await prisma.application.create({
-    data: {
-      company: data.company,
-      role: data.role,
-      status: applicationStatusMap[data.status],
-      appliedAt: new Date(data.appliedAt),
-      location: data.location,
-      jobUrl: data.jobUrl ?? null,
-      notes: data.notes ?? null,
-      userId,
-    },
-  });
-}
+  if (!userId) {
+    return res.status(401).json({ message: 'Missing user id' });
+  }
 
-/*
-Example ApplicationInput JSON for testing:
-{
-  "company": "Google",
-  "role": "Senior Software Engineer",
-  "status": "applied",
-  "appliedAt": "2024-01-15",
-  "location": "Mountain View, CA",
-  "jobUrl": "https://careers.google.com/jobs/results/...",
-  "notes": "Applied through referral"
-}
-*/
-
+  try {
+    await createApplication(validationResult.data, userId);
+    return res.status(201).json({ message: 'Application created successfully' });
+  } catch (error) {
+    console.error('Failed to create application', error);
+    return res.status(500).json({ message: 'Failed to create application' });
+  }
+};

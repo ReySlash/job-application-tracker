@@ -1,6 +1,7 @@
 import express from 'express';
 
 import applicationsRouter from './modules/applications/applications-routes.js';
+import usersRouter from './modules/users/users-routes.js';
 
 export function createApp() {
   const app = express();
@@ -15,6 +16,8 @@ export function createApp() {
 
   // Routers
   app.use('/api/applications', applicationsRouter);
+  app.use('/api/users', usersRouter);
+
 
   return app;
 }

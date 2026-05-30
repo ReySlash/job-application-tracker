@@ -16,8 +16,19 @@ The stable deployed app still lives on the Supabase-based implementation, while 
 - Neon connectivity has been verified
 - the Neon schema has been reset to the planned baseline models
 - Prisma migration history has been initialized with a baseline migration
+- backend auth routes currently implemented:
+  - `POST /api/auth/signup`
+  - `POST /api/auth/login`
 
-The backend application logic is not complete yet. The current backend work is foundational setup for the migration plan in [backend-migration-plan.md](/Users/reynaldocarmenatearias/Documents/ReactProjects/job-application-tracker/backend-migration-plan.md).
+The backend application logic is still incomplete. Current behavior:
+
+- signup creates a user record with a hashed password
+- login verifies credentials, returns an access token in JSON, and sets a refresh token as an `httpOnly` cookie
+- frontend auth is still wired to Supabase, not the new Express API
+- auth middleware, `/api/auth/logout`, `/api/auth/refresh`, `/api/auth/me`, and demo auth are not implemented yet
+- application routes are not protected yet and still need server-side auth ownership enforcement
+
+Use [backend-migration-plan.md](/Users/reynaldocarmenatearias/Documents/ReactProjects/job-application-tracker/backend-migration-plan.md) as the target architecture, not as a claim that all milestones listed there are already complete.
 
 ## Tech Stack
 
@@ -69,10 +80,18 @@ job-application-tracker/
 
 The repo-root `.env` is currently the source of truth for Prisma and backend database access.
 
-Current required variable:
+Current required variables:
 
 ```env
 DATABASE_URL=your-neon-connection-string
+JWT_SECRET=replace-this-with-a-real-secret
+```
+
+Optional auth tuning variables:
+
+```env
+ACCESS_TOKEN_TTL_SECONDS=900
+REFRESH_TOKEN_TTL_DAYS=7
 ```
 
 Prisma is configured in `apps/backend/prisma.config.ts` to load the root `.env` explicitly.
@@ -135,6 +154,7 @@ apps/backend/prisma/migrations/20260528120000_init/migration.sql
 - The old Supabase migrations still exist in the repository for historical reference.
 - The current production deployment should not be switched to the new backend until the migration is complete and manually verified.
 - For the implementation roadmap, use [backend-migration-plan.md](/Users/reynaldocarmenatearias/Documents/ReactProjects/job-application-tracker/backend-migration-plan.md).
+- The current login flow uses `JWT_SECRET` from the backend environment and falls back to a development-only default if it is missing. Do not rely on that fallback outside local development.
 
 ## Author
 

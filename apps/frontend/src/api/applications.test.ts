@@ -2,18 +2,11 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { ApplicationsFormSchema } from '../schemas/ApplicationsFormSchema';
 
-const { fromMock, fetchMock } = vi.hoisted(() => ({
-  fromMock: vi.fn(),
+const { fetchMock } = vi.hoisted(() => ({
   fetchMock: vi.fn(),
 }));
 
 vi.stubGlobal('fetch', fetchMock);
-
-vi.mock('../lib/supabase', () => ({
-  supabase: {
-    from: fromMock,
-  },
-}));
 
 import {
   createApplication,
@@ -216,34 +209,18 @@ describe('applications API wrappers', () => {
     );
   });
 
-  it('resetDemoApplications deletes by user_id and then inserts demo data through Supabase', async () => {
-    vi.useFakeTimers();
-    vi.setSystemTime(new Date('2026-04-21T12:00:00.000Z'));
+  it('resetDemoApplications calls the protected backend demo-reset route', async () => {
+    fetchMock.mockResolvedValue(jsonResponse({ message: 'Demo data restored successfully' }));
 
-    const deleteEq = vi.fn().mockResolvedValue({ error: null });
-    const deleteMock = vi.fn(() => ({ eq: deleteEq }));
-    const insert = vi.fn().mockResolvedValue({ error: null });
+    await expect(resetDemoApplications('token-123')).resolves.toBeUndefined();
 
-    fromMock
-      .mockReturnValueOnce({ delete: deleteMock })
-      .mockReturnValueOnce({ insert });
-
-    await expect(resetDemoApplications('user-123')).resolves.toBeUndefined();
-
-    expect(deleteEq).toHaveBeenCalledWith('user_id', 'user-123');
-    expect(insert).toHaveBeenCalledTimes(1);
-
-    const insertedPayload = insert.mock.calls[0]?.[0] as Array<Record<string, string>>;
-    expect(insertedPayload).toHaveLength(6);
-    expect(insertedPayload[0]).toMatchObject({
-      company: 'Northstar Labs',
-      role: 'Frontend Engineer',
-      status: 'interview',
-      applied_at: '2026-04-20',
-      user_id: 'user-123',
-    });
-
-    vi.useRealTimers();
+    expect(fetchMock).toHaveBeenCalledWith(
+      'http://localhost:4000/api/applications/demo-reset',
+      expect.objectContaining({
+        method: 'POST',
+        headers: { Authorization: 'Bearer token-123' },
+      }),
+    );
   });
 
   it('throws backend error messages for application CRUD failures', async () => {
@@ -261,12 +238,10 @@ describe('applications API wrappers', () => {
     await expect(deleteApplicationById('application-123', 'token-123')).rejects.toThrow('Delete failed');
   });
 
-  it('throws Supabase reset errors for the temporary demo path', async () => {
-    const resetDeleteEq = vi.fn().mockResolvedValue({ error: { message: 'Reset delete failed' } });
-    const resetDelete = vi.fn(() => ({ eq: resetDeleteEq }));
-    fromMock.mockReturnValueOnce({ delete: resetDelete });
+  it('throws backend error messages for demo reset failures', async () => {
+    fetchMock.mockResolvedValueOnce(jsonResponse({ message: 'Reset failed' }, { status: 500 }));
 
-    await expect(resetDemoApplications('user-123')).rejects.toThrow('Reset delete failed');
+    await expect(resetDemoApplications('token-123')).rejects.toThrow('Reset failed');
   });
 
   it('uses fallback messages when backend or demo reset responses omit error text', async () => {
@@ -276,20 +251,13 @@ describe('applications API wrappers', () => {
       .mockResolvedValueOnce(jsonResponse({}, { status: 500 }))
       .mockResolvedValueOnce(jsonResponse({}, { status: 500 }))
       .mockResolvedValueOnce(jsonResponse({}, { status: 500 }));
-
-    const resetDeleteEq = vi.fn().mockResolvedValue({ error: null });
-    const resetDelete = vi.fn(() => ({ eq: resetDeleteEq }));
-    const resetInsert = vi.fn().mockResolvedValue({ error: { message: '' } });
-
-    fromMock
-      .mockReturnValueOnce({ delete: resetDelete })
-      .mockReturnValueOnce({ insert: resetInsert });
+    fetchMock.mockResolvedValueOnce(jsonResponse({}, { status: 500 }));
 
     await expect(fetchApplications('token-123')).rejects.toThrow('Failed to fetch applications');
     await expect(fetchApplicationById('application-123', 'token-123')).rejects.toThrow('Failed to fetch application');
     await expect(createApplication(createFormInput(), 'token-123')).rejects.toThrow('Failed to create application');
     await expect(updateApplication('application-123', createFormInput(), 'token-123')).rejects.toThrow('Failed to update application');
     await expect(deleteApplicationById('application-123', 'token-123')).rejects.toThrow('Failed to delete application');
-    await expect(resetDemoApplications('user-123')).rejects.toThrow('Failed to seed demo applications');
+    await expect(resetDemoApplications('token-123')).rejects.toThrow('Failed to reset demo applications');
   });
 });

@@ -6,7 +6,7 @@ import { queryClient } from '../lib/queryClient';
 import ThemeToggle from './ThemeToggle';
 
 function SideBar() {
-  const { signOut, user } = useAuth();
+  const { accessToken, signOut, user } = useAuth();
   const navigate = useNavigate();
   const [isSigningOut, setIsSigningOut] = useState(false);
   const [signOutError, setSignOutError] = useState<string | null>(null);
@@ -23,7 +23,11 @@ function SideBar() {
     setIsResettingDemo(true);
 
     try {
-      await resetDemoApplications(user.id);
+      if (!accessToken) {
+        throw new Error('Failed to restore demo session');
+      }
+
+      await resetDemoApplications(accessToken);
       await queryClient.invalidateQueries({ queryKey: ['applications'] });
       setDemoResetMessage('Demo data restored.');
     } catch (error) {

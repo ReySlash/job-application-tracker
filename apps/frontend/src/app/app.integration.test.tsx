@@ -1,6 +1,6 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { MemoryRouter, Navigate, Outlet, Route, Routes } from 'react-router';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -56,30 +56,27 @@ function renderApp(options: RenderOptions = {}) {
   function AuthProviderStub() {
     const [user, setUser] = useState<AuthUser | null>(null);
 
-    const value = useMemo<AuthContextValue>(
-      () => ({
-        user,
-        accessToken: user ? 'token' : null,
-        isAuthLoading: false,
-        isPasswordRecovery: false,
-        signIn:
-          signInImplementation ??
-          (async () => {
-            setUser({
-              id: 'user-123',
-              email: 'user@example.com',
-              isDemo: false,
-              isEmailVerified: false,
-            });
-          }),
-        signUp: vi.fn(),
-        requestPasswordReset: vi.fn(),
-        updatePassword: vi.fn(),
-        startDemoSession: vi.fn(),
-        signOut: vi.fn(),
-      }),
-      [signInImplementation, user],
-    );
+    const value: AuthContextValue = {
+      user,
+      accessToken: user ? 'token' : null,
+      isAuthLoading: false,
+      isPasswordRecovery: false,
+      signIn:
+        signInImplementation ??
+        (async () => {
+          setUser({
+            id: 'user-123',
+            email: 'user@example.com',
+            isDemo: false,
+            isEmailVerified: false,
+          });
+        }),
+      signUp: vi.fn(),
+      requestPasswordReset: vi.fn(),
+      updatePassword: vi.fn(),
+      startDemoSession: vi.fn(),
+      signOut: vi.fn(),
+    };
 
     return <AuthContext.Provider value={value}>{<AppRoutes />}</AuthContext.Provider>;
   }

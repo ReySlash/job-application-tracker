@@ -23,7 +23,7 @@ const featureCards = [
 
 function HomePage() {
   const navigate = useNavigate();
-  const { isAuthLoading, startDemoSession, user } = useAuth();
+  const { accessToken, isAuthLoading, startDemoSession, user } = useAuth();
   const [isStartingDemo, setIsStartingDemo] = useState(false);
   const [demoError, setDemoError] = useState<string | null>(null);
 
@@ -41,9 +41,17 @@ function HomePage() {
     setIsStartingDemo(true);
 
     try {
-      const userId = isDemoUser && user ? user.id : (await startDemoSession()).userId;
-      await resetDemoApplications(userId);
-      await queryClient.invalidateQueries({ queryKey: ['applications'] });
+      if (isDemoUser) {
+        if (!accessToken) {
+          throw new Error('Failed to restore demo session');
+        }
+
+        await resetDemoApplications(accessToken);
+        await queryClient.invalidateQueries({ queryKey: ['applications'] });
+      } else {
+        await startDemoSession();
+      }
+
       navigate('/dashboard', { replace: true });
     } catch (error) {
       setDemoError(

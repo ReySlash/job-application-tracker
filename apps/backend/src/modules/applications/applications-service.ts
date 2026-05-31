@@ -3,6 +3,7 @@ import type { Application, ApplicationStatus as ApplicationStatusType } from '..
 import { ApplicationStatus } from '../../generated/prisma/enums.js';
 import { AppError } from '../../lib/errors.js';
 import type { ApplicationInput } from '../../types/application-input-type.js';
+import { resetDemoApplicationsForUser } from '../../demo/demo-services.js';
 
 const applicationStatusMap: Record<ApplicationInput['status'], ApplicationStatusType> = {
   applied: ApplicationStatus.APPLIED,
@@ -79,4 +80,8 @@ export async function deleteApplication(applicationId: string, userId: string): 
       id: existingApplication.id,
     },
   });
+}
+
+export async function resetDemoApplications(userId: string, isDemo: boolean): Promise<void> {
+  await resetDemoApplicationsForUser(userId, isDemo);
 }

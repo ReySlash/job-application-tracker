@@ -3,6 +3,7 @@ import prisma from '../../db.js';
 import { AppError } from '../../lib/errors.js';
 import { getRefreshTokenExpiresAt } from '../../config/env.js';
 import { generateAccessToken, generateRefreshToken, hashRefreshToken } from '../../lib/tokens.js';
+import { createDemoUser } from '../../demo/demo-services.js';
 
 type AuthResult = {
   accessToken: string;
@@ -55,6 +56,11 @@ async function issueAuthTokens(user: AuthUser): Promise<AuthResult> {
     refreshTokenExpiresAt,
     user,
   };
+}
+
+export async function createDemoLogin(): Promise<AuthResult> {
+  const user = await createDemoUser();
+  return issueAuthTokens(toAuthUser(user));
 }
 
 export async function createUser(email: string, password: string): Promise<AuthResult> {

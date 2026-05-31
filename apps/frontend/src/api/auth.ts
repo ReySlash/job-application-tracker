@@ -57,6 +57,15 @@ export async function signIn(email: string, password: string) {
   return parseResponse<AuthSuccessResponse>(response, 'Failed to sign in');
 }
 
+export async function demoLogin() {
+  const response = await fetch(`${API_BASE_URL}/auth/demo-login`, {
+    method: 'POST',
+    credentials: 'include',
+  });
+
+  return parseResponse<AuthSuccessResponse>(response, 'Failed to start demo session');
+}
+
 export async function signOut() {
   const response = await fetch(`${API_BASE_URL}/auth/logout`, {
     method: 'POST',
@@ -100,16 +109,6 @@ export async function updatePassword(password: string) {
 
   if (error) {
     throw new Error(error.message || 'Failed to update password');
-  }
-
-  return data;
-}
-
-export async function signInAnonymously() {
-  const { data, error } = await supabase.auth.signInAnonymously();
-
-  if (error) {
-    throw new Error(error.message || 'Failed to start demo session');
   }
 
   return data;

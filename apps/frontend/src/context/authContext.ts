@@ -10,7 +10,7 @@ export type AuthContextValue = {
   signUp: (email: string, password: string) => Promise<void>;
   requestPasswordReset: (email: string) => Promise<void>;
   updatePassword: (password: string) => Promise<void>;
-  startDemoSession: () => Promise<{ userId: string }>;
+  startDemoSession: () => Promise<void>;
   signOut: () => Promise<void>;
 };
 

@@ -4,7 +4,8 @@ import { createApplicationHandler,
   getApplicationsListHandler, 
   getApplicationByIdHandler,
   updateApplicationHandler,
-  deleteApplicationHandler } from './applications-controller.js';
+  deleteApplicationHandler,
+  resetDemoApplicationsHandler } from './applications-controller.js';
 
 const applicationsRouter = express.Router();
 
@@ -17,6 +18,9 @@ applicationsRouter.get('/', getApplicationsListHandler);
 
 // Handler for creating a new application
 applicationsRouter.post('/', createApplicationHandler);
+
+// Reset canonical demo data for the authenticated demo user
+applicationsRouter.post('/demo-reset', resetDemoApplicationsHandler);
 
 // Get, update, and delete a specific application by ID
 applicationsRouter.get('/:id', getApplicationByIdHandler);

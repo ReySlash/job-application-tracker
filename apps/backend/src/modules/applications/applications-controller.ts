@@ -6,7 +6,8 @@ import { createApplication,
    getApplicationsList,
    getApplicationById,
    updateApplication,
-   deleteApplication } from './applications-service.js';
+   deleteApplication,
+   resetDemoApplications } from './applications-service.js';
 
 // Handler for fetching the list of applications for the authenticated user
 export const getApplicationsListHandler: RequestHandler = async (req, res) => {
@@ -115,5 +116,23 @@ export const deleteApplicationHandler: RequestHandler = async (req, res) => {
 
     console.error('Failed to delete application', error);
     return res.status(500).json({ message: 'Failed to delete application' });
+  }
+}
+
+export const resetDemoApplicationsHandler: RequestHandler = async (req, res) => {
+  if (!req.user) {
+    return res.status(401).json({ message: 'Unauthorized' });
+  }
+
+  try {
+    await resetDemoApplications(req.user.id, req.user.isDemo);
+    return res.status(200).json({ message: 'Demo data restored successfully' });
+  } catch (error) {
+    if (error instanceof AppError) {
+      return res.status(error.statusCode).json({ message: error.message });
+    }
+
+    console.error('Failed to reset demo applications', error);
+    return res.status(500).json({ message: 'Failed to reset demo applications' });
   }
 }

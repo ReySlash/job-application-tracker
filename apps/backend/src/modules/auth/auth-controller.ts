@@ -9,7 +9,7 @@ import {
 } from '../../lib/cookies.js';
 import { AppError } from '../../lib/errors.js';
 import authCredentialsSchema from './auth-schemas.js';
-import { createUser, getCurrentUser, login, logout, refresh } from './auth-service.js';
+import { createDemoLogin, createUser, getCurrentUser, login, logout, refresh } from './auth-service.js';
 
 
 // Handler for user signup
@@ -64,6 +64,21 @@ export const loginHandler: RequestHandler = async (req, res) => {
       return res.status(error.statusCode).json({ error: error.message });
     }
 
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+export const demoLoginHandler: RequestHandler = async (_req, res) => {
+  try {
+    const authResult = await createDemoLogin();
+
+    setRefreshTokenCookie(res, authResult.refreshToken, authResult.refreshTokenExpiresAt);
+
+    return res.status(200).json({
+      user: authResult.user,
+      accessToken: authResult.accessToken,
+    });
+  } catch {
     return res.status(500).json({ error: 'Internal server error' });
   }
 };

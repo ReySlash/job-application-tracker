@@ -2,10 +2,10 @@ import type { RequestHandler } from 'express';
 import { z } from 'zod';
 
 import { Prisma } from '../../generated/prisma/client.js';
+import { setRefreshTokenCookie, REFRESH_TOKEN_COOKIE_NAME } from '../../lib/cookies.js';
 import { AppError } from '../../lib/errors.js';
-import { setRefreshTokenCookie } from '../../lib/cookies.js';
 import authCredentialsSchema from './auth-schemas.js';
-import { createUser, login } from './auth-service.js';
+import { createUser, login, refresh } from './auth-service.js';
 
 
 // Handler for user signup
@@ -42,6 +42,28 @@ export const loginHandler: RequestHandler = async (req, res) => {
 
   try {
     const authResult = await login(email, password);
+
+    setRefreshTokenCookie(res, authResult.refreshToken, authResult.refreshTokenExpiresAt);
+
+    return res.status(200).json({
+      user: authResult.user,
+      accessToken: authResult.accessToken,
+    });
+  } catch (error) {
+    if (error instanceof AppError) {
+      return res.status(error.statusCode).json({ error: error.message });
+    }
+
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+// Handler for access-token refresh
+export const refreshHandler: RequestHandler = async (req, res) => {
+  const refreshToken = req.cookies?.[REFRESH_TOKEN_COOKIE_NAME];
+
+  try {
+    const authResult = await refresh(refreshToken);
 
     setRefreshTokenCookie(res, authResult.refreshToken, authResult.refreshTokenExpiresAt);
 

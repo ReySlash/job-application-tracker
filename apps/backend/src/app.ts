@@ -1,3 +1,4 @@
+import cookieParser from 'cookie-parser';
 import express from 'express';
 
 import applicationsRouter from './modules/applications/applications-routes.js';
@@ -8,6 +9,7 @@ export function createApp() {
 
   // Middleware
   app.use(express.json());
+  app.use(cookieParser());
 
   // Health check endpoint
   app.get('/health', (_req, res) => {

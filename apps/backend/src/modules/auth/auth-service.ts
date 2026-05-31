@@ -28,25 +28,23 @@ type AuthResult = {
   };
 };
 
-export async function login(email: string, password: string): Promise<AuthResult> {
-  const user = await prisma.user.findUnique({
-    where: { email },
-  });
+type AuthUser = AuthResult['user'];
 
-  if (!user) {
-    throw new AppError('Invalid email or password', 401);
-  }
+function toAuthUser(user: {
+  id: string;
+  email: string;
+  isDemo: boolean;
+  isEmailVerified: boolean;
+}): AuthUser {
+  return {
+    id: user.id,
+    email: user.email,
+    isDemo: user.isDemo,
+    isEmailVerified: user.isEmailVerified,
+  };
+}
 
-  if (!user.passwordHash) {
-    throw new AppError('Invalid email or password', 401);
-  }
-
-  const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
-
-  if (!isPasswordValid) {
-    throw new AppError('Invalid email or password', 401);
-  }
-
+async function issueAuthTokens(user: AuthUser): Promise<AuthResult> {
   const accessToken = generateAccessToken({
     userId: user.id,
     email: user.email,
@@ -67,11 +65,86 @@ export async function login(email: string, password: string): Promise<AuthResult
     accessToken,
     refreshToken,
     refreshTokenExpiresAt,
-    user: {
-      id: user.id,
-      email: user.email,
-      isDemo: user.isDemo,
-      isEmailVerified: user.isEmailVerified,
-    },
+    user,
+  };
+}
+
+export async function login(email: string, password: string): Promise<AuthResult> {
+  const user = await prisma.user.findUnique({
+    where: { email },
+  });
+
+  if (!user) {
+    throw new AppError('Invalid email or password', 401);
+  }
+
+  if (!user.passwordHash) {
+    throw new AppError('Invalid email or password', 401);
+  }
+
+  const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
+
+  if (!isPasswordValid) {
+    throw new AppError('Invalid email or password', 401);
+  }
+
+  return issueAuthTokens(toAuthUser(user));
+}
+
+export async function refresh(refreshToken: string | undefined): Promise<AuthResult> {
+  if (!refreshToken) {
+    throw new AppError('Refresh token is required', 401);
+  }
+
+  const tokenHash = hashRefreshToken(refreshToken);
+  const storedRefreshToken = await prisma.refreshToken.findFirst({
+    where: { tokenHash },
+    include: { user: true },
+  });
+
+  if (!storedRefreshToken) {
+    throw new AppError('Invalid refresh token', 401);
+  }
+
+  if (storedRefreshToken.revokedAt) {
+    throw new AppError('Refresh token has been revoked', 401);
+  }
+
+  if (storedRefreshToken.expiresAt.getTime() <= Date.now()) {
+    throw new AppError('Refresh token has expired', 401);
+  }
+
+  if (!storedRefreshToken.user) {
+    throw new AppError('Invalid refresh token', 401);
+  }
+
+  const user = toAuthUser(storedRefreshToken.user);
+  const accessToken = generateAccessToken({
+    userId: user.id,
+    email: user.email,
+    isDemo: user.isDemo,
+  });
+  const nextRefreshToken = generateRefreshToken();
+  const refreshTokenExpiresAt = getRefreshTokenExpiresAt();
+
+  await prisma.$transaction([
+    prisma.refreshToken.update({
+      where: { id: storedRefreshToken.id },
+      data: { revokedAt: new Date() },
+    }),
+    prisma.refreshToken.create({
+      data: {
+        tokenHash: hashRefreshToken(nextRefreshToken),
+        userId: user.id,
+        expiresAt: refreshTokenExpiresAt,
+      },
+    }),
+  ]);
+
+  return {
+    accessToken,
+    refreshToken: nextRefreshToken,
+    refreshTokenExpiresAt,
+    user,
   };
 }

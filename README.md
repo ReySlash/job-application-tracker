@@ -19,14 +19,22 @@ The stable deployed app still lives on the Supabase-based implementation, while 
 - backend auth routes currently implemented:
   - `POST /api/auth/signup`
   - `POST /api/auth/login`
+  - `POST /api/auth/logout`
+  - `POST /api/auth/refresh`
+  - `GET /api/auth/me`
+- backend applications CRUD is protected by bearer-token auth and scoped to the authenticated user
+- frontend auth is wired to the backend auth API
+- frontend applications CRUD is wired to the backend applications API
 
-The backend application logic is still incomplete. Current behavior:
+The migration is not complete yet. Current behavior:
 
-- signup creates a user record with a hashed password
-- login verifies credentials, returns an access token in JSON, and sets a refresh token as an `httpOnly` cookie
-- frontend auth is still wired to Supabase, not the new Express API
-- auth middleware, `/api/auth/logout`, `/api/auth/refresh`, `/api/auth/me`, and demo auth are not implemented yet
-- application routes are not protected yet and still need server-side auth ownership enforcement
+- signup, login, logout, refresh, and `/api/auth/me` work through the Express backend
+- frontend auth state restores through `/api/auth/refresh` and stores the access token in memory
+- frontend application list/create/update/delete now use the protected backend API
+- backend CORS is enabled for credentialed frontend requests using `FRONTEND_URL`
+- password reset is still using Supabase
+- demo login and demo reset are still using Supabase-backed temporary flows
+- Supabase is still present in the frontend only for those remaining non-migrated paths
 
 Use [backend-migration-plan.md](/Users/reynaldocarmenatearias/Documents/ReactProjects/job-application-tracker/backend-migration-plan.md) as the target architecture, not as a claim that all milestones listed there are already complete.
 
@@ -85,6 +93,7 @@ Current required variables:
 ```env
 DATABASE_URL=your-neon-connection-string
 JWT_SECRET=replace-this-with-a-real-secret
+FRONTEND_URL=http://localhost:5173
 ```
 
 Optional auth tuning variables:
@@ -92,6 +101,12 @@ Optional auth tuning variables:
 ```env
 ACCESS_TOKEN_TTL_SECONDS=900
 REFRESH_TOKEN_TTL_DAYS=7
+```
+
+Frontend environment:
+
+```env
+VITE_API_BASE_URL=http://localhost:4000/api
 ```
 
 Prisma is configured in `apps/backend/prisma.config.ts` to load the root `.env` explicitly.
@@ -155,6 +170,7 @@ apps/backend/prisma/migrations/20260528120000_init/migration.sql
 - The current production deployment should not be switched to the new backend until the migration is complete and manually verified.
 - For the implementation roadmap, use [backend-migration-plan.md](/Users/reynaldocarmenatearias/Documents/ReactProjects/job-application-tracker/backend-migration-plan.md).
 - The current login flow uses `JWT_SECRET` from the backend environment and falls back to a development-only default if it is missing. Do not rely on that fallback outside local development.
+- The current frontend still depends on Supabase for password reset and demo mode until those backend endpoints are implemented.
 
 ## Author
 

@@ -14,13 +14,11 @@ function SignupPage() {
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [isConfirmPasswordVisible, setIsConfirmPasswordVisible] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [infoMessage, setInfoMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit: SubmitEventHandler<HTMLFormElement> = async (event) => {
     event.preventDefault();
     setErrorMessage(null);
-    setInfoMessage(null);
 
     if (password !== confirmPassword) {
       setErrorMessage('Passwords do not match');
@@ -30,13 +28,8 @@ function SignupPage() {
     setIsSubmitting(true);
 
     try {
-      const result = await signUp(email, password);
-
-      if (result.hasSession) {
-        navigate('/dashboard', { replace: true });
-      } else {
-        setInfoMessage('Check your email to confirm your account, then sign in.');
-      }
+      await signUp(email, password);
+      navigate('/dashboard', { replace: true });
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : 'Failed to sign up');
     } finally {
@@ -57,13 +50,6 @@ function SignupPage() {
             {errorMessage}
           </p>
         )}
-
-        {infoMessage && (
-          <p className="mt-4 rounded border border-green-300 bg-green-100 px-3 py-2 text-sm text-green-800 dark:border-green-800 dark:bg-green-950/70 dark:text-green-200">
-            {infoMessage}
-          </p>
-        )}
-
         <form className="mt-6 grid gap-4" onSubmit={handleSubmit}>
           <div className="grid gap-1">
             <label className="text-sm font-medium text-slate-700 dark:text-slate-200" htmlFor="email">
@@ -89,7 +75,7 @@ function SignupPage() {
                 autoComplete="new-password"
                 className="w-full rounded-md border border-gray-300 p-2 pr-11 focus:ring-2 focus:ring-teal-500 focus:outline-none dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
                 id="password"
-                minLength={6}
+                minLength={8}
                 onChange={(event) => setPassword(event.target.value)}
                 required
                 type={isPasswordVisible ? 'text' : 'password'}
@@ -114,7 +100,7 @@ function SignupPage() {
                 autoComplete="new-password"
                 className="w-full rounded-md border border-gray-300 p-2 pr-11 focus:ring-2 focus:ring-teal-500 focus:outline-none dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
                 id="confirm-password"
-                minLength={6}
+                minLength={8}
                 onChange={(event) => setConfirmPassword(event.target.value)}
                 required
                 type={isConfirmPasswordVisible ? 'text' : 'password'}

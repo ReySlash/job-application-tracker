@@ -9,6 +9,7 @@ import ProtectedRoute from '../components/ProtectedRoute';
 import PublicOnlyRoute from '../components/PublicOnlyRoute';
 import { AuthContext } from '../context/authContext';
 import type { AuthContextValue } from '../context/authContext';
+import type { AuthUser } from '../types/AuthUser';
 import { useApplicationsQuery } from '../hooks/useApplicationsQuery';
 import { createTestQueryClient, TestQueryClientProvider } from '../test/queryClient';
 
@@ -53,31 +54,23 @@ function renderApp(options: RenderOptions = {}) {
   const queryClient = createTestQueryClient();
 
   function AuthProviderStub() {
-    const [session, setSession] = useState<AuthContextValue['session']>(null);
+    const [user, setUser] = useState<AuthUser | null>(null);
 
     const value = useMemo<AuthContextValue>(
       () => ({
-        session,
-        user: session?.user ?? null,
+        user,
+        accessToken: user ? 'token' : null,
         isAuthLoading: false,
         isPasswordRecovery: false,
         signIn:
           signInImplementation ??
           (async () => {
-            setSession({
-              access_token: 'token',
-              refresh_token: 'refresh',
-              expires_in: 3600,
-              token_type: 'bearer',
-              user: {
-                id: 'user-123',
-                email: 'user@example.com',
-                app_metadata: {},
-                user_metadata: {},
-                aud: 'authenticated',
-                created_at: '',
-              },
-            } as AuthContextValue['session']);
+            setUser({
+              id: 'user-123',
+              email: 'user@example.com',
+              isDemo: false,
+              isEmailVerified: false,
+            });
           }),
         signUp: vi.fn(),
         requestPasswordReset: vi.fn(),
@@ -85,7 +78,7 @@ function renderApp(options: RenderOptions = {}) {
         startDemoSession: vi.fn(),
         signOut: vi.fn(),
       }),
-      [session],
+      [signInImplementation, user],
     );
 
     return <AuthContext.Provider value={value}>{<AppRoutes />}</AuthContext.Provider>;

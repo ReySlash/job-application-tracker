@@ -27,8 +27,8 @@ function HomePage() {
   const [isStartingDemo, setIsStartingDemo] = useState(false);
   const [demoError, setDemoError] = useState<string | null>(null);
 
-  const isDemoUser = Boolean(user?.is_anonymous);
-  const isPermanentUser = Boolean(user && !user.is_anonymous);
+  const isDemoUser = Boolean(user?.isDemo);
+  const isPermanentUser = Boolean(user && !user.isDemo);
 
   const handleStartDemo = async () => {
     setDemoError(null);

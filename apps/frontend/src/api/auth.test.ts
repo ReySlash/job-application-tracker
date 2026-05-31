@@ -1,17 +1,15 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-const { authMock } = vi.hoisted(() => ({
+const { authMock, fetchMock } = vi.hoisted(() => ({
   authMock: {
-    signUp: vi.fn(),
-    signInWithPassword: vi.fn(),
     resetPasswordForEmail: vi.fn(),
     updateUser: vi.fn(),
     signInAnonymously: vi.fn(),
-    signOut: vi.fn(),
-    getSession: vi.fn(),
-    onAuthStateChange: vi.fn(),
   },
+  fetchMock: vi.fn(),
 }));
+
+vi.stubGlobal('fetch', fetchMock);
 
 vi.mock('../lib/supabase', () => ({
   supabase: {
@@ -20,9 +18,9 @@ vi.mock('../lib/supabase', () => ({
 }));
 
 import {
-  getSession,
-  onAuthStateChange,
+  getCurrentUser,
   requestPasswordReset,
+  restoreSession,
   signIn,
   signInAnonymously,
   signOut,
@@ -30,51 +28,92 @@ import {
   updatePassword,
 } from './auth';
 
+function jsonResponse(body: unknown, init: ResponseInit = {}) {
+  return new Response(JSON.stringify(body), {
+    status: 200,
+    headers: { 'Content-Type': 'application/json' },
+    ...init,
+  });
+}
+
 describe('auth API wrappers', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it('signUp forwards credentials and returns Supabase data', async () => {
-    const data = { user: { id: 'user-1' }, session: null };
-    authMock.signUp.mockResolvedValue({ data, error: null });
+  it('signUp posts credentials to the backend auth API', async () => {
+    const data = { user: { id: 'user-1' }, accessToken: 'token' };
+    fetchMock.mockResolvedValue(jsonResponse(data));
 
-    await expect(signUp('user@example.com', 'secret123', 'https://example.com/login')).resolves.toEqual(data);
-    expect(authMock.signUp).toHaveBeenCalledWith({
-      email: 'user@example.com',
-      password: 'secret123',
-      options: { emailRedirectTo: 'https://example.com/login' },
-    });
-  });
-
-  it('signUp throws when Supabase obfuscates an already-registered email', async () => {
-    const data = {
-      user: {
-        id: 'user-1',
-        email: 'user@example.com',
-        identities: [],
-      },
-      session: null,
-    };
-    authMock.signUp.mockResolvedValue({ data, error: null });
-
-    await expect(signUp('user@example.com', 'secret123', 'https://example.com/login')).rejects.toThrow(
-      'An account with this email already exists. Sign in instead.',
+    await expect(signUp('user@example.com', 'secret123')).resolves.toEqual(data);
+    expect(fetchMock).toHaveBeenCalledWith(
+      'http://localhost:4000/api/auth/signup',
+      expect.objectContaining({
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: 'user@example.com', password: 'secret123' }),
+      }),
     );
   });
 
-  it('signIn forwards credentials and returns Supabase data', async () => {
-    const data = { user: { id: 'user-1' }, session: { access_token: 'token' } };
-    authMock.signInWithPassword.mockResolvedValue({ data, error: null });
+  it('signIn posts credentials to the backend auth API', async () => {
+    const data = { user: { id: 'user-1' }, accessToken: 'token' };
+    fetchMock.mockResolvedValue(jsonResponse(data));
 
     await expect(signIn('user@example.com', 'secret123')).resolves.toEqual(data);
-    expect(authMock.signInWithPassword).toHaveBeenCalledWith({
-      email: 'user@example.com',
-      password: 'secret123',
-    });
+    expect(fetchMock).toHaveBeenCalledWith(
+      'http://localhost:4000/api/auth/login',
+      expect.objectContaining({
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: 'user@example.com', password: 'secret123' }),
+      }),
+    );
   });
 
-  it('requestPasswordReset forwards email and redirect URL', async () => {
+  it('restoreSession uses the backend refresh endpoint with cookies included', async () => {
+    const data = { user: { id: 'user-1' }, accessToken: 'token' };
+    fetchMock.mockResolvedValue(jsonResponse(data));
+
+    await expect(restoreSession()).resolves.toEqual(data);
+    expect(fetchMock).toHaveBeenCalledWith(
+      'http://localhost:4000/api/auth/refresh',
+      expect.objectContaining({
+        method: 'POST',
+        credentials: 'include',
+      }),
+    );
+  });
+
+  it('getCurrentUser sends the bearer token to the backend me endpoint', async () => {
+    const data = { user: { id: 'user-1' } };
+    fetchMock.mockResolvedValue(jsonResponse(data));
+
+    await expect(getCurrentUser('token-123')).resolves.toEqual(data);
+    expect(fetchMock).toHaveBeenCalledWith(
+      'http://localhost:4000/api/auth/me',
+      expect.objectContaining({
+        headers: { Authorization: 'Bearer token-123' },
+      }),
+    );
+  });
+
+  it('signOut calls the backend logout endpoint', async () => {
+    fetchMock.mockResolvedValue(jsonResponse({ message: 'Logged out successfully' }));
+
+    await expect(signOut()).resolves.toBeUndefined();
+    expect(fetchMock).toHaveBeenCalledWith(
+      'http://localhost:4000/api/auth/logout',
+      expect.objectContaining({
+        method: 'POST',
+        credentials: 'include',
+      }),
+    );
+  });
+
+  it('requestPasswordReset forwards email and redirect URL to Supabase', async () => {
     const data = {};
     authMock.resetPasswordForEmail.mockResolvedValue({ data, error: null });
 
@@ -84,7 +123,7 @@ describe('auth API wrappers', () => {
     });
   });
 
-  it('updatePassword forwards the new password', async () => {
+  it('updatePassword forwards the new password to Supabase', async () => {
     const data = { user: { id: 'user-1' } };
     authMock.updateUser.mockResolvedValue({ data, error: null });
 
@@ -92,84 +131,47 @@ describe('auth API wrappers', () => {
     expect(authMock.updateUser).toHaveBeenCalledWith({ password: 'new-secret123' });
   });
 
-  it('signInAnonymously returns Supabase data', async () => {
-    const data = { user: { id: 'anon-1', is_anonymous: true }, session: { access_token: 'token' } };
+  it('signInAnonymously returns Supabase demo data', async () => {
+    const data = { user: { id: 'anon-1' }, session: { access_token: 'token' } };
     authMock.signInAnonymously.mockResolvedValue({ data, error: null });
 
     await expect(signInAnonymously()).resolves.toEqual(data);
     expect(authMock.signInAnonymously).toHaveBeenCalledTimes(1);
   });
 
-  it('signOut calls Supabase signOut', async () => {
-    authMock.signOut.mockResolvedValue({ error: null });
+  it('throws backend error messages for auth endpoint failures', async () => {
+    fetchMock.mockResolvedValueOnce(jsonResponse({ error: 'User already exists' }, { status: 409 }));
+    fetchMock.mockResolvedValueOnce(jsonResponse({ error: 'Invalid email or password' }, { status: 401 }));
+    fetchMock.mockResolvedValueOnce(jsonResponse({ error: 'Refresh token is required' }, { status: 401 }));
+    fetchMock.mockResolvedValueOnce(jsonResponse({ error: 'Invalid access token' }, { status: 401 }));
+    fetchMock.mockResolvedValueOnce(jsonResponse({ error: 'Network error during sign out' }, { status: 500 }));
 
-    await expect(signOut()).resolves.toBeUndefined();
-    expect(authMock.signOut).toHaveBeenCalledTimes(1);
-  });
-
-  it('getSession returns the current session', async () => {
-    const session = { access_token: 'token', refresh_token: 'refresh' };
-    authMock.getSession.mockResolvedValue({ data: { session }, error: null });
-
-    await expect(getSession()).resolves.toEqual(session);
-    expect(authMock.getSession).toHaveBeenCalledTimes(1);
-  });
-
-  it('onAuthStateChange forwards auth events to the callback', () => {
-    const subscription = { data: { subscription: { unsubscribe: vi.fn() } } };
-    authMock.onAuthStateChange.mockImplementation((handler) => {
-      handler('SIGNED_IN', { access_token: 'token' });
-      return subscription;
-    });
-    const callback = vi.fn();
-
-    const result = onAuthStateChange(callback);
-
-    expect(callback).toHaveBeenCalledWith('SIGNED_IN', { access_token: 'token' });
-    expect(result).toBe(subscription);
-  });
-
-  it('throws the Supabase error message for auth failures', async () => {
-    authMock.signUp.mockResolvedValue({ data: null, error: { message: 'Email already registered' } });
-    authMock.signInWithPassword.mockResolvedValue({ data: null, error: { message: 'Invalid login credentials' } });
-    authMock.resetPasswordForEmail.mockResolvedValue({ data: null, error: { message: 'Reset flow unavailable' } });
-    authMock.updateUser.mockResolvedValue({ data: null, error: { message: 'Password update rejected' } });
-    authMock.signInAnonymously.mockResolvedValue({ data: null, error: { message: 'Demo mode unavailable' } });
-    authMock.signOut.mockResolvedValue({ error: { message: 'Network error during sign out' } });
-    authMock.getSession.mockResolvedValue({ data: { session: null }, error: { message: 'Session restore failed' } });
-
-    await expect(signUp('user@example.com', 'secret123', 'https://example.com/login')).rejects.toThrow(
-      'Email already registered',
-    );
-    await expect(signIn('user@example.com', 'secret123')).rejects.toThrow('Invalid login credentials');
-    await expect(requestPasswordReset('user@example.com', 'https://example.com/reset-password')).rejects.toThrow(
-      'Reset flow unavailable',
-    );
-    await expect(updatePassword('new-secret123')).rejects.toThrow('Password update rejected');
-    await expect(signInAnonymously()).rejects.toThrow('Demo mode unavailable');
+    await expect(signUp('user@example.com', 'secret123')).rejects.toThrow('User already exists');
+    await expect(signIn('user@example.com', 'secret123')).rejects.toThrow('Invalid email or password');
+    await expect(restoreSession()).rejects.toThrow('Refresh token is required');
+    await expect(getCurrentUser('bad-token')).rejects.toThrow('Invalid access token');
     await expect(signOut()).rejects.toThrow('Network error during sign out');
-    await expect(getSession()).rejects.toThrow('Session restore failed');
   });
 
-  it('uses fallback messages when Supabase returns an empty error message', async () => {
-    authMock.signUp.mockResolvedValue({ data: null, error: { message: '' } });
-    authMock.signInWithPassword.mockResolvedValue({ data: null, error: { message: '' } });
+  it('uses fallback messages when backend responses omit error text', async () => {
+    fetchMock.mockResolvedValueOnce(jsonResponse({}, { status: 500 }));
+    fetchMock.mockResolvedValueOnce(jsonResponse({}, { status: 500 }));
+    fetchMock.mockResolvedValueOnce(jsonResponse({}, { status: 500 }));
+    fetchMock.mockResolvedValueOnce(jsonResponse({}, { status: 500 }));
+    fetchMock.mockResolvedValueOnce(jsonResponse({}, { status: 500 }));
     authMock.resetPasswordForEmail.mockResolvedValue({ data: null, error: { message: '' } });
     authMock.updateUser.mockResolvedValue({ data: null, error: { message: '' } });
     authMock.signInAnonymously.mockResolvedValue({ data: null, error: { message: '' } });
-    authMock.signOut.mockResolvedValue({ error: { message: '' } });
-    authMock.getSession.mockResolvedValue({ data: { session: null }, error: { message: '' } });
 
-    await expect(signUp('user@example.com', 'secret123', 'https://example.com/login')).rejects.toThrow(
-      'Failed to sign up',
-    );
+    await expect(signUp('user@example.com', 'secret123')).rejects.toThrow('Failed to sign up');
     await expect(signIn('user@example.com', 'secret123')).rejects.toThrow('Failed to sign in');
+    await expect(restoreSession()).rejects.toThrow('Failed to restore session');
+    await expect(getCurrentUser('token')).rejects.toThrow('Failed to fetch current user');
+    await expect(signOut()).rejects.toThrow('Failed to sign out');
     await expect(requestPasswordReset('user@example.com', 'https://example.com/reset-password')).rejects.toThrow(
       'Failed to send password reset email',
     );
     await expect(updatePassword('new-secret123')).rejects.toThrow('Failed to update password');
     await expect(signInAnonymously()).rejects.toThrow('Failed to start demo session');
-    await expect(signOut()).rejects.toThrow('Failed to sign out');
-    await expect(getSession()).rejects.toThrow('Failed to restore session');
   });
 });

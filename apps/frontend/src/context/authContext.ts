@@ -1,13 +1,13 @@
 import { createContext } from 'react';
-import type { Session, User } from '@supabase/supabase-js';
+import type { AuthUser } from '../types/AuthUser';
 
 export type AuthContextValue = {
-  session: Session | null;
-  user: User | null;
+  user: AuthUser | null;
+  accessToken: string | null;
   isAuthLoading: boolean;
   isPasswordRecovery: boolean;
   signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string) => Promise<{ hasSession: boolean }>;
+  signUp: (email: string, password: string) => Promise<void>;
   requestPasswordReset: (email: string) => Promise<void>;
   updatePassword: (password: string) => Promise<void>;
   startDemoSession: () => Promise<{ userId: string }>;

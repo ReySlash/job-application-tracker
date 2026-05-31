@@ -13,7 +13,7 @@ function SideBar() {
   const [isResettingDemo, setIsResettingDemo] = useState(false);
   const [demoResetMessage, setDemoResetMessage] = useState<string | null>(null);
   const [demoResetError, setDemoResetError] = useState<string | null>(null);
-  const isDemoUser = Boolean(user?.is_anonymous);
+  const isDemoUser = Boolean(user?.isDemo);
 
   const handleResetDemo = async () => {
     if (!user || !isDemoUser || isResettingDemo) return;

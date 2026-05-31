@@ -1,34 +1,88 @@
 import { supabase } from '../lib/supabase';
-import type { AuthChangeEvent, Session } from '@supabase/supabase-js';
+import type { AuthUser } from '../types/AuthUser';
 
-export async function signUp(email: string, password: string, emailRedirectTo: string) {
-  const { data, error } = await supabase.auth.signUp({
-    email,
-    password,
-    options: { emailRedirectTo },
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:4000/api';
+
+type AuthSuccessResponse = {
+  user: AuthUser;
+  accessToken: string;
+};
+
+type MeResponse = {
+  user: AuthUser;
+};
+
+type ApiErrorResponse = {
+  error?: string;
+};
+
+async function parseResponse<T>(response: Response, fallbackMessage: string): Promise<T> {
+  const text = await response.text();
+  const payload = text ? (JSON.parse(text) as T | ApiErrorResponse) : null;
+
+  if (!response.ok) {
+    const errorMessage =
+      payload &&
+      typeof payload === 'object' &&
+      'error' in payload &&
+      typeof payload.error === 'string' &&
+      payload.error
+        ? payload.error
+        : fallbackMessage;
+    throw new Error(errorMessage);
+  }
+
+  return payload as T;
+}
+
+export async function signUp(email: string, password: string) {
+  const response = await fetch(`${API_BASE_URL}/auth/signup`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify({ email, password }),
   });
 
-  if (error) {
-    throw new Error(error.message || 'Failed to sign up');
-  }
-
-  // Supabase may obfuscate existing confirmed accounts by returning a user-like payload
-  // with no session and no identities instead of an explicit error.
-  if (!data.session && Array.isArray(data.user?.identities) && data.user.identities.length === 0) {
-    throw new Error('An account with this email already exists. Sign in instead.');
-  }
-
-  return data;
+  return parseResponse<AuthSuccessResponse>(response, 'Failed to sign up');
 }
 
 export async function signIn(email: string, password: string) {
-  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+  const response = await fetch(`${API_BASE_URL}/auth/login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify({ email, password }),
+  });
 
-  if (error) {
-    throw new Error(error.message || 'Failed to sign in');
-  }
+  return parseResponse<AuthSuccessResponse>(response, 'Failed to sign in');
+}
 
-  return data;
+export async function signOut() {
+  const response = await fetch(`${API_BASE_URL}/auth/logout`, {
+    method: 'POST',
+    credentials: 'include',
+  });
+
+  await parseResponse<{ message: string }>(response, 'Failed to sign out');
+}
+
+export async function restoreSession() {
+  const response = await fetch(`${API_BASE_URL}/auth/refresh`, {
+    method: 'POST',
+    credentials: 'include',
+  });
+
+  return parseResponse<AuthSuccessResponse>(response, 'Failed to restore session');
+}
+
+export async function getCurrentUser(accessToken: string) {
+  const response = await fetch(`${API_BASE_URL}/auth/me`, {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
+
+  return parseResponse<MeResponse>(response, 'Failed to fetch current user');
 }
 
 export async function requestPasswordReset(email: string, redirectTo: string) {
@@ -59,28 +113,4 @@ export async function signInAnonymously() {
   }
 
   return data;
-}
-
-export async function signOut() {
-  const { error } = await supabase.auth.signOut();
-
-  if (error) {
-    throw new Error(error.message || 'Failed to sign out');
-  }
-}
-
-export async function getSession() {
-  const { data, error } = await supabase.auth.getSession();
-
-  if (error) {
-    throw new Error(error.message || 'Failed to restore session');
-  }
-
-  return data.session;
-}
-
-export function onAuthStateChange(callback: (event: AuthChangeEvent, session: Session | null) => void) {
-  return supabase.auth.onAuthStateChange((event, session) => {
-    callback(event, session);
-  });
 }

@@ -1,51 +1,60 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
-import type { Session } from '@supabase/supabase-js';
 import {
-  getSession,
-  onAuthStateChange,
   requestPasswordReset as requestPasswordResetFromSupabase,
+  restoreSession,
   signInAnonymously,
   signIn as signInWithPassword,
-  signOut as signOutFromSupabase,
+  signOut as signOutFromBackend,
   signUp as signUpWithPassword,
   updatePassword as updatePasswordInSupabase,
 } from '../api/auth';
 import { AuthContext } from '../context/authContext';
 import type { AuthContextValue } from '../context/authContext';
-import {
-  getResetPasswordRedirectUrl,
-  getSignupRedirectUrl,
-  hasPasswordRecoveryHash,
-} from '../lib/authRedirects';
+import type { AuthUser } from '../types/AuthUser';
+import { getResetPasswordRedirectUrl, hasPasswordRecoveryHash } from '../lib/authRedirects';
+import { supabase } from '../lib/supabase';
 
 type Props = {
   children: ReactNode;
 };
 
+function createDemoAuthUser(userId: string): AuthUser {
+  return {
+    id: userId,
+    email: 'demo@local',
+    isDemo: true,
+    isEmailVerified: false,
+  };
+}
+
 export function AuthProvider({ children }: Props) {
-  const [session, setSession] = useState<Session | null>(null);
+  const [user, setUser] = useState<AuthUser | null>(null);
+  const [accessToken, setAccessToken] = useState<string | null>(null);
   const [isAuthLoading, setIsAuthLoading] = useState(true);
-  // Recovery links can briefly exist before Supabase finishes restoring the session.
   const [isPasswordRecovery, setIsPasswordRecovery] = useState(hasPasswordRecoveryHash);
 
   useEffect(() => {
     let isMounted = true;
 
-    getSession()
-      .then((restoredSession) => {
-        if (isMounted) {
-          setSession(restoredSession);
-
-          if (!restoredSession) {
-            setIsPasswordRecovery(hasPasswordRecoveryHash());
-          }
+    restoreSession()
+      .then((authState) => {
+        if (!isMounted) {
+          return;
         }
+
+        setUser(authState.user);
+        setAccessToken(authState.accessToken);
+        setIsPasswordRecovery(false);
       })
       .catch(() => {
-        if (isMounted) {
-          setSession(null);
+        if (!isMounted) {
+          return;
         }
+
+        setUser(null);
+        setAccessToken(null);
+        setIsPasswordRecovery(hasPasswordRecoveryHash());
       })
       .finally(() => {
         if (isMounted) {
@@ -53,49 +62,28 @@ export function AuthProvider({ children }: Props) {
         }
       });
 
-    const { data } = onAuthStateChange((event, nextSession) => {
-      setSession(nextSession);
-
-      // Keep the reset-password page open while Supabase swaps into its temporary recovery session.
-      if (
-        event === 'PASSWORD_RECOVERY' ||
-        (event === 'INITIAL_SESSION' && hasPasswordRecoveryHash())
-      ) {
-        setIsPasswordRecovery(true);
-      }
-
-      if (event === 'SIGNED_IN' && !hasPasswordRecoveryHash()) {
-        setIsPasswordRecovery(false);
-      }
-
-      if (event === 'SIGNED_OUT' || event === 'USER_UPDATED') {
-        setIsPasswordRecovery(false);
-      }
-
-      setIsAuthLoading(false);
-    });
-
     return () => {
       isMounted = false;
-      data.subscription.unsubscribe();
     };
   }, []);
 
   const value = useMemo<AuthContextValue>(
     () => ({
-      session,
-      user: session?.user ?? null,
+      user,
+      accessToken,
       isAuthLoading,
       isPasswordRecovery,
       signIn: async (email, password) => {
-        const data = await signInWithPassword(email, password);
-        setSession(data.session);
+        const authState = await signInWithPassword(email, password);
+        setUser(authState.user);
+        setAccessToken(authState.accessToken);
         setIsPasswordRecovery(false);
       },
       signUp: async (email, password) => {
-        const data = await signUpWithPassword(email, password, getSignupRedirectUrl());
-        setSession(data.session);
-        return { hasSession: Boolean(data.session) };
+        const authState = await signUpWithPassword(email, password);
+        setUser(authState.user);
+        setAccessToken(authState.accessToken);
+        setIsPasswordRecovery(false);
       },
       requestPasswordReset: async (email) => {
         await requestPasswordResetFromSupabase(email, getResetPasswordRedirectUrl());
@@ -107,20 +95,33 @@ export function AuthProvider({ children }: Props) {
       startDemoSession: async () => {
         const data = await signInAnonymously();
 
-        if (!data.session || !data.user) {
+        if (!data.user) {
           throw new Error('Failed to start demo session');
         }
 
-        setSession(data.session);
+        setUser(createDemoAuthUser(data.user.id));
+        setAccessToken(null);
+        setIsPasswordRecovery(false);
+
         return { userId: data.user.id };
       },
       signOut: async () => {
-        await signOutFromSupabase();
-        setSession(null);
+        if (accessToken) {
+          await signOutFromBackend();
+        } else if (user?.isDemo) {
+          const { error } = await supabase.auth.signOut();
+
+          if (error) {
+            throw new Error(error.message || 'Failed to sign out');
+          }
+        }
+
+        setUser(null);
+        setAccessToken(null);
         setIsPasswordRecovery(false);
       },
     }),
-    [isAuthLoading, isPasswordRecovery, session],
+    [accessToken, isAuthLoading, isPasswordRecovery, user],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

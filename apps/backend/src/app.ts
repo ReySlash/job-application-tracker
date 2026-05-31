@@ -1,6 +1,8 @@
 import cookieParser from 'cookie-parser';
+import cors from 'cors';
 import express from 'express';
 
+import { env } from './config/env.js';
 import applicationsRouter from './modules/applications/applications-routes.js';
 import authRouter from './modules/auth/auth-routes.js';
 
@@ -8,6 +10,12 @@ export function createApp() {
   const app = express();
 
   // Middleware
+  app.use(
+    cors({
+      origin: env.frontendUrl,
+      credentials: true,
+    }),
+  );
   app.use(express.json());
   app.use(cookieParser());
 

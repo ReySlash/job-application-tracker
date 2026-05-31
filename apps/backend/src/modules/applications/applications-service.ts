@@ -10,10 +10,14 @@ const applicationStatusMap: Record<ApplicationInput['status'], ApplicationStatus
   rejected: ApplicationStatus.REJECTED,
 };
 
-export async function getApplicationsList(): Promise<Application[]> {
-  return prisma.application.findMany();
+// Service function for fetching the list of applications for a user
+export async function getApplicationsList(userId: string): Promise<Application[]> {
+  return prisma.application.findMany({
+    where: { userId },
+  });
 }
 
+// Service function for creating a new application
 export async function createApplication(data: ApplicationInput, userId: string): Promise<void> {
   await prisma.application.create({
     data: {

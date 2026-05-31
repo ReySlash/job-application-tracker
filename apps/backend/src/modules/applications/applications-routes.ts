@@ -1,7 +1,10 @@
 import express from 'express';
+import { requireAuth } from '../../middleware/auth-middleware.js';
 import { createApplicationHandler, getApplicationsListHandler } from './applications-controller.js';
 
 const applicationsRouter = express.Router();
+
+applicationsRouter.use(requireAuth);
 
 applicationsRouter.get('/', getApplicationsListHandler);
 

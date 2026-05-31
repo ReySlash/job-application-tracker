@@ -4,18 +4,6 @@ import { AppError } from '../../lib/errors.js';
 import { getRefreshTokenExpiresAt } from '../../config/env.js';
 import { generateAccessToken, generateRefreshToken, hashRefreshToken } from '../../lib/tokens.js';
 
-export async function createUser(email: string, password: string): Promise<void> {
-  const passwordHash = await bcrypt.hash(password, 10);
-
-  await prisma.user.create({
-    data: {
-      email,
-      passwordHash,
-      isDemo: false,
-    },
-  });
-}
-
 type AuthResult = {
   accessToken: string;
   refreshToken: string;
@@ -67,6 +55,20 @@ async function issueAuthTokens(user: AuthUser): Promise<AuthResult> {
     refreshTokenExpiresAt,
     user,
   };
+}
+
+export async function createUser(email: string, password: string): Promise<AuthResult> {
+  const passwordHash = await bcrypt.hash(password, 10);
+
+  const user = await prisma.user.create({
+    data: {
+      email,
+      passwordHash,
+      isDemo: false,
+    },
+  });
+
+  return issueAuthTokens(toAuthUser(user));
 }
 
 export async function login(email: string, password: string): Promise<AuthResult> {
@@ -167,4 +169,16 @@ export async function logout(refreshToken: string | undefined): Promise<void> {
     where: { id: storedRefreshToken.id },
     data: { revokedAt: new Date() },
   });
+}
+
+export async function getCurrentUser(userId: string): Promise<AuthUser> {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+  });
+
+  if (!user) {
+    throw new AppError('User not found', 404);
+  }
+
+  return toAuthUser(user);
 }

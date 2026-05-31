@@ -9,7 +9,7 @@ import {
 } from '../../lib/cookies.js';
 import { AppError } from '../../lib/errors.js';
 import authCredentialsSchema from './auth-schemas.js';
-import { createUser, login, logout, refresh } from './auth-service.js';
+import { createUser, getCurrentUser, login, logout, refresh } from './auth-service.js';
 
 
 // Handler for user signup
@@ -23,8 +23,14 @@ export const signupHandler: RequestHandler = async (req, res) => {
   const { email, password } = validationResult.data;
 
   try {
-    await createUser(email, password);
-    return res.status(201).json({ message: 'User created successfully' });
+    const authResult = await createUser(email, password);
+
+    setRefreshTokenCookie(res, authResult.refreshToken, authResult.refreshTokenExpiresAt);
+
+    return res.status(201).json({
+      user: authResult.user,
+      accessToken: authResult.accessToken,
+    });
   } catch (error) {
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
       return res.status(409).json({ error: 'User already exists' });
@@ -94,6 +100,25 @@ export const logoutHandler: RequestHandler = async (req, res) => {
 
     return res.status(200).json({ message: 'Logged out successfully' });
   } catch {
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+// Handler for the current authenticated user
+export const meHandler: RequestHandler = async (req, res) => {
+  if (!req.user) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+
+  try {
+    const user = await getCurrentUser(req.user.id);
+
+    return res.status(200).json({ user });
+  } catch (error) {
+    if (error instanceof AppError) {
+      return res.status(error.statusCode).json({ error: error.message });
+    }
+
     return res.status(500).json({ error: 'Internal server error' });
   }
 };

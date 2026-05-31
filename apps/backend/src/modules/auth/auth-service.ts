@@ -148,3 +148,23 @@ export async function refresh(refreshToken: string | undefined): Promise<AuthRes
     user,
   };
 }
+
+export async function logout(refreshToken: string | undefined): Promise<void> {
+  if (!refreshToken) {
+    return;
+  }
+
+  const tokenHash = hashRefreshToken(refreshToken);
+  const storedRefreshToken = await prisma.refreshToken.findFirst({
+    where: { tokenHash },
+  });
+
+  if (!storedRefreshToken || storedRefreshToken.revokedAt) {
+    return;
+  }
+
+  await prisma.refreshToken.update({
+    where: { id: storedRefreshToken.id },
+    data: { revokedAt: new Date() },
+  });
+}

@@ -2,10 +2,14 @@ import type { RequestHandler } from 'express';
 import { z } from 'zod';
 
 import { Prisma } from '../../generated/prisma/client.js';
-import { setRefreshTokenCookie, REFRESH_TOKEN_COOKIE_NAME } from '../../lib/cookies.js';
+import {
+  clearRefreshTokenCookie,
+  setRefreshTokenCookie,
+  REFRESH_TOKEN_COOKIE_NAME,
+} from '../../lib/cookies.js';
 import { AppError } from '../../lib/errors.js';
 import authCredentialsSchema from './auth-schemas.js';
-import { createUser, login, refresh } from './auth-service.js';
+import { createUser, login, logout, refresh } from './auth-service.js';
 
 
 // Handler for user signup
@@ -76,6 +80,20 @@ export const refreshHandler: RequestHandler = async (req, res) => {
       return res.status(error.statusCode).json({ error: error.message });
     }
 
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+// Handler for user logout
+export const logoutHandler: RequestHandler = async (req, res) => {
+  const refreshToken = req.cookies?.[REFRESH_TOKEN_COOKIE_NAME];
+
+  try {
+    await logout(refreshToken);
+    clearRefreshTokenCookie(res);
+
+    return res.status(200).json({ message: 'Logged out successfully' });
+  } catch {
     return res.status(500).json({ error: 'Internal server error' });
   }
 };

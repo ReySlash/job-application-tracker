@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes } from 'react-router';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { createTestQueryClient, TestQueryClientProvider } from '../test/queryClient';
+import { AuthContext } from '../context/authContext';
 
 const { deleteApplicationMock, fetchApplicationsMock, navigateMock } = vi.hoisted(() => ({
   deleteApplicationMock: vi.fn(),
@@ -34,12 +35,27 @@ function renderApplicationDetailsPage() {
 
   return render(
     <TestQueryClientProvider client={queryClient}>
-      <MemoryRouter initialEntries={['/applications/app-1']}>
-        <Routes>
-          <Route path="/applications/:id" element={<ApplicationDetailsPage />} />
-          <Route path="/applications" element={<div>Applications page</div>} />
-        </Routes>
-      </MemoryRouter>
+      <AuthContext.Provider
+        value={{
+          user: { id: 'user-123', email: 'user@example.com', isDemo: false, isEmailVerified: false },
+          accessToken: 'token-123',
+          isAuthLoading: false,
+          isPasswordRecovery: false,
+          signIn: vi.fn(),
+          signUp: vi.fn(),
+          requestPasswordReset: vi.fn(),
+          updatePassword: vi.fn(),
+          startDemoSession: vi.fn(),
+          signOut: vi.fn(),
+        }}
+      >
+        <MemoryRouter initialEntries={['/applications/app-1']}>
+          <Routes>
+            <Route path="/applications/:id" element={<ApplicationDetailsPage />} />
+            <Route path="/applications" element={<div>Applications page</div>} />
+          </Routes>
+        </MemoryRouter>
+      </AuthContext.Provider>
     </TestQueryClientProvider>,
   );
 }
@@ -99,7 +115,7 @@ describe('ApplicationDetailsPage', () => {
 
   it('does not navigate and shows an alert when delete fails', async () => {
     const alertMock = vi.mocked(window.alert);
-    deleteApplicationMock.mockRejectedValue(new Error('Supabase delete failed'));
+    deleteApplicationMock.mockRejectedValue(new Error('Delete failed'));
 
     const user = userEvent.setup();
     renderApplicationDetailsPage();

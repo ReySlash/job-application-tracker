@@ -6,15 +6,15 @@ import { useAuth } from './useAuth';
 
 export function useCreateApplicationMutation() {
   const queryClient = useQueryClient();
-  const { user } = useAuth();
+  const { accessToken } = useAuth();
 
   return useMutation({
     mutationFn: (input: ApplicationsFormSchema) => {
-      if (!user) {
+      if (!accessToken) {
         throw new Error('You must be signed in to create an application');
       }
 
-      return createApplication(input, user.id);
+      return createApplication(input, accessToken);
     },
     onSuccess: () => {
       return queryClient.invalidateQueries({ queryKey: ['applications'] });
@@ -24,10 +24,16 @@ export function useCreateApplicationMutation() {
 
 export function useUpdateApplicationMutation() {
   const queryClient = useQueryClient();
+  const { accessToken } = useAuth();
 
   return useMutation({
-    mutationFn: ({ id, input }: { id: string; input: ApplicationsFormSchema }) =>
-      updateApplication(id, input),
+    mutationFn: ({ id, input }: { id: string; input: ApplicationsFormSchema }) => {
+      if (!accessToken) {
+        throw new Error('You must be signed in to update an application');
+      }
+
+      return updateApplication(id, input, accessToken);
+    },
     onSuccess: () => {
       return queryClient.invalidateQueries({ queryKey: ['applications'] });
     },
@@ -36,9 +42,16 @@ export function useUpdateApplicationMutation() {
 
 export function useDeleteApplicationMutation() {
   const queryClient = useQueryClient();
+  const { accessToken } = useAuth();
 
   return useMutation({
-    mutationFn: deleteApplicationById,
+    mutationFn: (id: string) => {
+      if (!accessToken) {
+        throw new Error('You must be signed in to delete an application');
+      }
+
+      return deleteApplicationById(id, accessToken);
+    },
     onMutate: async (id: string) => {
       await queryClient.cancelQueries({ queryKey: ['applications'] });
 

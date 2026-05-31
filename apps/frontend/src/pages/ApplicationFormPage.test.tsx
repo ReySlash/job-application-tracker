@@ -57,6 +57,7 @@ describe('ApplicationFormPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     useAuthMock.mockReturnValue({
+      accessToken: 'token-123',
       isPasswordRecovery: false,
       user: { id: 'user-123' },
     });
@@ -97,7 +98,7 @@ describe('ApplicationFormPage', () => {
           jobUrl: 'https://example.com/jobs/1',
           notes: 'Prepare for the screen',
         },
-        'user-123',
+        'token-123',
       );
     });
 
@@ -115,7 +116,7 @@ describe('ApplicationFormPage', () => {
   });
 
   it('shows an inline error message when create fails and does not navigate', async () => {
-    createApplicationMock.mockRejectedValue(new Error('Supabase insert failed'));
+    createApplicationMock.mockRejectedValue(new Error('Create failed'));
 
     const user = userEvent.setup();
     const { invalidateQueriesSpy } = renderApplicationFormPage();
@@ -128,7 +129,7 @@ describe('ApplicationFormPage', () => {
 
     await user.click(screen.getByRole('button', { name: 'Save Application' }));
 
-    expect(await screen.findByRole('alert')).toHaveTextContent('Supabase insert failed');
+    expect(await screen.findByRole('alert')).toHaveTextContent('Create failed');
     expect(navigateMock).not.toHaveBeenCalled();
     expect(invalidateQueriesSpy).not.toHaveBeenCalledWith({ queryKey: ['applications'] });
 

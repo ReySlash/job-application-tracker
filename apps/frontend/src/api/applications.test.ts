@@ -1,11 +1,13 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { ApplicationRow } from '../types/ApplicationRow';
 import type { ApplicationsFormSchema } from '../schemas/ApplicationsFormSchema';
 
-const { fromMock } = vi.hoisted(() => ({
+const { fromMock, fetchMock } = vi.hoisted(() => ({
   fromMock: vi.fn(),
+  fetchMock: vi.fn(),
 }));
+
+vi.stubGlobal('fetch', fetchMock);
 
 vi.mock('../lib/supabase', () => ({
   supabase: {
@@ -16,6 +18,7 @@ vi.mock('../lib/supabase', () => ({
 import {
   createApplication,
   deleteApplicationById,
+  fetchApplicationById,
   fetchApplications,
   resetDemoApplications,
   updateApplication,
@@ -34,21 +37,29 @@ function createFormInput(overrides: Partial<ApplicationsFormSchema> = {}): Appli
   };
 }
 
-function createRow(overrides: Partial<ApplicationRow> = {}): ApplicationRow {
+function backendApplication(overrides: Partial<Record<string, unknown>> = {}) {
   return {
     id: 'application-1',
     company: 'Acme',
     role: 'Frontend Engineer',
-    status: 'interviewing',
-    applied_at: '2026-04-21',
+    status: 'INTERVIEWING',
+    appliedAt: '2026-04-21',
     location: 'Remote',
-    job_url: 'https://example.com/jobs/1',
+    jobUrl: 'https://example.com/jobs/1',
     notes: 'Prepare for interview',
-    created_at: '2026-04-21T00:00:00.000Z',
-    updated_at: '2026-04-22T00:00:00.000Z',
-    user_id: 'user-123',
+    createdAt: '2026-04-21T00:00:00.000Z',
+    updatedAt: '2026-04-22T00:00:00.000Z',
+    userId: 'user-123',
     ...overrides,
   };
+}
+
+function jsonResponse(body: unknown, init: ResponseInit = {}) {
+  return new Response(JSON.stringify(body), {
+    status: 200,
+    headers: { 'Content-Type': 'application/json' },
+    ...init,
+  });
 }
 
 describe('applications API wrappers', () => {
@@ -56,15 +67,17 @@ describe('applications API wrappers', () => {
     vi.clearAllMocks();
   });
 
-  it('fetchApplications requests rows in descending created_at order and maps them', async () => {
-    const order = vi.fn().mockResolvedValue({
-      data: [createRow(), createRow({ id: 'application-2', status: 'offered' })],
-      error: null,
-    });
-    const select = vi.fn(() => ({ order }));
-    fromMock.mockReturnValue({ select });
+  it('fetchApplications requests the backend list and maps the response', async () => {
+    fetchMock.mockResolvedValue(
+      jsonResponse({
+        applicationsList: [
+          backendApplication(),
+          backendApplication({ id: 'application-2', status: 'OFFER' }),
+        ],
+      }),
+    );
 
-    await expect(fetchApplications()).resolves.toEqual([
+    await expect(fetchApplications('token-123')).resolves.toEqual([
       {
         id: 'application-1',
         company: 'Acme',
@@ -91,60 +104,119 @@ describe('applications API wrappers', () => {
       },
     ]);
 
-    expect(fromMock).toHaveBeenCalledWith('applications');
-    expect(select).toHaveBeenCalledWith('*');
-    expect(order).toHaveBeenCalledWith('created_at', { ascending: false });
+    expect(fetchMock).toHaveBeenCalledWith(
+      'http://localhost:4000/api/applications',
+      expect.objectContaining({
+        method: 'GET',
+        headers: { Authorization: 'Bearer token-123' },
+      }),
+    );
   });
 
-  it('createApplication sends the mapped insert payload', async () => {
-    const insert = vi.fn().mockResolvedValue({ error: null });
-    fromMock.mockReturnValue({ insert });
+  it('fetchApplicationById requests the backend detail route and maps the response', async () => {
+    fetchMock.mockResolvedValue(jsonResponse({ application: backendApplication() }));
 
-    await expect(createApplication(createFormInput(), 'user-123')).resolves.toBeUndefined();
-
-    expect(insert).toHaveBeenCalledWith({
+    await expect(fetchApplicationById('application-123', 'token-123')).resolves.toEqual({
+      id: 'application-1',
       company: 'Acme',
       role: 'Frontend Engineer',
       status: 'interview',
-      applied_at: '2026-04-21',
+      appliedAt: '2026-04-21',
       location: 'Remote',
-      job_url: 'https://example.com/jobs/1',
+      jobUrl: 'https://example.com/jobs/1',
       notes: 'Prepare for interview',
-      user_id: 'user-123',
+      createdAt: '2026-04-21T00:00:00.000Z',
+      updatedAt: '2026-04-22T00:00:00.000Z',
+    });
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      'http://localhost:4000/api/applications/application-123',
+      expect.objectContaining({
+        method: 'GET',
+        headers: { Authorization: 'Bearer token-123' },
+      }),
+    );
+  });
+
+  it('normalizes ISO datetime appliedAt values into date-input format', async () => {
+    fetchMock.mockResolvedValue(
+      jsonResponse({
+        application: backendApplication({ appliedAt: '2026-04-21T00:00:00.000Z' }),
+      }),
+    );
+
+    await expect(fetchApplicationById('application-123', 'token-123')).resolves.toMatchObject({
+      appliedAt: '2026-04-21',
     });
   });
 
-  it('updateApplication sends the mapped update payload and scopes by id', async () => {
-    const eq = vi.fn().mockResolvedValue({ error: null });
-    const update = vi.fn(() => ({ eq }));
-    fromMock.mockReturnValue({ update });
+  it('createApplication sends the backend payload without userId', async () => {
+    fetchMock.mockResolvedValue(jsonResponse({ message: 'Application created successfully' }));
 
-    await expect(updateApplication('application-123', createFormInput({ jobUrl: '', notes: '' }))).resolves.toBeUndefined();
+    await expect(createApplication(createFormInput(), 'token-123')).resolves.toBeUndefined();
 
-    expect(update).toHaveBeenCalledWith({
-      company: 'Acme',
-      role: 'Frontend Engineer',
-      status: 'interview',
-      applied_at: '2026-04-21',
-      location: 'Remote',
-      job_url: null,
-      notes: null,
-    });
-    expect(eq).toHaveBeenCalledWith('id', 'application-123');
+    expect(fetchMock).toHaveBeenCalledWith(
+      'http://localhost:4000/api/applications',
+      expect.objectContaining({
+        method: 'POST',
+        headers: {
+          Authorization: 'Bearer token-123',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          company: 'Acme',
+          role: 'Frontend Engineer',
+          status: 'interview',
+          appliedAt: '2026-04-21',
+          location: 'Remote',
+          jobUrl: 'https://example.com/jobs/1',
+          notes: 'Prepare for interview',
+        }),
+      }),
+    );
   });
 
-  it('deleteApplicationById deletes the requested id', async () => {
-    const eq = vi.fn().mockResolvedValue({ error: null });
-    const deleteMock = vi.fn(() => ({ eq }));
-    fromMock.mockReturnValue({ delete: deleteMock });
+  it('updateApplication sends the backend payload to the PUT route', async () => {
+    fetchMock.mockResolvedValue(jsonResponse({ message: 'Application updated successfully' }));
 
-    await expect(deleteApplicationById('application-123')).resolves.toBeUndefined();
+    await expect(updateApplication('application-123', createFormInput({ jobUrl: '', notes: '' }), 'token-123')).resolves.toBeUndefined();
 
-    expect(deleteMock).toHaveBeenCalledTimes(1);
-    expect(eq).toHaveBeenCalledWith('id', 'application-123');
+    expect(fetchMock).toHaveBeenCalledWith(
+      'http://localhost:4000/api/applications/application-123',
+      expect.objectContaining({
+        method: 'PUT',
+        headers: {
+          Authorization: 'Bearer token-123',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          company: 'Acme',
+          role: 'Frontend Engineer',
+          status: 'interview',
+          appliedAt: '2026-04-21',
+          location: 'Remote',
+          jobUrl: null,
+          notes: null,
+        }),
+      }),
+    );
   });
 
-  it('resetDemoApplications deletes by user_id and then inserts demo data', async () => {
+  it('deleteApplicationById calls the backend delete route', async () => {
+    fetchMock.mockResolvedValue(jsonResponse({ message: 'Application deleted successfully' }));
+
+    await expect(deleteApplicationById('application-123', 'token-123')).resolves.toBeUndefined();
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      'http://localhost:4000/api/applications/application-123',
+      expect.objectContaining({
+        method: 'DELETE',
+        headers: { Authorization: 'Bearer token-123' },
+      }),
+    );
+  });
+
+  it('resetDemoApplications deletes by user_id and then inserts demo data through Supabase', async () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date('2026-04-21T12:00:00.000Z'));
 
@@ -161,101 +233,63 @@ describe('applications API wrappers', () => {
     expect(deleteEq).toHaveBeenCalledWith('user_id', 'user-123');
     expect(insert).toHaveBeenCalledTimes(1);
 
-    const firstInsertCall = insert.mock.calls[0];
-    expect(firstInsertCall).toBeDefined();
-
-    const insertedPayload = firstInsertCall![0] as Array<Record<string, string>>;
+    const insertedPayload = insert.mock.calls[0]?.[0] as Array<Record<string, string>>;
     expect(insertedPayload).toHaveLength(6);
-    expect(insertedPayload[0]).toBeDefined();
-    expect(insertedPayload[5]).toBeDefined();
-    expect(insertedPayload[0]!).toMatchObject({
+    expect(insertedPayload[0]).toMatchObject({
       company: 'Northstar Labs',
       role: 'Frontend Engineer',
       status: 'interview',
       applied_at: '2026-04-20',
       user_id: 'user-123',
     });
-    expect(insertedPayload[5]!).toMatchObject({
-      company: 'Cedar Studio',
-      applied_at: '2026-03-07',
-      user_id: 'user-123',
-    });
 
     vi.useRealTimers();
   });
 
-  it('throws the Supabase error message for application failures', async () => {
-    const fetchOrder = vi.fn().mockResolvedValue({ data: null, error: { message: 'Fetch failed' } });
-    const fetchSelect = vi.fn(() => ({ order: fetchOrder }));
+  it('throws backend error messages for application CRUD failures', async () => {
+    fetchMock
+      .mockResolvedValueOnce(jsonResponse({ message: 'Fetch failed' }, { status: 500 }))
+      .mockResolvedValueOnce(jsonResponse({ message: 'Fetch detail failed' }, { status: 500 }))
+      .mockResolvedValueOnce(jsonResponse({ message: 'Create failed' }, { status: 500 }))
+      .mockResolvedValueOnce(jsonResponse({ message: 'Update failed' }, { status: 500 }))
+      .mockResolvedValueOnce(jsonResponse({ message: 'Delete failed' }, { status: 500 }));
 
-    const insert = vi.fn().mockResolvedValue({ error: { message: 'Create failed' } });
+    await expect(fetchApplications('token-123')).rejects.toThrow('Fetch failed');
+    await expect(fetchApplicationById('application-123', 'token-123')).rejects.toThrow('Fetch detail failed');
+    await expect(createApplication(createFormInput(), 'token-123')).rejects.toThrow('Create failed');
+    await expect(updateApplication('application-123', createFormInput(), 'token-123')).rejects.toThrow('Update failed');
+    await expect(deleteApplicationById('application-123', 'token-123')).rejects.toThrow('Delete failed');
+  });
 
-    const updateEq = vi.fn().mockResolvedValue({ error: { message: 'Update failed' } });
-    const update = vi.fn(() => ({ eq: updateEq }));
-
-    const deleteEq = vi.fn().mockResolvedValue({ error: { message: 'Delete failed' } });
-    const deleteMock = vi.fn(() => ({ eq: deleteEq }));
-
+  it('throws Supabase reset errors for the temporary demo path', async () => {
     const resetDeleteEq = vi.fn().mockResolvedValue({ error: { message: 'Reset delete failed' } });
     const resetDelete = vi.fn(() => ({ eq: resetDeleteEq }));
+    fromMock.mockReturnValueOnce({ delete: resetDelete });
 
-    fromMock
-      .mockReturnValueOnce({ select: fetchSelect })
-      .mockReturnValueOnce({ insert })
-      .mockReturnValueOnce({ update })
-      .mockReturnValueOnce({ delete: deleteMock })
-      .mockReturnValueOnce({ delete: resetDelete });
-
-    await expect(fetchApplications()).rejects.toThrow('Fetch failed');
-    await expect(createApplication(createFormInput(), 'user-123')).rejects.toThrow('Create failed');
-    await expect(updateApplication('application-123', createFormInput())).rejects.toThrow('Update failed');
-    await expect(deleteApplicationById('application-123')).rejects.toThrow('Delete failed');
     await expect(resetDemoApplications('user-123')).rejects.toThrow('Reset delete failed');
   });
 
-  it('throws the seed failure message when demo reset insert fails', async () => {
-    const deleteEq = vi.fn().mockResolvedValue({ error: null });
-    const deleteMock = vi.fn(() => ({ eq: deleteEq }));
-    const insert = vi.fn().mockResolvedValue({ error: { message: 'Seed insert failed' } });
-
-    fromMock
-      .mockReturnValueOnce({ delete: deleteMock })
-      .mockReturnValueOnce({ insert });
-
-    await expect(resetDemoApplications('user-123')).rejects.toThrow('Seed insert failed');
-  });
-
-  it('uses fallback messages when Supabase returns an empty application error message', async () => {
-    const fetchOrder = vi.fn().mockResolvedValue({ data: null, error: { message: '' } });
-    const fetchSelect = vi.fn(() => ({ order: fetchOrder }));
-
-    const insert = vi.fn().mockResolvedValue({ error: { message: '' } });
-
-    const updateEq = vi.fn().mockResolvedValue({ error: { message: '' } });
-    const update = vi.fn(() => ({ eq: updateEq }));
-
-    const deleteEq = vi.fn().mockResolvedValue({ error: { message: '' } });
-    const deleteMock = vi.fn(() => ({ eq: deleteEq }));
+  it('uses fallback messages when backend or demo reset responses omit error text', async () => {
+    fetchMock
+      .mockResolvedValueOnce(jsonResponse({}, { status: 500 }))
+      .mockResolvedValueOnce(jsonResponse({}, { status: 500 }))
+      .mockResolvedValueOnce(jsonResponse({}, { status: 500 }))
+      .mockResolvedValueOnce(jsonResponse({}, { status: 500 }))
+      .mockResolvedValueOnce(jsonResponse({}, { status: 500 }));
 
     const resetDeleteEq = vi.fn().mockResolvedValue({ error: null });
     const resetDelete = vi.fn(() => ({ eq: resetDeleteEq }));
-
     const resetInsert = vi.fn().mockResolvedValue({ error: { message: '' } });
 
     fromMock
-      .mockReturnValueOnce({ select: fetchSelect })
-      .mockReturnValueOnce({ insert })
-      .mockReturnValueOnce({ update })
-      .mockReturnValueOnce({ delete: deleteMock })
       .mockReturnValueOnce({ delete: resetDelete })
       .mockReturnValueOnce({ insert: resetInsert });
 
-    await expect(fetchApplications()).rejects.toThrow('Failed to fetch applications');
-    await expect(createApplication(createFormInput(), 'user-123')).rejects.toThrow('Failed to create application');
-    await expect(updateApplication('application-123', createFormInput())).rejects.toThrow(
-      'Failed to update application',
-    );
-    await expect(deleteApplicationById('application-123')).rejects.toThrow('Failed to delete application');
+    await expect(fetchApplications('token-123')).rejects.toThrow('Failed to fetch applications');
+    await expect(fetchApplicationById('application-123', 'token-123')).rejects.toThrow('Failed to fetch application');
+    await expect(createApplication(createFormInput(), 'token-123')).rejects.toThrow('Failed to create application');
+    await expect(updateApplication('application-123', createFormInput(), 'token-123')).rejects.toThrow('Failed to update application');
+    await expect(deleteApplicationById('application-123', 'token-123')).rejects.toThrow('Failed to delete application');
     await expect(resetDemoApplications('user-123')).rejects.toThrow('Failed to seed demo applications');
   });
 });

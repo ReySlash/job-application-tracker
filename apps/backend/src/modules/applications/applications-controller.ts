@@ -1,7 +1,7 @@
 import type { RequestHandler } from 'express';
 import z from 'zod';
 import applicationsFormSchema from './applications-schema.js';
-import { createApplication, getApplicationsList } from './applications-service.js';
+import { createApplication, getApplicationsList, getApplicationById } from './applications-service.js';
 
 // Handle for applications routes
 export const getApplicationsListHandler: RequestHandler = async (req, res) => {
@@ -41,3 +41,21 @@ export const createApplicationHandler: RequestHandler = async (req, res) => {
     return res.status(500).json({ message: 'Failed to create application' });
   }
 };
+
+export const getApplicationByIdHandler: RequestHandler = async (req, res) => {
+    if (!req.user) {
+      return res.status(401).json({ message: 'Unauthorized' });
+    }
+
+    try {
+      const applicationId = req.params.id as string;
+      const application = await getApplicationById(applicationId, req.user.id);
+      if (!application) {
+        return res.status(404).json({ message: 'Application not found' });
+      }
+      return res.status(200).json({ application });
+    } catch (error) {
+      console.error('Failed to fetch application', error);
+      return res.status(500).json({ message: 'Failed to fetch application' });
+    }
+}

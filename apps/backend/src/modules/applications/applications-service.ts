@@ -32,3 +32,12 @@ export async function createApplication(data: ApplicationInput, userId: string):
     },
   });
 }
+
+export async function getApplicationById(applicationId: string, userId: string): Promise<Application | null> {
+  return prisma.application.findFirst({
+    where: {
+      id: applicationId,
+      userId,
+    },
+  });
+}

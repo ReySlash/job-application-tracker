@@ -1,19 +1,26 @@
 import { useState } from 'react';
 import type { SubmitEventHandler } from 'react';
-import { Link, useNavigate } from 'react-router';
+import { Link, useNavigate, useSearchParams } from 'react-router';
 import { useAuth } from '../hooks/useAuth';
 
 function ResetPasswordPage() {
-  const { isPasswordRecovery, updatePassword } = useAuth();
+  const { updatePassword } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const resetToken = searchParams.get('token');
 
   const handleSubmit: SubmitEventHandler<HTMLFormElement> = async (event) => {
     event.preventDefault();
     setErrorMessage(null);
+
+    if (!resetToken) {
+      setErrorMessage('This password reset link is invalid or has expired.');
+      return;
+    }
 
     if (password !== confirmPassword) {
       setErrorMessage('Passwords do not match');
@@ -23,7 +30,7 @@ function ResetPasswordPage() {
     setIsSubmitting(true);
 
     try {
-      await updatePassword(password);
+      await updatePassword(resetToken, password);
       navigate('/login', {
         replace: true,
         state: { successMessage: 'Password updated. Sign in with your new password.' },
@@ -43,7 +50,7 @@ function ResetPasswordPage() {
           Create a new password for your account to finish the recovery flow.
         </p>
 
-        {!isPasswordRecovery ? (
+        {!resetToken ? (
           <div className="mt-6 rounded border border-amber-300 bg-amber-100 px-4 py-3 text-sm text-amber-900 dark:border-amber-800 dark:bg-amber-950/60 dark:text-amber-200">
             This password reset link is invalid or has expired. Request a new one to continue.
             <div className="mt-3">
@@ -69,7 +76,7 @@ function ResetPasswordPage() {
                   autoComplete="new-password"
                   className="rounded-md border border-gray-300 p-2 focus:ring-2 focus:ring-teal-500 focus:outline-none dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
                   id="password"
-                  minLength={6}
+                  minLength={8}
                   onChange={(event) => setPassword(event.target.value)}
                   required
                   type="password"
@@ -85,7 +92,7 @@ function ResetPasswordPage() {
                   autoComplete="new-password"
                   className="rounded-md border border-gray-300 p-2 focus:ring-2 focus:ring-teal-500 focus:outline-none dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
                   id="confirm-password"
-                  minLength={6}
+                  minLength={8}
                   onChange={(event) => setConfirmPassword(event.target.value)}
                   required
                   type="password"

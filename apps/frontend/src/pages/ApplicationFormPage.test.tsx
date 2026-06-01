@@ -58,7 +58,6 @@ describe('ApplicationFormPage', () => {
     vi.clearAllMocks();
     useAuthMock.mockReturnValue({
       accessToken: 'token-123',
-      isPasswordRecovery: false,
       user: { id: 'user-123' },
     });
     fetchApplicationsMock.mockResolvedValue([]);

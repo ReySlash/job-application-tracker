@@ -1,10 +1,8 @@
-import { Navigate, Outlet, useLocation } from 'react-router';
+import { Navigate, Outlet } from 'react-router';
 import { useAuth } from '../hooks/useAuth';
 
 function PublicOnlyRoute() {
-  const { isAuthLoading, isPasswordRecovery, user } = useAuth();
-  const location = useLocation();
-  const isResetPasswordRoute = location.pathname === '/reset-password';
+  const { isAuthLoading, user } = useAuth();
 
   if (isAuthLoading) {
     return (
@@ -14,7 +12,7 @@ function PublicOnlyRoute() {
     );
   }
 
-  if (user && !(isResetPasswordRoute && isPasswordRecovery)) {
+  if (user) {
     return <Navigate to="/dashboard" replace />;
   }
 

@@ -40,7 +40,6 @@ function renderApplicationDetailsPage() {
           user: { id: 'user-123', email: 'user@example.com', isDemo: false, isEmailVerified: false },
           accessToken: 'token-123',
           isAuthLoading: false,
-          isPasswordRecovery: false,
           signIn: vi.fn(),
           signUp: vi.fn(),
           requestPasswordReset: vi.fn(),

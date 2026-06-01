@@ -19,22 +19,28 @@ The stable deployed app still lives on the Supabase-based implementation, while 
 - backend auth routes currently implemented:
   - `POST /api/auth/signup`
   - `POST /api/auth/login`
+  - `POST /api/auth/demo-login`
+  - `POST /api/auth/forgot-password`
+  - `POST /api/auth/reset-password`
   - `POST /api/auth/logout`
   - `POST /api/auth/refresh`
   - `GET /api/auth/me`
 - backend applications CRUD is protected by bearer-token auth and scoped to the authenticated user
+- backend demo reset is implemented at `POST /api/applications/demo-reset`
 - frontend auth is wired to the backend auth API
 - frontend applications CRUD is wired to the backend applications API
 
 The migration is not complete yet. Current behavior:
 
 - signup, login, logout, refresh, and `/api/auth/me` work through the Express backend
+- demo login works through `POST /api/auth/demo-login`
 - frontend auth state restores through `/api/auth/refresh` and stores the access token in memory
 - frontend application list/create/update/delete now use the protected backend API
+- demo reset works through `POST /api/applications/demo-reset`
 - backend CORS is enabled for credentialed frontend requests using `FRONTEND_URL`
-- password reset is still using Supabase
-- demo login and demo reset are still using Supabase-backed temporary flows
-- Supabase is still present in the frontend only for those remaining non-migrated paths
+- forgot-password always returns a generic success message and can deliver reset emails through SMTP
+- reset-password validates the token, updates the password, marks outstanding reset tokens used, and revokes active refresh tokens
+- Supabase is no longer required by the active frontend/backend auth flow
 
 Use [backend-migration-plan.md](/Users/reynaldocarmenatearias/Documents/ReactProjects/job-application-tracker/backend-migration-plan.md) as the target architecture, not as a claim that all milestones listed there are already complete.
 
@@ -101,6 +107,11 @@ Optional auth tuning variables:
 ```env
 ACCESS_TOKEN_TTL_SECONDS=900
 REFRESH_TOKEN_TTL_DAYS=7
+PASSWORD_RESET_TOKEN_TTL_MINUTES=60
+FRONTEND_RESET_PASSWORD_URL=http://localhost:5173/reset-password
+SMTP_URL=smtps://username:password@smtp.example.com:465
+EMAIL_FROM=Job Application Tracker <no-reply@example.com>
+PASSWORD_RESET_EMAIL_SUBJECT=Reset your Job Application Tracker password
 ```
 
 Frontend environment:
@@ -149,6 +160,14 @@ pnpm --filter backend prisma:generate
 pnpm --filter backend prisma:migrate
 ```
 
+## Backend Environment
+
+Copy `apps/backend/.env.example` into your backend environment file and set the SMTP values used for password reset delivery.
+
+- `SMTP_URL` should point at your SMTP server, for example `smtps://username:password@smtp.example.com:465`
+- `EMAIL_FROM` is the sender shown on password reset emails
+- `FRONTEND_RESET_PASSWORD_URL` should point at the frontend reset page that receives the `token` query parameter
+
 ## Database State
 
 The Neon database has been aligned to the current planned Prisma schema with these models:
@@ -156,6 +175,7 @@ The Neon database has been aligned to the current planned Prisma schema with the
 - `User`
 - `Application`
 - `RefreshToken`
+- `PasswordResetToken`
 - `ApplicationStatus`
 
 A baseline migration exists at:
@@ -170,7 +190,7 @@ apps/backend/prisma/migrations/20260528120000_init/migration.sql
 - The current production deployment should not be switched to the new backend until the migration is complete and manually verified.
 - For the implementation roadmap, use [backend-migration-plan.md](/Users/reynaldocarmenatearias/Documents/ReactProjects/job-application-tracker/backend-migration-plan.md).
 - The current login flow uses `JWT_SECRET` from the backend environment and falls back to a development-only default if it is missing. Do not rely on that fallback outside local development.
-- The current frontend still depends on Supabase for password reset and demo mode until those backend endpoints are implemented.
+- In non-production, password reset falls back to logging the reset URL to the backend process when SMTP is not configured.
 
 ## Author
 

@@ -8,8 +8,17 @@ import {
   REFRESH_TOKEN_COOKIE_NAME,
 } from '../../lib/cookies.js';
 import { AppError } from '../../lib/errors.js';
-import authCredentialsSchema from './auth-schemas.js';
-import { createDemoLogin, createUser, getCurrentUser, login, logout, refresh } from './auth-service.js';
+import authCredentialsSchema, { forgotPasswordSchema, resetPasswordSchema } from './auth-schemas.js';
+import {
+  createDemoLogin,
+  createUser,
+  forgotPassword,
+  getCurrentUser,
+  login,
+  logout,
+  refresh,
+  resetPassword,
+} from './auth-service.js';
 
 
 // Handler for user signup
@@ -79,6 +88,49 @@ export const demoLoginHandler: RequestHandler = async (_req, res) => {
       accessToken: authResult.accessToken,
     });
   } catch {
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+export const forgotPasswordHandler: RequestHandler = async (req, res) => {
+  const validationResult = forgotPasswordSchema.safeParse(req.body);
+
+  if (!validationResult.success) {
+    return res.status(400).json({ error: z.flattenError(validationResult.error) });
+  }
+
+  try {
+    await forgotPassword(validationResult.data.email);
+    return res.status(200).json({
+      message: 'If that email is registered, a password reset link has been sent.',
+    });
+  } catch (error) {
+    console.error('Forgot password flow failed', {
+      email: validationResult.data.email,
+      error,
+    });
+
+    return res.status(200).json({
+      message: 'If that email is registered, a password reset link has been sent.',
+    });
+  }
+};
+
+export const resetPasswordHandler: RequestHandler = async (req, res) => {
+  const validationResult = resetPasswordSchema.safeParse(req.body);
+
+  if (!validationResult.success) {
+    return res.status(400).json({ error: z.flattenError(validationResult.error) });
+  }
+
+  try {
+    await resetPassword(validationResult.data.token, validationResult.data.password);
+    return res.status(200).json({ message: 'Password updated successfully' });
+  } catch (error) {
+    if (error instanceof AppError) {
+      return res.status(error.statusCode).json({ error: error.message });
+    }
+
     return res.status(500).json({ error: 'Internal server error' });
   }
 };

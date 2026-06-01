@@ -1,8 +1,15 @@
 import bcrypt from 'bcrypt';
 import prisma from '../../db.js';
 import { AppError } from '../../lib/errors.js';
-import { getRefreshTokenExpiresAt } from '../../config/env.js';
-import { generateAccessToken, generateRefreshToken, hashRefreshToken } from '../../lib/tokens.js';
+import { sendEmail } from '../../lib/email.js';
+import { env, getPasswordResetTokenExpiresAt, getRefreshTokenExpiresAt } from '../../config/env.js';
+import {
+  generateAccessToken,
+  generatePasswordResetToken,
+  generateRefreshToken,
+  hashPasswordResetToken,
+  hashRefreshToken,
+} from '../../lib/tokens.js';
 import { createDemoUser } from '../../demo/demo-services.js';
 
 type AuthResult = {
@@ -18,6 +25,26 @@ type AuthResult = {
 };
 
 type AuthUser = AuthResult['user'];
+
+function createPasswordResetEmail(resetUrl: string) {
+  const expiresInMinutes = env.passwordResetTokenTtlMinutes;
+
+  return {
+    subject: env.passwordResetEmailSubject,
+    text: [
+      'We received a request to reset your Job Application Tracker password.',
+      '',
+      `Reset your password: ${resetUrl}`,
+      '',
+      `This link expires in ${expiresInMinutes} minutes. If you did not request this, you can ignore this email.`,
+    ].join('\n'),
+    html: [
+      '<p>We received a request to reset your Job Application Tracker password.</p>',
+      `<p><a href="${resetUrl}">Reset your password</a></p>`,
+      `<p>This link expires in ${expiresInMinutes} minutes. If you did not request this, you can ignore this email.</p>`,
+    ].join(''),
+  };
+}
 
 function toAuthUser(user: {
   id: string;
@@ -187,4 +214,91 @@ export async function getCurrentUser(userId: string): Promise<AuthUser> {
   }
 
   return toAuthUser(user);
+}
+
+export async function forgotPassword(email: string): Promise<void> {
+  const user = await prisma.user.findUnique({
+    where: { email },
+  });
+
+  if (!user) {
+    return;
+  }
+
+  const rawResetToken = generatePasswordResetToken();
+  const tokenHash = hashPasswordResetToken(rawResetToken);
+  const resetTokenExpiresAt = getPasswordResetTokenExpiresAt();
+
+  await prisma.passwordResetToken.create({
+    data: {
+      tokenHash,
+      userId: user.id,
+      expiresAt: resetTokenExpiresAt,
+    },
+  });
+
+  const resetUrl = new URL(env.frontendResetPasswordUrl);
+  resetUrl.searchParams.set('token', rawResetToken);
+  const resetUrlString = resetUrl.toString();
+
+  if (env.smtpUrl && env.emailFrom) {
+    try {
+      const emailMessage = createPasswordResetEmail(resetUrlString);
+
+      await sendEmail({
+        to: user.email,
+        subject: emailMessage.subject,
+        text: emailMessage.text,
+        html: emailMessage.html,
+      });
+    } catch (error) {
+      console.error('Failed to send password reset email', {
+        email: user.email,
+        error,
+      });
+    }
+  } else if (env.nodeEnv === 'production') {
+    console.error('Password reset email delivery is not configured', {
+      email: user.email,
+      smtpConfigured: Boolean(env.smtpUrl),
+      emailFromConfigured: Boolean(env.emailFrom),
+    });
+  } else {
+    console.info(`Password reset link for ${user.email}: ${resetUrlString}`);
+  }
+}
+
+export async function resetPassword(token: string, password: string): Promise<void> {
+  const tokenHash = hashPasswordResetToken(token);
+  const passwordResetToken = await prisma.passwordResetToken.findFirst({
+    where: { tokenHash },
+  });
+
+  if (!passwordResetToken || passwordResetToken.usedAt || passwordResetToken.expiresAt.getTime() <= Date.now()) {
+    throw new AppError('Invalid or expired reset token', 400);
+  }
+
+  const passwordHash = await bcrypt.hash(password, 10);
+  const now = new Date();
+
+  await prisma.$transaction([
+    prisma.user.update({
+      where: { id: passwordResetToken.userId },
+      data: { passwordHash },
+    }),
+    prisma.passwordResetToken.updateMany({
+      where: {
+        userId: passwordResetToken.userId,
+        usedAt: null,
+      },
+      data: { usedAt: now },
+    }),
+    prisma.refreshToken.updateMany({
+      where: {
+        userId: passwordResetToken.userId,
+        revokedAt: null,
+      },
+      data: { revokedAt: now },
+    }),
+  ]);
 }

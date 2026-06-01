@@ -25,7 +25,7 @@ import ResetPasswordPage from './ResetPasswordPage';
 
 function renderResetPasswordPage() {
   return render(
-    <MemoryRouter initialEntries={['/reset-password']}>
+    <MemoryRouter initialEntries={['/reset-password?token=reset-token-123']}>
       <Routes>
         <Route path="/reset-password" element={<ResetPasswordPage />} />
         <Route path="/forgot-password" element={<div>Forgot password page</div>} />
@@ -38,7 +38,6 @@ describe('ResetPasswordPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     useAuthMock.mockReturnValue({
-      isPasswordRecovery: true,
       updatePassword: vi.fn().mockResolvedValue(undefined),
     });
   });
@@ -47,7 +46,6 @@ describe('ResetPasswordPage', () => {
     const user = userEvent.setup();
     const updatePasswordMock = vi.fn().mockResolvedValue(undefined);
     useAuthMock.mockReturnValue({
-      isPasswordRecovery: true,
       updatePassword: updatePasswordMock,
     });
 
@@ -58,7 +56,7 @@ describe('ResetPasswordPage', () => {
     await user.click(screen.getByRole('button', { name: 'Update password' }));
 
     await waitFor(() => {
-      expect(updatePasswordMock).toHaveBeenCalledWith('new-secret123');
+      expect(updatePasswordMock).toHaveBeenCalledWith('reset-token-123', 'new-secret123');
       expect(navigateMock).toHaveBeenCalledWith('/login', {
         replace: true,
         state: { successMessage: 'Password updated. Sign in with your new password.' },
@@ -70,7 +68,6 @@ describe('ResetPasswordPage', () => {
     const user = userEvent.setup();
     const updatePasswordMock = vi.fn().mockResolvedValue(undefined);
     useAuthMock.mockReturnValue({
-      isPasswordRecovery: true,
       updatePassword: updatePasswordMock,
     });
 
@@ -84,13 +81,19 @@ describe('ResetPasswordPage', () => {
     expect(updatePasswordMock).not.toHaveBeenCalled();
   });
 
-  it('shows the expired link message outside recovery mode', () => {
+  it('shows the expired link message when the token is missing', () => {
     useAuthMock.mockReturnValue({
-      isPasswordRecovery: false,
       updatePassword: vi.fn(),
     });
 
-    renderResetPasswordPage();
+    render(
+      <MemoryRouter initialEntries={['/reset-password']}>
+        <Routes>
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
+          <Route path="/forgot-password" element={<div>Forgot password page</div>} />
+        </Routes>
+      </MemoryRouter>,
+    );
 
     expect(screen.getByText('This password reset link is invalid or has expired. Request a new one to continue.')).toBeInTheDocument();
     expect(screen.getByText('Request a new reset link')).toBeInTheDocument();

@@ -60,7 +60,6 @@ function renderApp(options: RenderOptions = {}) {
       user,
       accessToken: user ? 'token' : null,
       isAuthLoading: false,
-      isPasswordRecovery: false,
       signIn:
         signInImplementation ??
         (async () => {

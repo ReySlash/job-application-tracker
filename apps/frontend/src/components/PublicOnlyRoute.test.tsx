@@ -34,7 +34,6 @@ describe('PublicOnlyRoute', () => {
   it('redirects authenticated users away from auth pages', () => {
     useAuthMock.mockReturnValue({
       isAuthLoading: false,
-      isPasswordRecovery: false,
       user: { id: 'user-123' },
     });
 
@@ -47,7 +46,6 @@ describe('PublicOnlyRoute', () => {
   it('renders public auth pages for unauthenticated users', () => {
     useAuthMock.mockReturnValue({
       isAuthLoading: false,
-      isPasswordRecovery: false,
       user: null,
     });
 
@@ -60,7 +58,6 @@ describe('PublicOnlyRoute', () => {
   it('shows the loading state before deciding access', () => {
     useAuthMock.mockReturnValue({
       isAuthLoading: true,
-      isPasswordRecovery: false,
       user: null,
     });
 
@@ -71,10 +68,9 @@ describe('PublicOnlyRoute', () => {
     expect(screen.queryByText('Dashboard page')).not.toBeInTheDocument();
   });
 
-  it('allows recovery users to access the reset password page', () => {
+  it('redirects authenticated users away from the reset password page', () => {
     useAuthMock.mockReturnValue({
       isAuthLoading: false,
-      isPasswordRecovery: true,
       user: { id: 'user-123' },
     });
 
@@ -89,7 +85,7 @@ describe('PublicOnlyRoute', () => {
       </MemoryRouter>,
     );
 
-    expect(screen.getByText('Reset password form')).toBeInTheDocument();
-    expect(screen.queryByText('Dashboard page')).not.toBeInTheDocument();
+    expect(screen.getByText('Dashboard page')).toBeInTheDocument();
+    expect(screen.queryByText('Reset password form')).not.toBeInTheDocument();
   });
 });

@@ -5,12 +5,15 @@
 Current backend state on `migration/express-prisma-neon`:
 
 - `POST /api/auth/signup` returns `user + accessToken`, stores a hashed refresh token, and sets the raw refresh token in an `httpOnly` cookie
-- `POST /api/auth/login`, `POST /api/auth/logout`, `POST /api/auth/refresh`, and `GET /api/auth/me` are implemented
+- `POST /api/auth/login`, `POST /api/auth/demo-login`, `POST /api/auth/logout`, `POST /api/auth/refresh`, and `GET /api/auth/me` are implemented
+- `POST /api/auth/forgot-password` and `POST /api/auth/reset-password` are implemented
 - auth middleware is implemented and the applications router is protected by bearer access tokens
 - application CRUD is server-side scoped to the authenticated user
+- `POST /api/applications/demo-reset` is implemented and restricted to demo users
 - frontend auth is cut over to the backend auth API
 - frontend application CRUD is cut over to the backend applications API
-- the remaining direct Supabase dependencies are password reset, demo login, and demo reset
+- demo login and demo reset are cut over to the backend API
+- password reset is cut over to the backend API, stores hashed reset tokens in Prisma, and can deliver reset emails through SMTP
 
 These notes are a checkpoint only. The milestone sections below still describe the intended end state, and some items listed there are not complete yet.
 
@@ -182,6 +185,7 @@ Create these initial models:
       updatedAt       DateTime      @updatedAt
 
       applications    Application[]
+      passwordResetTokens PasswordResetToken[]
       refreshTokens   RefreshToken[]
     }
 
@@ -218,6 +222,20 @@ Create these initial models:
       @@index([tokenHash])
     }
 
+    model PasswordResetToken {
+      id        String    @id @default(uuid())
+      tokenHash String
+      userId    String
+      user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+      expiresAt DateTime
+      usedAt    DateTime?
+      createdAt DateTime  @default(now())
+
+      @@index([userId])
+      @@index([tokenHash])
+    }
+
     enum ApplicationStatus {
       SAVED
       APPLIED
@@ -234,9 +252,12 @@ Schema rules:
 - `Application.status` must use an enum, not arbitrary strings.
 - `Application.userId` must cascade delete when the user is deleted.
 - Store only hashed refresh tokens in the database.
+- Store only hashed password reset tokens in the database.
 - Never store raw refresh tokens.
 
-Do not create password reset or email verification token tables yet. Add those later after the core migration works.
+Status note:
+
+- `PasswordResetToken` has now been added on this branch because password reset has already been moved onto the Express backend.
 
 ---
 
@@ -246,12 +267,16 @@ Implement these auth routes first:
 
     POST /auth/signup
     POST /auth/login
+    POST /auth/demo-login
+    POST /auth/forgot-password
+    POST /auth/reset-password
     POST /auth/logout
     POST /auth/refresh
     GET  /auth/me
-    POST /auth/demo-login
 
-Do not implement password reset yet.
+Status note:
+
+- `forgot-password` and `reset-password` are already implemented on this branch, so the "initial auth routes first" sequence has effectively been completed and extended.
 
 ## Auth Model
 
@@ -558,7 +583,7 @@ Demo users are real users with:
 
 ## Demo Login Behavior
 
-    1. Opportunistically delete demo users older than 24 hours.
+    1. Opportunistically delete demo users older than 1 hour.
     2. Create a new demo user.
     3. Use fake unique email: demo-<uuid>@demo.local.
     4. Set isDemo = true.
@@ -586,7 +611,7 @@ Rules:
     - Real users must be rejected.
     - Delete only the current demo user's applications.
     - Reseed canonical demo applications.
-    - Return the fresh applications list.
+    - Return success and let the frontend refetch applications.
 
 Do not allow demo reset to affect other users.
 

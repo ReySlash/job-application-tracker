@@ -1,4 +1,3 @@
-import { supabase } from '../lib/supabase';
 import type { AuthUser } from '../types/AuthUser';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:4000/api';
@@ -10,6 +9,10 @@ type AuthSuccessResponse = {
 
 type MeResponse = {
   user: AuthUser;
+};
+
+type GenericMessageResponse = {
+  message: string;
 };
 
 type ApiErrorResponse = {
@@ -94,22 +97,22 @@ export async function getCurrentUser(accessToken: string) {
   return parseResponse<MeResponse>(response, 'Failed to fetch current user');
 }
 
-export async function requestPasswordReset(email: string, redirectTo: string) {
-  const { data, error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo });
+export async function requestPasswordReset(email: string) {
+  const response = await fetch(`${API_BASE_URL}/auth/forgot-password`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email }),
+  });
 
-  if (error) {
-    throw new Error(error.message || 'Failed to send password reset email');
-  }
-
-  return data;
+  return parseResponse<GenericMessageResponse>(response, 'Failed to send password reset email');
 }
 
-export async function updatePassword(password: string) {
-  const { data, error } = await supabase.auth.updateUser({ password });
+export async function updatePassword(token: string, password: string) {
+  const response = await fetch(`${API_BASE_URL}/auth/reset-password`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ token, password }),
+  });
 
-  if (error) {
-    throw new Error(error.message || 'Failed to update password');
-  }
-
-  return data;
+  return parseResponse<GenericMessageResponse>(response, 'Failed to update password');
 }

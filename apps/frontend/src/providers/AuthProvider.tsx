@@ -2,16 +2,15 @@ import { useEffect, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
 import {
   demoLogin,
-  requestPasswordReset as requestPasswordResetFromSupabase,
+  requestPasswordReset as requestPasswordResetFromBackend,
   restoreSession,
   signIn as signInWithPassword,
   signOut as signOutFromBackend,
   signUp as signUpWithPassword,
-  updatePassword as updatePasswordInSupabase,
+  updatePassword as updatePasswordInBackend,
 } from '../api/auth';
 import { AuthContext } from '../context/authContext';
 import type { AuthContextValue } from '../context/authContext';
-import { getResetPasswordRedirectUrl, hasPasswordRecoveryHash } from '../lib/authRedirects';
 import type { AuthUser } from '../types/AuthUser';
 
 type Props = {
@@ -22,7 +21,6 @@ export function AuthProvider({ children }: Props) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [accessToken, setAccessToken] = useState<string | null>(null);
   const [isAuthLoading, setIsAuthLoading] = useState(true);
-  const [isPasswordRecovery, setIsPasswordRecovery] = useState(hasPasswordRecoveryHash);
 
   useEffect(() => {
     let isMounted = true;
@@ -35,7 +33,6 @@ export function AuthProvider({ children }: Props) {
 
         setUser(authState.user);
         setAccessToken(authState.accessToken);
-        setIsPasswordRecovery(false);
       })
       .catch(() => {
         if (!isMounted) {
@@ -44,7 +41,6 @@ export function AuthProvider({ children }: Props) {
 
         setUser(null);
         setAccessToken(null);
-        setIsPasswordRecovery(hasPasswordRecoveryHash());
       })
       .finally(() => {
         if (isMounted) {
@@ -62,41 +58,35 @@ export function AuthProvider({ children }: Props) {
       user,
       accessToken,
       isAuthLoading,
-      isPasswordRecovery,
       signIn: async (email, password) => {
         const authState = await signInWithPassword(email, password);
         setUser(authState.user);
         setAccessToken(authState.accessToken);
-        setIsPasswordRecovery(false);
       },
       signUp: async (email, password) => {
         const authState = await signUpWithPassword(email, password);
         setUser(authState.user);
         setAccessToken(authState.accessToken);
-        setIsPasswordRecovery(false);
       },
       requestPasswordReset: async (email) => {
-        await requestPasswordResetFromSupabase(email, getResetPasswordRedirectUrl());
+        await requestPasswordResetFromBackend(email);
       },
-      updatePassword: async (password) => {
-        await updatePasswordInSupabase(password);
-        setIsPasswordRecovery(false);
+      updatePassword: async (token, password) => {
+        await updatePasswordInBackend(token, password);
       },
       startDemoSession: async () => {
         const authState = await demoLogin();
         setUser(authState.user);
         setAccessToken(authState.accessToken);
-        setIsPasswordRecovery(false);
       },
       signOut: async () => {
         await signOutFromBackend();
 
         setUser(null);
         setAccessToken(null);
-        setIsPasswordRecovery(false);
       },
     }),
-    [accessToken, isAuthLoading, isPasswordRecovery, user],
+    [accessToken, isAuthLoading, user],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

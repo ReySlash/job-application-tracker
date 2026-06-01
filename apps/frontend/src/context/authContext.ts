@@ -5,11 +5,10 @@ export type AuthContextValue = {
   user: AuthUser | null;
   accessToken: string | null;
   isAuthLoading: boolean;
-  isPasswordRecovery: boolean;
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string) => Promise<void>;
   requestPasswordReset: (email: string) => Promise<void>;
-  updatePassword: (password: string) => Promise<void>;
+  updatePassword: (token: string, password: string) => Promise<void>;
   startDemoSession: () => Promise<void>;
   signOut: () => Promise<void>;
 };

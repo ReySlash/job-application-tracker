@@ -20,7 +20,9 @@ function ForgotPasswordPage() {
       await requestPasswordReset(email);
       setInfoMessage('If that email is registered, a password reset link has been sent.');
     } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : 'Failed to send password reset email');
+      setErrorMessage(
+        error instanceof Error ? error.message : 'Failed to send password reset email',
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -48,7 +50,10 @@ function ForgotPasswordPage() {
 
         <form className="mt-6 grid gap-4" onSubmit={handleSubmit}>
           <div className="grid gap-1">
-            <label className="text-sm font-medium text-slate-700 dark:text-slate-200" htmlFor="email">
+            <label
+              className="text-sm font-medium text-slate-700 dark:text-slate-200"
+              htmlFor="email"
+            >
               Email
             </label>
             <input
@@ -73,7 +78,10 @@ function ForgotPasswordPage() {
 
         <p className="mt-5 text-center text-sm text-slate-600 dark:text-slate-400">
           Remembered your password?{' '}
-          <Link className="font-medium text-teal-700 hover:underline dark:text-teal-300" to="/login">
+          <Link
+            className="font-medium text-teal-700 hover:underline dark:text-teal-300"
+            to="/login"
+          >
             Back to sign in
           </Link>
         </p>

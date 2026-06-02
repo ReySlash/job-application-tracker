@@ -12,12 +12,13 @@ The stable deployed app still lives on the Supabase-based implementation, while 
 
 - `apps/frontend` contains the existing React application
 - `apps/backend` contains the new Express/Prisma backend scaffold
-- Prisma is configured to use the repo-root `.env`
+- Prisma and the backend runtime are configured to use `apps/backend/.env`
 - Neon connectivity has been verified
 - the Neon schema has been reset to the planned baseline models
 - Prisma migration history has been initialized with a baseline migration
 - backend auth routes currently implemented:
   - `POST /api/auth/signup`
+  - `GET /api/auth/verify-email`
   - `POST /api/auth/login`
   - `POST /api/auth/demo-login`
   - `POST /api/auth/forgot-password`
@@ -32,14 +33,16 @@ The stable deployed app still lives on the Supabase-based implementation, while 
 
 The migration is not complete yet. Current behavior:
 
-- signup, login, logout, refresh, and `/api/auth/me` work through the Express backend
+- signup creates an unverified user and sends a verification email through the Express backend
+- verified users can log in, log out, refresh, and access `/api/auth/me` through the Express backend
 - demo login works through `POST /api/auth/demo-login`
 - frontend auth state restores through `/api/auth/refresh` and stores the access token in memory
 - frontend application list/create/update/delete now use the protected backend API
 - demo reset works through `POST /api/applications/demo-reset`
 - backend CORS is enabled for credentialed frontend requests using `FRONTEND_URL`
-- forgot-password always returns a generic success message and can deliver reset emails through SMTP
+- forgot-password always returns a generic success message and can deliver reset emails through Gmail SMTP
 - reset-password validates the token, updates the password, marks outstanding reset tokens used, and revokes active refresh tokens
+- email verification blocks non-demo login and refresh until the verification link is redeemed
 - Supabase is no longer required by the active frontend/backend auth flow
 
 Use [backend-migration-plan.md](/Users/reynaldocarmenatearias/Documents/ReactProjects/job-application-tracker/backend-migration-plan.md) as the target architecture, not as a claim that all milestones listed there are already complete.
@@ -78,7 +81,8 @@ job-application-tracker/
 ├── apps/
 │   ├── backend/
 │   │   ├── prisma/
-│   │   └── src/
+│   │   ├── src/
+│   │   └── test/
 │   └── frontend/
 │       ├── public/
 │       └── src/
@@ -86,13 +90,12 @@ job-application-tracker/
 ├── backend-migration-plan.md
 ├── AGENTS.md
 ├── package.json
-├── pnpm-workspace.yaml
-└── .env
+└── pnpm-workspace.yaml
 ```
 
 ## Environment Variables
 
-The repo-root `.env` is currently the source of truth for Prisma and backend database access.
+`apps/backend/.env` is the source of truth for Prisma and backend runtime configuration.
 
 Current required variables:
 
@@ -125,7 +128,7 @@ Frontend environment:
 VITE_API_BASE_URL=http://localhost:4000/api
 ```
 
-Prisma is configured in `apps/backend/prisma.config.ts` to load `apps/backend/.env`.
+Prisma is configured in `apps/backend/prisma.config.ts` to load `apps/backend/.env`, and the backend runtime loads the same file before Prisma initializes.
 
 ## Getting Started
 
@@ -153,6 +156,23 @@ pnpm dev:frontend
 pnpm dev:backend
 ```
 
+## Testing
+
+Frontend:
+
+```bash
+pnpm --filter frontend test
+```
+
+Backend:
+
+```bash
+pnpm --filter backend test
+pnpm --filter backend test:coverage
+```
+
+The backend test suite uses `Vitest` plus `Supertest` and mocks Prisma and email delivery instead of connecting to Neon or Gmail.
+
 ## Prisma Commands
 
 Run Prisma commands through the backend workspace package:
@@ -167,7 +187,7 @@ pnpm --filter backend prisma:migrate
 
 ## Backend Environment
 
-Copy `apps/backend/.env.example` into your backend environment file and set the Gmail SMTP values used for password reset and verification delivery.
+Copy `apps/backend/.env.example` into `apps/backend/.env` and set the Gmail SMTP values used for password reset and verification delivery.
 
 - `GMAIL_USER` should be the Gmail account used to authenticate with `smtp.gmail.com`
 - `GMAIL_APP_PASSWORD` should be a Google app password, not your normal Gmail password

@@ -1,0 +1,32 @@
+services:
+  - type: web
+    name: job-application-tracker-backend
+    runtime: node
+    plan: free
+    buildCommand: pnpm install --frozen-lockfile && pnpm --filter backend prisma:generate && pnpm --filter backend build
+    startCommand: pnpm --filter backend start
+    healthCheckPath: /health
+    autoDeploy: false
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: FRONTEND_URL
+        sync: false
+      - key: BACKEND_URL
+        sync: false
+      - key: GMAIL_USER
+        sync: false
+      - key: GMAIL_APP_PASSWORD
+        sync: false
+      - key: EMAIL_FROM
+        sync: false
+      - key: FRONTEND_RESET_PASSWORD_URL
+        sync: false
+      - key: FRONTEND_VERIFY_EMAIL_URL
+        sync: false
+      - key: COOKIE_DOMAIN
+        sync: false

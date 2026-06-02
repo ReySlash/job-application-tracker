@@ -6,6 +6,8 @@
     "dev": "concurrently \"pnpm --filter frontend dev\" \"pnpm --filter backend dev\"",
     "dev:frontend": "pnpm --filter frontend dev",
     "dev:backend": "pnpm --filter backend dev",
+    "test": "pnpm --filter frontend test && pnpm --filter backend test",
+    "test:coverage": "pnpm --filter frontend test:coverage && pnpm --filter backend test:coverage",
     "build": "pnpm --filter frontend build && pnpm --filter backend build",
     "lint": "pnpm --filter frontend lint && pnpm --filter backend lint"
   },

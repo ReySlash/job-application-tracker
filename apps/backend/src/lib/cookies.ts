@@ -4,10 +4,13 @@ import { env } from '../config/env.js';
 const REFRESH_TOKEN_COOKIE_NAME = 'refreshToken';
 
 function getRefreshTokenCookieOptions() {
+  const isProduction = env.nodeEnv === 'production';
+
   return {
     httpOnly: true,
-    sameSite: 'lax' as const,
-    secure: env.nodeEnv === 'production',
+    sameSite: isProduction ? ('none' as const) : ('lax' as const),
+    secure: isProduction,
+    domain: env.cookieDomain,
     path: '/',
   };
 }

@@ -143,6 +143,27 @@ describe('applications API wrappers', () => {
     });
   });
 
+  it('normalizes Date instances and null date values returned by the backend', async () => {
+    fetchMock
+      .mockResolvedValueOnce(
+        jsonResponse({
+          application: backendApplication({ appliedAt: new Date('2026-04-21T00:00:00.000Z') }),
+        }),
+      )
+      .mockResolvedValueOnce(
+        jsonResponse({
+          application: backendApplication({ appliedAt: null }),
+        }),
+      );
+
+    await expect(fetchApplicationById('application-123', 'token-123')).resolves.toMatchObject({
+      appliedAt: '2026-04-21',
+    });
+    await expect(fetchApplicationById('application-456', 'token-123')).resolves.toMatchObject({
+      appliedAt: '',
+    });
+  });
+
   it('createApplication sends the backend payload without userId', async () => {
     fetchMock.mockResolvedValue(jsonResponse({ message: 'Application created successfully' }));
 
@@ -259,5 +280,15 @@ describe('applications API wrappers', () => {
     await expect(updateApplication('application-123', createFormInput(), 'token-123')).rejects.toThrow('Failed to update application');
     await expect(deleteApplicationById('application-123', 'token-123')).rejects.toThrow('Failed to delete application');
     await expect(resetDemoApplications('token-123')).rejects.toThrow('Failed to reset demo applications');
+  });
+
+  it('uses fallback messages when failing responses do not include a JSON body', async () => {
+    fetchMock.mockResolvedValueOnce(
+      new Response(null, {
+        status: 500,
+      }),
+    );
+
+    await expect(fetchApplications('token-123')).rejects.toThrow('Failed to fetch applications');
   });
 });

@@ -8,11 +8,19 @@ import authRouter from './modules/auth/auth-routes.js';
 
 export function createApp() {
   const app = express();
+  const allowedOrigins = new Set(env.frontendUrls);
 
   // Middleware
   app.use(
     cors({
-      origin: env.frontendUrl,
+      origin(origin, callback) {
+        if (!origin || allowedOrigins.has(origin)) {
+          callback(null, true);
+          return;
+        }
+
+        callback(new Error(`Origin ${origin} is not allowed by CORS`));
+      },
       credentials: true,
     }),
   );

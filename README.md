@@ -13,9 +13,7 @@ The stable deployed app still lives on the Supabase-based implementation, while 
 - `apps/frontend` contains the existing React application
 - `apps/backend` contains the new Express/Prisma backend scaffold
 - Prisma and the backend runtime are configured to use `apps/backend/.env`
-- Neon connectivity has been verified
-- the Neon schema has been reset to the planned baseline models
-- Prisma migration history has been initialized with a baseline migration
+- Prisma migration history is checked into the backend workspace
 - backend auth routes currently implemented:
   - `POST /api/auth/signup`
   - `GET /api/auth/verify-email`
@@ -30,6 +28,7 @@ The stable deployed app still lives on the Supabase-based implementation, while 
 - backend demo reset is implemented at `POST /api/applications/demo-reset`
 - frontend auth is wired to the backend auth API
 - frontend applications CRUD is wired to the backend applications API
+- frontend and backend automated test suites are in place
 
 The migration is not complete yet. Current behavior:
 
@@ -44,6 +43,7 @@ The migration is not complete yet. Current behavior:
 - reset-password validates the token, updates the password, marks outstanding reset tokens used, and revokes active refresh tokens
 - email verification blocks non-demo login and refresh until the verification link is redeemed
 - Supabase is no longer required by the active frontend/backend auth flow
+- deployment verification and the AGENTS merge checklist are still pending manual signoff
 
 Use [backend-migration-plan.md](/Users/reynaldocarmenatearias/Documents/ReactProjects/job-application-tracker/backend-migration-plan.md) as the target architecture, not as a claim that all milestones listed there are already complete.
 
@@ -171,6 +171,13 @@ pnpm --filter backend test
 pnpm --filter backend test:coverage
 ```
 
+Whole workspace:
+
+```bash
+pnpm test
+pnpm test:coverage
+```
+
 The backend test suite uses `Vitest` plus `Supertest` and mocks Prisma and email delivery instead of connecting to Neon or Gmail.
 
 ## Prisma Commands
@@ -189,16 +196,38 @@ pnpm --filter backend prisma:migrate
 
 Copy `apps/backend/.env.example` into `apps/backend/.env` and set the Gmail SMTP values used for password reset and verification delivery.
 
+- `FRONTEND_URL` may be a single origin or a comma-separated list of allowed frontend origins
 - `GMAIL_USER` should be the Gmail account used to authenticate with `smtp.gmail.com`
 - `GMAIL_APP_PASSWORD` should be a Google app password, not your normal Gmail password
 - `EMAIL_FROM` is optional and defaults to `GMAIL_USER` when omitted
 - `FRONTEND_RESET_PASSWORD_URL` should point at the frontend reset page that receives the `token` query parameter
 - `FRONTEND_VERIFY_EMAIL_URL` is the frontend page that receives verification results after the backend redeems the email token
 - `BACKEND_URL` is the public backend base URL used inside verification emails
+- `COOKIE_DOMAIN` is optional and can be used in production if your frontend and backend must share a parent cookie domain
+
+In production, the backend fails fast if `DATABASE_URL`, `JWT_SECRET`, `FRONTEND_URL`, `BACKEND_URL`, `GMAIL_USER`, or `GMAIL_APP_PASSWORD` is missing.
+
+## Deployment Targets
+
+The migration target is:
+
+- frontend deployed from `apps/frontend` to Vercel
+- backend deployed from the monorepo to Render using [render.yaml](/Users/reynaldocarmenatearias/Documents/ReactProjects/job-application-tracker/render.yaml:1)
+
+Files added for deployment wiring:
+
+- [apps/frontend/vercel.json](/Users/reynaldocarmenatearias/Documents/ReactProjects/job-application-tracker/apps/frontend/vercel.json:1) adds SPA rewrites for the Vercel frontend
+- [render.yaml](/Users/reynaldocarmenatearias/Documents/ReactProjects/job-application-tracker/render.yaml:1) defines the backend service blueprint and production env keys
+
+The old GitHub Pages deployment workflow has been removed from this branch because GitHub Pages is not the deployment target for the migrated stack.
+
+## Migration Verification
+
+Use [docs/migration-verification-checklist.md](/Users/reynaldocarmenatearias/Documents/ReactProjects/job-application-tracker/docs/migration-verification-checklist.md:1) to record the final AGENTS merge checks before merging this branch into `main`.
 
 ## Database State
 
-The Neon database has been aligned to the current planned Prisma schema with these models:
+The current Prisma schema includes these models:
 
 - `User`
 - `Application`
@@ -207,7 +236,7 @@ The Neon database has been aligned to the current planned Prisma schema with the
 - `EmailVerificationToken`
 - `ApplicationStatus`
 
-A baseline migration exists at:
+Migrations currently live at:
 
 ```txt
 apps/backend/prisma/migrations/20260528120000_init/migration.sql
@@ -219,6 +248,7 @@ apps/backend/prisma/migrations/20260528120000_init/migration.sql
 - The current production deployment should not be switched to the new backend until the migration is complete and manually verified.
 - For the implementation roadmap, use [backend-migration-plan.md](/Users/reynaldocarmenatearias/Documents/ReactProjects/job-application-tracker/backend-migration-plan.md).
 - The current login flow uses `JWT_SECRET` from the backend environment and falls back to a development-only default if it is missing. Do not rely on that fallback outside local development.
+- In production, refresh cookies are configured as `SameSite=None` and `Secure=true` for cross-origin frontend/backend deployments.
 - In non-production, password reset and signup verification fall back to logging their action URLs to the backend process when Gmail delivery is not configured.
 
 ## Author

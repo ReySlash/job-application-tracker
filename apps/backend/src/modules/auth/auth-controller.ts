@@ -8,7 +8,12 @@ import {
   REFRESH_TOKEN_COOKIE_NAME,
 } from '../../lib/cookies.js';
 import { AppError } from '../../lib/errors.js';
-import authCredentialsSchema, { forgotPasswordSchema, resetPasswordSchema } from './auth-schemas.js';
+import { env } from '../../config/env.js';
+import authCredentialsSchema, {
+  forgotPasswordSchema,
+  resetPasswordSchema,
+  verifyEmailSchema,
+} from './auth-schemas.js';
 import {
   createDemoLogin,
   createUser,
@@ -18,6 +23,7 @@ import {
   logout,
   refresh,
   resetPassword,
+  verifyEmail,
 } from './auth-service.js';
 
 
@@ -32,20 +38,37 @@ export const signupHandler: RequestHandler = async (req, res) => {
   const { email, password } = validationResult.data;
 
   try {
-    const authResult = await createUser(email, password);
-
-    setRefreshTokenCookie(res, authResult.refreshToken, authResult.refreshTokenExpiresAt);
-
-    return res.status(201).json({
-      user: authResult.user,
-      accessToken: authResult.accessToken,
-    });
+    const result = await createUser(email, password);
+    return res.status(201).json(result);
   } catch (error) {
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
       return res.status(409).json({ error: 'User already exists' });
     }
 
+    console.error('Signup flow failed', {
+      email,
+      error,
+    });
+
     return res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+export const verifyEmailHandler: RequestHandler = async (req, res) => {
+  const validationResult = verifyEmailSchema.safeParse(req.query);
+
+  if (!validationResult.success) {
+    return res.redirect(
+      302,
+      `${env.frontendVerifyEmailUrl}?status=error&message=This%20verification%20link%20is%20invalid%20or%20has%20expired.`,
+    );
+  }
+
+  try {
+    const redirectUrl = await verifyEmail(validationResult.data.token);
+    return res.redirect(302, redirectUrl);
+  } catch {
+    return res.redirect(302, `${env.frontendVerifyEmailUrl}?status=error&message=Unable%20to%20verify%20your%20email.`);
   }
 };
 

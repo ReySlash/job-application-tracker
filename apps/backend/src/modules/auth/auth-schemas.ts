@@ -14,5 +14,9 @@ export const resetPasswordSchema = z.object({
   password: z.string().min(8),
 });
 
+export const verifyEmailSchema = z.object({
+  token: z.string().min(1),
+});
+
 export default authCredentialsSchema;
 export type AuthCredentialsData = z.infer<typeof authCredentialsSchema>;

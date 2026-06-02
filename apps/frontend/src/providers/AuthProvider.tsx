@@ -64,9 +64,7 @@ export function AuthProvider({ children }: Props) {
         setAccessToken(authState.accessToken);
       },
       signUp: async (email, password) => {
-        const authState = await signUpWithPassword(email, password);
-        setUser(authState.user);
-        setAccessToken(authState.accessToken);
+        await signUpWithPassword(email, password);
       },
       requestPasswordReset: async (email) => {
         await requestPasswordResetFromBackend(email);

@@ -46,7 +46,7 @@ export async function signUp(email: string, password: string) {
     body: JSON.stringify({ email, password }),
   });
 
-  return parseResponse<AuthSuccessResponse>(response, 'Failed to sign up');
+  return parseResponse<GenericMessageResponse>(response, 'Failed to sign up');
 }
 
 export async function signIn(email: string, password: string) {

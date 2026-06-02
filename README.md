@@ -108,10 +108,15 @@ Optional auth tuning variables:
 ACCESS_TOKEN_TTL_SECONDS=900
 REFRESH_TOKEN_TTL_DAYS=7
 PASSWORD_RESET_TOKEN_TTL_MINUTES=60
+VERIFY_EMAIL_TOKEN_TTL_MINUTES=1440
 FRONTEND_RESET_PASSWORD_URL=http://localhost:5173/reset-password
-SMTP_URL=smtps://username:password@smtp.example.com:465
-EMAIL_FROM=Job Application Tracker <no-reply@example.com>
+FRONTEND_VERIFY_EMAIL_URL=http://localhost:5173/verify-email
+BACKEND_URL=http://localhost:4000
+GMAIL_USER=your-email@gmail.com
+GMAIL_APP_PASSWORD=your-16-character-app-password
+EMAIL_FROM=Job Application Tracker <your-email@gmail.com>
 PASSWORD_RESET_EMAIL_SUBJECT=Reset your Job Application Tracker password
+VERIFY_EMAIL_SUBJECT=Verify your Job Application Tracker email
 ```
 
 Frontend environment:
@@ -120,7 +125,7 @@ Frontend environment:
 VITE_API_BASE_URL=http://localhost:4000/api
 ```
 
-Prisma is configured in `apps/backend/prisma.config.ts` to load the root `.env` explicitly.
+Prisma is configured in `apps/backend/prisma.config.ts` to load `apps/backend/.env`.
 
 ## Getting Started
 
@@ -162,11 +167,14 @@ pnpm --filter backend prisma:migrate
 
 ## Backend Environment
 
-Copy `apps/backend/.env.example` into your backend environment file and set the SMTP values used for password reset delivery.
+Copy `apps/backend/.env.example` into your backend environment file and set the Gmail SMTP values used for password reset and verification delivery.
 
-- `SMTP_URL` should point at your SMTP server, for example `smtps://username:password@smtp.example.com:465`
-- `EMAIL_FROM` is the sender shown on password reset emails
+- `GMAIL_USER` should be the Gmail account used to authenticate with `smtp.gmail.com`
+- `GMAIL_APP_PASSWORD` should be a Google app password, not your normal Gmail password
+- `EMAIL_FROM` is optional and defaults to `GMAIL_USER` when omitted
 - `FRONTEND_RESET_PASSWORD_URL` should point at the frontend reset page that receives the `token` query parameter
+- `FRONTEND_VERIFY_EMAIL_URL` is the frontend page that receives verification results after the backend redeems the email token
+- `BACKEND_URL` is the public backend base URL used inside verification emails
 
 ## Database State
 
@@ -176,6 +184,7 @@ The Neon database has been aligned to the current planned Prisma schema with the
 - `Application`
 - `RefreshToken`
 - `PasswordResetToken`
+- `EmailVerificationToken`
 - `ApplicationStatus`
 
 A baseline migration exists at:
@@ -190,7 +199,7 @@ apps/backend/prisma/migrations/20260528120000_init/migration.sql
 - The current production deployment should not be switched to the new backend until the migration is complete and manually verified.
 - For the implementation roadmap, use [backend-migration-plan.md](/Users/reynaldocarmenatearias/Documents/ReactProjects/job-application-tracker/backend-migration-plan.md).
 - The current login flow uses `JWT_SECRET` from the backend environment and falls back to a development-only default if it is missing. Do not rely on that fallback outside local development.
-- In non-production, password reset falls back to logging the reset URL to the backend process when SMTP is not configured.
+- In non-production, password reset and signup verification fall back to logging their action URLs to the backend process when Gmail delivery is not configured.
 
 ## Author
 

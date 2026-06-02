@@ -1,4 +1,4 @@
-import 'dotenv/config';
+import './load-env.js';
 import { createApp } from './app.js';
 
 const DEFAULT_PORT = 4000;

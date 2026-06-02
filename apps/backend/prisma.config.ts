@@ -6,7 +6,7 @@ import { fileURLToPath } from "node:url";
 const currentDir = dirname(fileURLToPath(import.meta.url));
 
 loadEnv({
-  path: resolve(currentDir, "../../.env"),
+  path: resolve(currentDir, ".env"),
 });
 
 export default defineConfig({

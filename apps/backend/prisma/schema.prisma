@@ -16,6 +16,7 @@ model User {
   createdAt       DateTime       @default(now())
   updatedAt       DateTime       @updatedAt
   applications    Application[]
+  emailVerificationTokens EmailVerificationToken[]
   passwordResetTokens PasswordResetToken[]
   refreshTokens   RefreshToken[]
 }
@@ -51,6 +52,19 @@ model RefreshToken {
 }
 
 model PasswordResetToken {
+  id        String   @id @default(uuid())
+  tokenHash String
+  userId    String
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([tokenHash])
+  @@index([userId])
+}
+
+model EmailVerificationToken {
   id        String   @id @default(uuid())
   tokenHash String
   userId    String

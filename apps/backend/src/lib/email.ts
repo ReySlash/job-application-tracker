@@ -12,24 +12,28 @@ type SendEmailOptions = {
 let cachedTransporter: nodemailer.Transporter | null = null;
 
 function getTransporter() {
-  if (!env.smtpUrl) {
-    throw new Error('SMTP_URL is not configured');
+  if (!env.gmailUser || !env.gmailAppPassword) {
+    throw new Error('GMAIL_USER and GMAIL_APP_PASSWORD are required');
   }
 
   if (!cachedTransporter) {
-    cachedTransporter = nodemailer.createTransport(env.smtpUrl);
+    cachedTransporter = nodemailer.createTransport({
+      host: 'smtp.gmail.com',
+      port: 465,
+      secure: true,
+      auth: {
+        user: env.gmailUser,
+        pass: env.gmailAppPassword,
+      },
+    });
   }
 
   return cachedTransporter;
 }
 
 export async function sendEmail(options: SendEmailOptions) {
-  if (!env.emailFrom) {
-    throw new Error('EMAIL_FROM is not configured');
-  }
-
   await getTransporter().sendMail({
-    from: env.emailFrom,
+    from: env.emailFrom ?? env.gmailUser,
     to: options.to,
     subject: options.subject,
     text: options.text,

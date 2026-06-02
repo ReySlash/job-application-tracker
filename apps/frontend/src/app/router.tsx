@@ -29,6 +29,8 @@ const router = createBrowserRouter([
     hydrateFallbackElement,
     children: [
       { index: true, lazy: lazyPage(() => import('../pages/HomePage')) },
+      { path: 'signup-success', lazy: lazyPage(() => import('../pages/SignupSuccessPage')) },
+      { path: 'verify-email', lazy: lazyPage(() => import('../pages/VerifyEmailPage')) },
       {
         Component: PublicOnlyRoute,
         children: [

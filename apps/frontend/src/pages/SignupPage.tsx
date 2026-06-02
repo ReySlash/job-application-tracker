@@ -29,7 +29,10 @@ function SignupPage() {
 
     try {
       await signUp(email, password);
-      navigate('/dashboard', { replace: true });
+      navigate('/signup-success', {
+        replace: true,
+        state: { email },
+      });
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : 'Failed to sign up');
     } finally {

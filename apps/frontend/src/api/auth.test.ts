@@ -31,7 +31,7 @@ describe('auth API wrappers', () => {
   });
 
   it('signUp posts credentials to the backend auth API', async () => {
-    const data = { user: { id: 'user-1' }, accessToken: 'token' };
+    const data = { message: 'Account created. Check your email to verify your account before signing in.' };
     fetchMock.mockResolvedValue(jsonResponse(data));
 
     await expect(signUp('user@example.com', 'secret123')).resolves.toEqual(data);

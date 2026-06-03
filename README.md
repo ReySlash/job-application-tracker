@@ -60,7 +60,6 @@ Use [backend-migration-plan.md](/Users/reynaldocarmenatearias/Documents/ReactPro
 - Tailwind CSS
 - React Hook Form
 - Zod
-- Supabase client integration for the current stable version
 
 ### Backend Migration Target
 
@@ -290,7 +289,6 @@ apps/backend/prisma/migrations/20260528120000_init/migration.sql
 
 ## Notes
 
-- The old Supabase migrations still exist in the repository for historical reference.
 - The current production deployment should not be switched to the new backend until the migration is complete and manually verified.
 - For the implementation roadmap, use [backend-migration-plan.md](/Users/reynaldocarmenatearias/Documents/ReactProjects/job-application-tracker/backend-migration-plan.md).
 - The current login flow uses `JWT_SECRET` from the backend environment and falls back to a development-only default if it is missing. Do not rely on that fallback outside local development.

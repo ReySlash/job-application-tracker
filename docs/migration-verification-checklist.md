@@ -8,6 +8,7 @@ Use this checklist before merging `migration/express-prisma-neon` into `main`.
 - [x] `pnpm build`
 - [x] `pnpm test`
 - [x] `pnpm test:coverage`
+- [ ] Re-run `pnpm test` outside the sandbox if backend `supertest` fails with `listen EPERM`
 
 ## Local Manual Checks
 
@@ -26,16 +27,21 @@ Use this checklist before merging `migration/express-prisma-neon` into `main`.
 
 ## Deployment Checks
 
+- [ ] Neon staging database is provisioned
+- [ ] Prisma production migrations were applied manually with `pnpm --filter backend exec prisma migrate deploy`
 - [ ] Frontend deploy works on Vercel
 - [ ] Backend deploy works on Render
 - [ ] `VITE_API_BASE_URL` points to the deployed backend API
 - [ ] Cross-origin refresh cookie works in the browser
+- [ ] Refresh cookie is `HttpOnly`, `Secure`, and `SameSite=None`
 - [ ] Email verification works against deployed frontend/backend URLs
 - [ ] Password reset works against deployed frontend/backend URLs
+- [ ] `GET /health` passes on Render
+- [ ] Neon database connectivity is confirmed from the deployed backend during manual verification
 - [ ] No deployed runtime path depends on Supabase
 
 ## Signoff
 
 - Date:
 - Verified by:
-- Notes: Automated checks verified locally on the migration branch. Local and deployed manual checks remain pending.
+- Notes: Use [staging-deployment-runbook.md](/Users/reynaldocarmenatearias/Documents/ReactProjects/job-application-tracker/docs/staging-deployment-runbook.md:1) for deploy order, env setup, and manual migration instructions.

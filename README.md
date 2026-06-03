@@ -180,6 +180,7 @@ pnpm test:coverage
 ```
 
 The backend test suite uses `Vitest` plus `Supertest` and mocks Prisma and email delivery instead of connecting to Neon or Gmail.
+If backend route tests fail in a restricted environment with `listen EPERM`, re-run `pnpm test` in an environment that permits socket binding before treating it as an application regression.
 
 ## Prisma Commands
 
@@ -189,6 +190,7 @@ Run Prisma commands through the backend workspace package:
 pnpm --filter backend exec prisma validate
 pnpm --filter backend exec prisma db pull --print
 pnpm --filter backend exec prisma migrate status
+pnpm --filter backend exec prisma migrate deploy
 pnpm --filter backend prisma:generate
 pnpm --filter backend prisma:migrate
 ```
@@ -221,6 +223,49 @@ Files added for deployment wiring:
 - [render.yaml](/Users/reynaldocarmenatearias/Documents/ReactProjects/job-application-tracker/render.yaml:1) defines the backend service blueprint and production env keys
 
 The old GitHub Pages deployment workflow has been removed from this branch because GitHub Pages is not the deployment target for the migrated stack.
+
+## Staging Deployment Flow
+
+Use [docs/staging-deployment-runbook.md](/Users/reynaldocarmenatearias/Documents/ReactProjects/job-application-tracker/docs/staging-deployment-runbook.md:1) as the source of truth for the first staged deployment.
+
+Required deployment order:
+
+1. Provision Neon staging database
+2. Apply Prisma migrations manually with `pnpm --filter backend exec prisma migrate deploy`
+3. Deploy the Render backend
+4. Deploy the Vercel frontend with `VITE_API_BASE_URL` pointed at the deployed backend API
+5. Run the full staging verification checklist
+
+Provider-specific environment contract:
+
+- Vercel frontend:
+  - `VITE_API_BASE_URL`
+- Render backend:
+  - `DATABASE_URL`
+  - `JWT_SECRET`
+  - `FRONTEND_URL`
+  - `BACKEND_URL`
+  - `GMAIL_USER`
+  - `GMAIL_APP_PASSWORD`
+  - `EMAIL_FROM`
+  - `FRONTEND_RESET_PASSWORD_URL`
+  - `FRONTEND_VERIFY_EMAIL_URL`
+  - optional `COOKIE_DOMAIN`
+
+Staging URL topology:
+
+- `FRONTEND_URL` should be the Vercel frontend origin
+- `BACKEND_URL` should be the Render backend origin
+- `FRONTEND_RESET_PASSWORD_URL` and `FRONTEND_VERIFY_EMAIL_URL` should point to the deployed frontend pages
+- Leave `COOKIE_DOMAIN` unset unless you intentionally deploy both apps under a shared parent domain
+
+Operational expectations:
+
+- `render.yaml` intentionally builds and starts the backend only; it does not run Prisma migrations automatically for the first deploy
+- Render health checks should continue using `GET /health`
+- `GET /health` is a process health endpoint, not a database readiness endpoint
+- Cross-origin refresh auth in production depends on `HttpOnly`, `Secure`, `SameSite=None` cookies and a working `POST /api/auth/refresh` flow after a browser reload
+- No staged runtime path should depend on Supabase
 
 ## Migration Verification
 

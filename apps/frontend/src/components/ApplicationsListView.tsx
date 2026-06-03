@@ -19,7 +19,7 @@ type Props = {
 
 function ApplicationsListView(props: Props) {
   const { applications, deleteApplication, onSort, sortConfig, isDeleting } = props;
-  const [dialogOpen, setDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedApplication, setSelectedApplication] = useState<Application | null>(null);
 
   const handleDelete = async (applicationId: string | null) => {
@@ -30,7 +30,7 @@ function ApplicationsListView(props: Props) {
       console.error('Failed to delete application:', error);
       alert('Failed to delete application. Please try again.');
     } finally {
-      setDialogOpen(false);
+      setDeleteDialogOpen(false);
       setSelectedApplication(null);
     }
   };
@@ -111,7 +111,7 @@ function ApplicationsListView(props: Props) {
                       type="button"
                       onClick={() => {
                         setSelectedApplication(a);
-                        setDialogOpen(true);
+                        setDeleteDialogOpen(true);
                       }}
                       className="inline-flex h-8 w-8 items-center justify-center hover:cursor-pointer"
                     >
@@ -164,7 +164,7 @@ function ApplicationsListView(props: Props) {
                 type="button"
                 onClick={() => {
                   setSelectedApplication(a);
-                  setDialogOpen(true);
+                  setDeleteDialogOpen(true);
                 }}
                 className="hover:cursor-pointer"
               >
@@ -178,11 +178,11 @@ function ApplicationsListView(props: Props) {
           </div>
         ))}
       </div>
-      {dialogOpen && (
+      {deleteDialogOpen && (
         <DeleteApplicationDialog
           deleteApplication={handleDelete}
           applicationId={selectedApplication?.id ?? ''}
-          onClose={() => setDialogOpen(false)}
+          onClose={() => setDeleteDialogOpen(false)}
           isDeleting={isDeleting}
         />
       )}

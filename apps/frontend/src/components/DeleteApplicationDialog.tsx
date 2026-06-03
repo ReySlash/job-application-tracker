@@ -9,14 +9,14 @@ function DeleteApplicationDialog(props: Props) {
   const { deleteApplication, applicationId, onClose, isDeleting } = props;
   return (
     <dialog
-      className="fixed inset-0 m-auto flex h-fit w-fit flex-col gap-4 rounded-lg border border-gray-300 bg-white p-6 text-white shadow-lg dark:border-slate-700 dark:bg-slate-900"
+      className="fixed inset-0 m-auto flex h-fit w-fit flex-col gap-4 rounded-lg border border-gray-300 bg-white p-6 text-slate-900 shadow-lg dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
       open
     >
-      <p>Are you sure you want to delete this application?</p>
+      <p className="dark:text-white">Are you sure you want to delete this application?</p>
       <div className="flex justify-end gap-2">
         <button
           onClick={onClose}
-          className="rounded border border-slate-700 px-4 py-2 hover:bg-gray-200 dark:hover:bg-slate-800"
+          className="rounded border border-slate-700 px-4 py-2 text-black hover:bg-gray-200 dark:text-white dark:hover:bg-slate-800"
         >
           Cancel
         </button>

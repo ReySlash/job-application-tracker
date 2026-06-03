@@ -1,22 +1,34 @@
 import { Outlet, useNavigate } from 'react-router';
 import SideBar from '../components/SideBar';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import hamburgerIcon from '../assets/hamburgerIcon.svg';
 import closeIcon from '../assets/closeIcon.svg';
 import SignoutDialog from '../components/SignoutDialog';
 import { useAuth } from '../hooks/useAuth';
 import { queryClient } from '../lib/queryClient';
 
+export type AppLayoutOutletContext = {
+  closeSidebar: () => void;
+  registerMobileOverlayCloser: (closer: (() => void) | null) => void;
+};
+
 function AppLayout() {
   const [sidebar, setSidebar] = useState<boolean>(false);
   const [isSigningOut, setIsSigningOut] = useState(false);
   const [signOutError, setSignOutError] = useState<string | null>(null);
   const [signoutDialogOpen, setSignoutDialogOpen] = useState(false);
+  const mobileOverlayCloserRef = useRef<(() => void) | null>(null);
   const navigate = useNavigate();
   const { signOut } = useAuth();
 
   const toggleSidebar = () => {
-    setSidebar(!sidebar);
+    setSidebar((currentSidebarOpen) => {
+      if (!currentSidebarOpen) {
+        mobileOverlayCloserRef.current?.();
+      }
+
+      return !currentSidebarOpen;
+    });
   };
 
   const openSignOutDialog = () => {
@@ -51,6 +63,14 @@ function AppLayout() {
       setIsSigningOut(false);
     }
   };
+
+  const outletContext: AppLayoutOutletContext = {
+    closeSidebar: () => setSidebar(false),
+    registerMobileOverlayCloser: (closer) => {
+      mobileOverlayCloserRef.current = closer;
+    },
+  };
+
   return (
     <>
       <div className="relative h-screen overflow-hidden bg-slate-50 text-slate-950 dark:bg-slate-950 dark:text-slate-100">
@@ -81,14 +101,11 @@ function AppLayout() {
           }`}
         >
           <div className="px-4 pt-14">
-            <SideBar
-              openDialog={openSignOutDialog}
-              isSigningOut={isSigningOut}
-            />
+            <SideBar openDialog={openSignOutDialog} isSigningOut={isSigningOut} />
           </div>
         </aside>
         <main className="h-full min-w-0 overflow-auto">
-          <Outlet />
+          <Outlet context={outletContext} />
         </main>
       </div>
 

@@ -1,6 +1,7 @@
+import { useEffect } from 'react';
 import ApplicationsListView from '../components/ApplicationsListView';
 import ApplicationsControls from '../components/ApplicationsControls';
-import { Link } from 'react-router';
+import { Link, useOutletContext } from 'react-router';
 
 import useBanner from '../hooks/useBanner';
 import useApplicationsList from '../hooks/useApplicationsController';
@@ -9,10 +10,12 @@ import ApplicationsEmptyState from '../components/ApplicationsEmptyState';
 import ApplicationsListSkeleton from '../components/ApplicationsListSkeleton';
 import { useApplicationsQuery } from '../hooks/useApplicationsQuery';
 import { useDeleteApplicationMutation } from '../hooks/useApplicationMutations';
+import type { AppLayoutOutletContext } from '../layouts/AppLayout';
 
 function ApplicationsPage() {
   const { data: applications = [], isLoading, error } = useApplicationsQuery();
   const deleteApplicationMutation = useDeleteApplicationMutation();
+  const { closeSidebar, registerMobileOverlayCloser } = useOutletContext<AppLayoutOutletContext>();
 
   const { successMessage, setSuccessMessage } = useBanner();
 
@@ -31,9 +34,22 @@ function ApplicationsPage() {
 
   const { isPending } = deleteApplicationMutation;
 
+  useEffect(() => {
+    registerMobileOverlayCloser(() => setFiltersOpen(false));
+
+    return () => {
+      registerMobileOverlayCloser(null);
+    };
+  }, [registerMobileOverlayCloser, setFiltersOpen]);
+
   const handleDeleteApplication = async (id: string) => {
     await deleteApplicationMutation.mutateAsync(id);
     setSuccessMessage('Application deleted successfully!');
+  };
+
+  const handleOpenFilters = () => {
+    closeSidebar();
+    setFiltersOpen(true);
   };
 
   const successBanner = successMessage ? (
@@ -94,6 +110,7 @@ function ApplicationsPage() {
         setFilterStatus={setFilterStatus}
         handleMobileSortChange={handleMobileSortChange}
         filtersOpen={filtersOpen}
+        openFilters={handleOpenFilters}
         setFiltersOpen={setFiltersOpen}
       />
 

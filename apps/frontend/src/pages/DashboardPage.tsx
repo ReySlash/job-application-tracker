@@ -1,5 +1,5 @@
-import { useMemo } from 'react';
-import { Link } from 'react-router';
+import { useEffect, useMemo } from 'react';
+import { Link, useOutletContext } from 'react-router';
 
 import ApplicationsActivityChart from '../components/ApplicationsActivityChart';
 import ApplicationsStats from '../components/ApplicationsStats';
@@ -10,6 +10,7 @@ import StatusBadge from '../components/StatusBadge';
 import StatusDistributionChart from '../components/StatusDistributionChart';
 import { useApplicationsQuery } from '../hooks/useApplicationsQuery';
 import useApplicationsList from '../hooks/useApplicationsController';
+import type { AppLayoutOutletContext } from '../layouts/AppLayout';
 import { getDashboardMetrics } from '../utils/dashboardMetrics';
 
 function formatDate(dateString: string) {
@@ -22,6 +23,7 @@ function formatDate(dateString: string) {
 
 function DashboardPage() {
   const { data: applicationsList = [], isLoading, error } = useApplicationsQuery();
+  const { closeSidebar, registerMobileOverlayCloser } = useOutletContext<AppLayoutOutletContext>();
 
   const {
     searchQuery,
@@ -31,6 +33,19 @@ function DashboardPage() {
     filterStatus,
     setFilterStatus,
   } = useApplicationsList(applicationsList);
+
+  useEffect(() => {
+    registerMobileOverlayCloser(() => setFiltersOpen(false));
+
+    return () => {
+      registerMobileOverlayCloser(null);
+    };
+  }, [registerMobileOverlayCloser, setFiltersOpen]);
+
+  const handleOpenFilters = () => {
+    closeSidebar();
+    setFiltersOpen(true);
+  };
 
   const filteredApplications = useMemo(() => {
     const query = searchQuery.toLowerCase();
@@ -67,6 +82,7 @@ function DashboardPage() {
         filterStatus={filterStatus}
         setFilterStatus={setFilterStatus}
         filtersOpen={filtersOpen}
+        openFilters={handleOpenFilters}
         setFiltersOpen={setFiltersOpen}
       />
       <div className="mx-auto grid max-w-6xl gap-8 px-4 pb-8">

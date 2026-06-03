@@ -11,6 +11,7 @@ type Props = {
   filterStatus: FilterStatus;
   setFilterStatus: (status: FilterStatus) => void;
   filtersOpen: boolean;
+  openFilters: () => void;
   setFiltersOpen: (open: boolean) => void;
   handleMobileSortChange: (option: MobileSortOption) => void;
 };
@@ -22,6 +23,7 @@ function ApplicationsControls(props: Props) {
     filterStatus,
     setFilterStatus,
     filtersOpen,
+    openFilters,
     setFiltersOpen,
     handleMobileSortChange,
   } = props;
@@ -29,7 +31,7 @@ function ApplicationsControls(props: Props) {
     <>
       <button
         type="button"
-        onClick={() => setFiltersOpen(true)}
+        onClick={openFilters}
         className={`fixed top-1 right-3 z-10 rounded p-2 transition-all duration-300 ease-in-out md:hidden ${
           filtersOpen ? 'opacity-0' : 'opacity-100'
         }`}

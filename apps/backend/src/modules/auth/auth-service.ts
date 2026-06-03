@@ -36,6 +36,13 @@ type AuthResult = {
 };
 
 type AuthUser = AuthResult['user'];
+type PersistedUser = {
+  id: string;
+  email: string;
+  isDemo: boolean;
+  isEmailVerified: boolean;
+  passwordHash: string | null;
+};
 
 function createVerifyEmailResultUrl(status: 'success' | 'error', message?: string) {
   const verifyUrl = new URL(env.frontendVerifyEmailUrl);
@@ -102,6 +109,57 @@ function toAuthUser(user: {
   };
 }
 
+function assertCredentialUser(user: PersistedUser | null): PersistedUser & { passwordHash: string } {
+  if (!user?.passwordHash) {
+    throw new AppError('Invalid email or password', 401);
+  }
+
+  return user as PersistedUser & { passwordHash: string };
+}
+
+function assertVerifiedUser(user: Pick<PersistedUser, 'isDemo' | 'isEmailVerified'>) {
+  if (!user.isDemo && !user.isEmailVerified) {
+    throw new AppError('Verify your email before signing in', 403);
+  }
+}
+
+async function createStoredRefreshToken(userId: string, refreshToken: string, expiresAt: Date) {
+  await prisma.refreshToken.create({
+    data: {
+      tokenHash: hashRefreshToken(refreshToken),
+      userId,
+      expiresAt,
+    },
+  });
+}
+
+async function findRefreshTokenRecord(refreshToken: string) {
+  return prisma.refreshToken.findFirst({
+    where: { tokenHash: hashRefreshToken(refreshToken) },
+    include: { user: true },
+  });
+}
+
+async function sendConfiguredEmail(options: {
+  to: string;
+  subject: string;
+  text: string;
+  html: string;
+  missingConfigMessage: string;
+  fallbackLogMessage: string;
+}) {
+  if (env.gmailUser && env.gmailAppPassword) {
+    await sendEmail(options);
+    return;
+  }
+
+  if (env.nodeEnv === 'production') {
+    throw new Error(options.missingConfigMessage);
+  }
+
+  console.info(options.fallbackLogMessage);
+}
+
 async function issueAuthTokens(user: AuthUser): Promise<AuthResult> {
   const accessToken = generateAccessToken({
     userId: user.id,
@@ -110,14 +168,7 @@ async function issueAuthTokens(user: AuthUser): Promise<AuthResult> {
   });
   const refreshToken = generateRefreshToken();
   const refreshTokenExpiresAt = getRefreshTokenExpiresAt();
-
-  await prisma.refreshToken.create({
-    data: {
-      tokenHash: hashRefreshToken(refreshToken),
-      userId: user.id,
-      expiresAt: refreshTokenExpiresAt,
-    },
-  });
+  await createStoredRefreshToken(user.id, refreshToken, refreshTokenExpiresAt);
 
   return {
     accessToken,
@@ -146,18 +197,14 @@ async function sendVerificationEmail(user: { id: string; email: string }) {
 
   const emailMessage = createVerificationEmail(verificationUrl.toString());
 
-  if (env.gmailUser && env.gmailAppPassword) {
-    await sendEmail({
-      to: user.email,
-      subject: emailMessage.subject,
-      text: emailMessage.text,
-      html: emailMessage.html,
-    });
-  } else if (env.nodeEnv === 'production') {
-    throw new Error('Email verification delivery is not configured');
-  } else {
-    console.info(`Email verification link for ${user.email}: ${verificationUrl.toString()}`);
-  }
+  await sendConfiguredEmail({
+    to: user.email,
+    subject: emailMessage.subject,
+    text: emailMessage.text,
+    html: emailMessage.html,
+    missingConfigMessage: 'Email verification delivery is not configured',
+    fallbackLogMessage: `Email verification link for ${user.email}: ${verificationUrl.toString()}`,
+  });
 }
 
 export async function createDemoLogin(): Promise<AuthResult> {
@@ -184,29 +231,19 @@ export async function createUser(email: string, password: string): Promise<Signu
 }
 
 export async function login(email: string, password: string): Promise<AuthResult> {
-  const user = await prisma.user.findUnique({
+  const storedUser = assertCredentialUser(await prisma.user.findUnique({
     where: { email },
-  });
+  }));
 
-  if (!user) {
-    throw new AppError('Invalid email or password', 401);
-  }
-
-  if (!user.passwordHash) {
-    throw new AppError('Invalid email or password', 401);
-  }
-
-  const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
+  const isPasswordValid = await bcrypt.compare(password, storedUser.passwordHash);
 
   if (!isPasswordValid) {
     throw new AppError('Invalid email or password', 401);
   }
 
-  if (!user.isDemo && !user.isEmailVerified) {
-    throw new AppError('Verify your email before signing in', 403);
-  }
+  assertVerifiedUser(storedUser);
 
-  return issueAuthTokens(toAuthUser(user));
+  return issueAuthTokens(toAuthUser(storedUser));
 }
 
 export async function refresh(refreshToken: string | undefined): Promise<AuthResult> {
@@ -214,11 +251,7 @@ export async function refresh(refreshToken: string | undefined): Promise<AuthRes
     throw new AppError('Refresh token is required', 401);
   }
 
-  const tokenHash = hashRefreshToken(refreshToken);
-  const storedRefreshToken = await prisma.refreshToken.findFirst({
-    where: { tokenHash },
-    include: { user: true },
-  });
+  const storedRefreshToken = await findRefreshTokenRecord(refreshToken);
 
   if (!storedRefreshToken) {
     throw new AppError('Invalid refresh token', 401);
@@ -236,9 +269,7 @@ export async function refresh(refreshToken: string | undefined): Promise<AuthRes
     throw new AppError('Invalid refresh token', 401);
   }
 
-  if (!storedRefreshToken.user.isDemo && !storedRefreshToken.user.isEmailVerified) {
-    throw new AppError('Verify your email before signing in', 403);
-  }
+  assertVerifiedUser(storedRefreshToken.user);
 
   const user = toAuthUser(storedRefreshToken.user);
   const accessToken = generateAccessToken({
@@ -276,9 +307,8 @@ export async function logout(refreshToken: string | undefined): Promise<void> {
     return;
   }
 
-  const tokenHash = hashRefreshToken(refreshToken);
   const storedRefreshToken = await prisma.refreshToken.findFirst({
-    where: { tokenHash },
+    where: { tokenHash: hashRefreshToken(refreshToken) },
   });
 
   if (!storedRefreshToken || storedRefreshToken.revokedAt) {
@@ -328,30 +358,24 @@ export async function forgotPassword(email: string): Promise<void> {
   resetUrl.searchParams.set('token', rawResetToken);
   const resetUrlString = resetUrl.toString();
 
-  if (env.gmailUser && env.gmailAppPassword) {
-    try {
-      const emailMessage = createPasswordResetEmail(resetUrlString);
+  const emailMessage = createPasswordResetEmail(resetUrlString);
 
-      await sendEmail({
-        to: user.email,
-        subject: emailMessage.subject,
-        text: emailMessage.text,
-        html: emailMessage.html,
-      });
-    } catch (error) {
-      console.error('Failed to send password reset email', {
-        email: user.email,
-        error,
-      });
-    }
-  } else if (env.nodeEnv === 'production') {
-    console.error('Password reset email delivery is not configured', {
+  try {
+    await sendConfiguredEmail({
+      to: user.email,
+      subject: emailMessage.subject,
+      text: emailMessage.text,
+      html: emailMessage.html,
+      missingConfigMessage: 'Password reset email delivery is not configured',
+      fallbackLogMessage: `Password reset link for ${user.email}: ${resetUrlString}`,
+    });
+  } catch (error) {
+    console.error('Failed to send password reset email', {
       email: user.email,
+      error,
       gmailUserConfigured: Boolean(env.gmailUser),
       gmailAppPasswordConfigured: Boolean(env.gmailAppPassword),
     });
-  } else {
-    console.info(`Password reset link for ${user.email}: ${resetUrlString}`);
   }
 }
 

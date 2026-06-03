@@ -7,7 +7,7 @@ export type DashboardMetricCard = {
   tone?: 'neutral' | 'positive' | 'warning' | 'danger';
 };
 
-export type FollowUpApplication = Application & {
+type FollowUpApplication = Application & {
   daysSinceApplied: number;
 };
 

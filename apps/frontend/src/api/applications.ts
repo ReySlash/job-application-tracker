@@ -2,6 +2,7 @@ import { mapRowToApplication } from '../mappers/applicationMappers';
 import type { ApplicationRow } from '../types/ApplicationRow';
 import type { Application } from '../types/ApplicationType';
 import type { ApplicationsFormSchema } from '../schemas/ApplicationsFormSchema';
+import { parseApiResponse } from './http';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:4000/api';
 
@@ -21,14 +22,6 @@ type BackendApplication = {
 
 type ApplicationsListResponse = {
   applicationsList: BackendApplication[];
-};
-
-type BackendApplicationResponse = {
-  application: BackendApplication;
-};
-
-type ApiErrorResponse = {
-  message?: string;
 };
 
 function normalizeDateOnly(value: string | Date | null): string {
@@ -78,31 +71,16 @@ function createApplicationsRequestInit(method: string, accessToken: string, body
   };
 }
 
-async function parseResponse<T>(response: Response, fallbackMessage: string): Promise<T> {
-  const text = await response.text();
-  const payload = text ? (JSON.parse(text) as T | ApiErrorResponse) : null;
-
-  if (!response.ok) {
-    const errorMessage =
-      payload &&
-      typeof payload === 'object' &&
-      'message' in payload &&
-      typeof payload.message === 'string' &&
-      payload.message
-        ? payload.message
-        : fallbackMessage;
-    throw new Error(errorMessage);
-  }
-
-  return payload as T;
-}
-
 export async function fetchApplications(accessToken: string): Promise<Application[]> {
   const response = await fetch(
     `${API_BASE_URL}/applications`,
     createApplicationsRequestInit('GET', accessToken),
   );
-  const data = await parseResponse<ApplicationsListResponse>(response, 'Failed to fetch applications');
+  const data = await parseApiResponse<ApplicationsListResponse>(
+    response,
+    'Failed to fetch applications',
+    ['message', 'error'],
+  );
 
   return data.applicationsList.map(normalizeApplication);
 }
@@ -121,7 +99,7 @@ export async function createApplication(input: ApplicationsFormSchema, accessTok
     }),
   );
 
-  await parseResponse<{ message: string }>(response, 'Failed to create application');
+  await parseApiResponse<{ message: string }>(response, 'Failed to create application', ['message', 'error']);
 }
 
 export async function updateApplication(
@@ -142,7 +120,7 @@ export async function updateApplication(
     }),
   );
 
-  await parseResponse<{ message: string }>(response, 'Failed to update application');
+  await parseApiResponse<{ message: string }>(response, 'Failed to update application', ['message', 'error']);
 }
 
 export async function deleteApplicationById(id: string, accessToken: string): Promise<void> {
@@ -151,7 +129,7 @@ export async function deleteApplicationById(id: string, accessToken: string): Pr
     createApplicationsRequestInit('DELETE', accessToken),
   );
 
-  await parseResponse<{ message: string }>(response, 'Failed to delete application');
+  await parseApiResponse<{ message: string }>(response, 'Failed to delete application', ['message', 'error']);
 }
 
 export async function resetDemoApplications(accessToken: string): Promise<void> {
@@ -160,15 +138,9 @@ export async function resetDemoApplications(accessToken: string): Promise<void> 
     createApplicationsRequestInit('POST', accessToken),
   );
 
-  await parseResponse<{ message: string }>(response, 'Failed to reset demo applications');
-}
-
-export async function fetchApplicationById(id: string, accessToken: string): Promise<Application> {
-  const response = await fetch(
-    `${API_BASE_URL}/applications/${id}`,
-    createApplicationsRequestInit('GET', accessToken),
+  await parseApiResponse<{ message: string }>(
+    response,
+    'Failed to reset demo applications',
+    ['message', 'error'],
   );
-  const data = await parseResponse<BackendApplicationResponse>(response, 'Failed to fetch application');
-
-  return normalizeApplication(data.application);
 }

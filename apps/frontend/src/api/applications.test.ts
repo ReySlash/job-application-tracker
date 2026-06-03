@@ -11,7 +11,6 @@ vi.stubGlobal('fetch', fetchMock);
 import {
   createApplication,
   deleteApplicationById,
-  fetchApplicationById,
   fetchApplications,
   resetDemoApplications,
   updateApplication,
@@ -106,62 +105,26 @@ describe('applications API wrappers', () => {
     );
   });
 
-  it('fetchApplicationById requests the backend detail route and maps the response', async () => {
-    fetchMock.mockResolvedValue(jsonResponse({ application: backendApplication() }));
-
-    await expect(fetchApplicationById('application-123', 'token-123')).resolves.toEqual({
-      id: 'application-1',
-      company: 'Acme',
-      role: 'Frontend Engineer',
-      status: 'interview',
-      appliedAt: '2026-04-21',
-      location: 'Remote',
-      jobUrl: 'https://example.com/jobs/1',
-      notes: 'Prepare for interview',
-      createdAt: '2026-04-21T00:00:00.000Z',
-      updatedAt: '2026-04-22T00:00:00.000Z',
-    });
-
-    expect(fetchMock).toHaveBeenCalledWith(
-      'http://localhost:4000/api/applications/application-123',
-      expect.objectContaining({
-        method: 'GET',
-        headers: { Authorization: 'Bearer token-123' },
-      }),
-    );
-  });
-
-  it('normalizes ISO datetime appliedAt values into date-input format', async () => {
+  it('normalizes ISO datetime and null appliedAt values in list responses', async () => {
     fetchMock.mockResolvedValue(
       jsonResponse({
-        application: backendApplication({ appliedAt: '2026-04-21T00:00:00.000Z' }),
+        applicationsList: [
+          backendApplication({ id: 'application-iso', appliedAt: '2026-04-21T00:00:00.000Z' }),
+          backendApplication({ id: 'application-null', appliedAt: null }),
+        ],
       }),
     );
 
-    await expect(fetchApplicationById('application-123', 'token-123')).resolves.toMatchObject({
-      appliedAt: '2026-04-21',
-    });
-  });
-
-  it('normalizes Date instances and null date values returned by the backend', async () => {
-    fetchMock
-      .mockResolvedValueOnce(
-        jsonResponse({
-          application: backendApplication({ appliedAt: new Date('2026-04-21T00:00:00.000Z') }),
-        }),
-      )
-      .mockResolvedValueOnce(
-        jsonResponse({
-          application: backendApplication({ appliedAt: null }),
-        }),
-      );
-
-    await expect(fetchApplicationById('application-123', 'token-123')).resolves.toMatchObject({
-      appliedAt: '2026-04-21',
-    });
-    await expect(fetchApplicationById('application-456', 'token-123')).resolves.toMatchObject({
-      appliedAt: '',
-    });
+    await expect(fetchApplications('token-123')).resolves.toEqual([
+      expect.objectContaining({
+        id: 'application-iso',
+        appliedAt: '2026-04-21',
+      }),
+      expect.objectContaining({
+        id: 'application-null',
+        appliedAt: '',
+      }),
+    ]);
   });
 
   it('createApplication sends the backend payload without userId', async () => {
@@ -247,13 +210,11 @@ describe('applications API wrappers', () => {
   it('throws backend error messages for application CRUD failures', async () => {
     fetchMock
       .mockResolvedValueOnce(jsonResponse({ message: 'Fetch failed' }, { status: 500 }))
-      .mockResolvedValueOnce(jsonResponse({ message: 'Fetch detail failed' }, { status: 500 }))
       .mockResolvedValueOnce(jsonResponse({ message: 'Create failed' }, { status: 500 }))
       .mockResolvedValueOnce(jsonResponse({ message: 'Update failed' }, { status: 500 }))
       .mockResolvedValueOnce(jsonResponse({ message: 'Delete failed' }, { status: 500 }));
 
     await expect(fetchApplications('token-123')).rejects.toThrow('Fetch failed');
-    await expect(fetchApplicationById('application-123', 'token-123')).rejects.toThrow('Fetch detail failed');
     await expect(createApplication(createFormInput(), 'token-123')).rejects.toThrow('Create failed');
     await expect(updateApplication('application-123', createFormInput(), 'token-123')).rejects.toThrow('Update failed');
     await expect(deleteApplicationById('application-123', 'token-123')).rejects.toThrow('Delete failed');
@@ -270,12 +231,10 @@ describe('applications API wrappers', () => {
       .mockResolvedValueOnce(jsonResponse({}, { status: 500 }))
       .mockResolvedValueOnce(jsonResponse({}, { status: 500 }))
       .mockResolvedValueOnce(jsonResponse({}, { status: 500 }))
-      .mockResolvedValueOnce(jsonResponse({}, { status: 500 }))
       .mockResolvedValueOnce(jsonResponse({}, { status: 500 }));
     fetchMock.mockResolvedValueOnce(jsonResponse({}, { status: 500 }));
 
     await expect(fetchApplications('token-123')).rejects.toThrow('Failed to fetch applications');
-    await expect(fetchApplicationById('application-123', 'token-123')).rejects.toThrow('Failed to fetch application');
     await expect(createApplication(createFormInput(), 'token-123')).rejects.toThrow('Failed to create application');
     await expect(updateApplication('application-123', createFormInput(), 'token-123')).rejects.toThrow('Failed to update application');
     await expect(deleteApplicationById('application-123', 'token-123')).rejects.toThrow('Failed to delete application');

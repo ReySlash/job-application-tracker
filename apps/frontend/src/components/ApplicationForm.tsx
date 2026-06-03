@@ -4,6 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import applicationsFormSchema from '../schemas/ApplicationsFormSchema';
 import { useEffect } from 'react';
 import { Link } from 'react-router';
+import type { FieldErrors, UseFormRegister } from 'react-hook-form';
 
 type Props = {
   onSubmit: (data: ApplicationsFormSchema) => Promise<void>;
@@ -12,6 +13,135 @@ type Props = {
   submitError?: string | null;
   onSubmitErrorChange?: (error: string | null) => void;
 };
+
+type FieldName = keyof ApplicationsFormSchema;
+
+type BaseFieldConfig = {
+  name: FieldName;
+  label: string;
+  placeholder?: string;
+  colSpan?: 'single' | 'full';
+};
+
+type InputFieldConfig = BaseFieldConfig & {
+  kind: 'input';
+  type: 'text' | 'url' | 'date';
+};
+
+type SelectFieldConfig = BaseFieldConfig & {
+  kind: 'select';
+  options: Array<{ value: ApplicationsFormSchema['status']; label: string }>;
+};
+
+type TextareaFieldConfig = BaseFieldConfig & {
+  kind: 'textarea';
+};
+
+type FieldConfig = InputFieldConfig | SelectFieldConfig | TextareaFieldConfig;
+
+const fieldBaseClass =
+  'transition-ring rounded-md border border-gray-300 p-2 duration-200 focus:ring-2 focus:ring-teal-500 focus:outline-none dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder:text-slate-500';
+const fieldErrorClass = 'mt-1 text-sm text-red-600 dark:text-red-400';
+
+const applicationFields: FieldConfig[] = [
+  { kind: 'input', name: 'company', label: 'Company', placeholder: 'e.g. Google', type: 'text' },
+  { kind: 'input', name: 'role', label: 'Role', placeholder: 'e.g. Frontend Developer', type: 'text' },
+  {
+    kind: 'select',
+    name: 'status',
+    label: 'Status',
+    options: [
+      { value: 'applied', label: 'Applied' },
+      { value: 'interview', label: 'Interview' },
+      { value: 'offer', label: 'Offer' },
+      { value: 'rejected', label: 'Rejected' },
+    ],
+  },
+  { kind: 'input', name: 'appliedAt', label: 'Applied Date', type: 'date' },
+  { kind: 'input', name: 'location', label: 'Location', placeholder: 'Remote, NY, etc.', type: 'text' },
+  { kind: 'input', name: 'jobUrl', label: 'Job URL', placeholder: 'https://...', type: 'url' },
+  {
+    kind: 'textarea',
+    name: 'notes',
+    label: 'Notes',
+    placeholder: 'Add any details about the interview process...',
+    colSpan: 'full',
+  },
+];
+
+function getButtonText(isEditing: boolean, isSubmitting: boolean) {
+  if (isEditing) {
+    return isSubmitting ? 'Updating...' : 'Update Application';
+  }
+
+  return isSubmitting ? 'Saving...' : 'Save Application';
+}
+
+function FieldError({
+  errors,
+  name,
+}: {
+  errors: FieldErrors<ApplicationsFormSchema>;
+  name: FieldName;
+}) {
+  const error = errors[name];
+
+  if (!error?.message) {
+    return null;
+  }
+
+  return <p className={fieldErrorClass}>{error.message}</p>;
+}
+
+function FormField({
+  field,
+  errors,
+  register,
+}: {
+  field: FieldConfig;
+  errors: FieldErrors<ApplicationsFormSchema>;
+  register: UseFormRegister<ApplicationsFormSchema>;
+}) {
+  const wrapperClass = field.colSpan === 'full' ? 'flex flex-col md:col-span-2' : 'flex flex-col';
+  const labelClass = 'mb-1 text-sm font-medium text-gray-700 dark:text-slate-200';
+
+  return (
+    <div className={wrapperClass}>
+      <label htmlFor={field.name} className={labelClass}>
+        {field.label}
+      </label>
+      {field.kind === 'select' ? (
+        <select
+          className={`${fieldBaseClass} bg-white hover:cursor-pointer dark:bg-slate-950`}
+          id={field.name}
+          {...register(field.name)}
+        >
+          {field.options.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+      ) : field.kind === 'textarea' ? (
+        <textarea
+          className={`${fieldBaseClass} min-h-25`}
+          id={field.name}
+          {...register(field.name)}
+          placeholder={field.placeholder}
+        />
+      ) : (
+        <input
+          className={`${fieldBaseClass}${field.type === 'date' ? ' hover:cursor-pointer' : ''}`}
+          type={field.type}
+          id={field.name}
+          {...register(field.name)}
+          placeholder={field.placeholder}
+        />
+      )}
+      <FieldError errors={errors} name={field.name} />
+    </div>
+  );
+}
 
 function ApplicationForm(props: Props) {
   const { initialFormState, isEditing, onSubmit, submitError, onSubmitErrorChange } = props;
@@ -31,13 +161,8 @@ function ApplicationForm(props: Props) {
     reset(initialFormState);
   }, [initialFormState, reset]);
 
-  const buttonText = isEditing
-    ? isSubmitting
-      ? 'Updating...'
-      : 'Update Application'
-    : isSubmitting
-      ? 'Saving...'
-      : 'Save Application';
+  const buttonText = getButtonText(isEditing, isSubmitting);
+
   return (
     <form
       className="grid grid-cols-1 gap-4 md:grid-cols-2"
@@ -49,7 +174,6 @@ function ApplicationForm(props: Props) {
       }}
       noValidate
     >
-      {/* if exist any error, show an alert error message */}
       {Object.keys(errors).length > 0 && (
         <div className="relative rounded border border-red-400 bg-red-100 px-4 py-3 text-red-700 dark:border-red-800 dark:bg-red-950/60 dark:text-red-200 md:col-span-2">
           <strong className="font-bold">Please fix the highlighted fields.</strong>
@@ -68,115 +192,10 @@ function ApplicationForm(props: Props) {
           {submitError}
         </div>
       )}
-      {/* Company field */}
-      <div className="flex flex-col">
-        <label htmlFor="company" className="mb-1 text-sm font-medium text-gray-700 dark:text-slate-200">
-          Company
-        </label>
-        <input
-          className="transition-ring rounded-md border border-gray-300 p-2 duration-200 focus:ring-2 focus:ring-teal-500 focus:outline-none dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder:text-slate-500"
-          type="text"
-          id="company"
-          {...register('company')}
-          placeholder="e.g. Google"
-        />
-        {errors.company && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.company.message}</p>}
-      </div>
+      {applicationFields.map((field) => (
+        <FormField key={field.name} field={field} errors={errors} register={register} />
+      ))}
 
-      {/* Role field */}
-      <div className="flex flex-col">
-        <label htmlFor="role" className="mb-1 text-sm font-medium text-gray-700 dark:text-slate-200">
-          Role
-        </label>
-        <input
-          className="transition-ring rounded-md border border-gray-300 p-2 duration-200 focus:ring-2 focus:ring-teal-500 focus:outline-none dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder:text-slate-500"
-          type="text"
-          id="role"
-          {...register('role')}
-          placeholder="e.g. Frontend Developer"
-        />
-        {errors.role && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.role.message}</p>}
-      </div>
-
-      {/* Application status field */}
-      <div className="flex flex-col">
-        <label htmlFor="status" className="mb-1 text-sm font-medium text-gray-700 dark:text-slate-200">
-          Status
-        </label>
-        <select
-          className="transition-ring rounded-md border border-gray-300 bg-white p-2 duration-200 hover:cursor-pointer focus:ring-2 focus:ring-teal-500 focus:outline-none dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
-          id="status"
-          {...register('status')}
-        >
-          <option value="applied">Applied</option>
-          <option value="interview">Interview</option>
-          <option value="offer">Offer</option>
-          <option value="rejected">Rejected</option>
-        </select>
-        {errors.status && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.status.message}</p>}
-      </div>
-
-      {/* Applied date field */}
-      <div className="flex flex-col">
-        <label htmlFor="appliedAt" className="mb-1 text-sm font-medium text-gray-700 dark:text-slate-200">
-          Applied Date
-        </label>
-        <input
-          className="transition-ring rounded-md border border-gray-300 p-2 duration-200 hover:cursor-pointer focus:ring-2 focus:ring-teal-500 focus:outline-none dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
-          type="date"
-          id="appliedAt"
-          {...register('appliedAt')}
-        />
-        {errors.appliedAt && (
-          <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.appliedAt.message}</p>
-        )}
-      </div>
-
-      {/* Location field */}
-      <div className="flex flex-col">
-        <label htmlFor="location" className="mb-1 text-sm font-medium text-gray-700 dark:text-slate-200">
-          Location
-        </label>
-        <input
-          className="transition-ring rounded-md border border-gray-300 p-2 duration-200 focus:ring-2 focus:ring-teal-500 focus:outline-none dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder:text-slate-500"
-          type="text"
-          id="location"
-          {...register('location')}
-          placeholder="Remote, NY, etc."
-        />
-        {errors.location && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.location.message}</p>}
-      </div>
-
-      {/* Job URL field */}
-      <div className="flex flex-col">
-        <label htmlFor="jobUrl" className="mb-1 text-sm font-medium text-gray-700 dark:text-slate-200">
-          Job URL
-        </label>
-        <input
-          className="transition-ring rounded-md border border-gray-300 p-2 duration-200 focus:ring-2 focus:ring-teal-500 focus:outline-none dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder:text-slate-500"
-          type="url"
-          id="jobUrl"
-          {...register('jobUrl')}
-          placeholder="https://..."
-        />
-        {errors.jobUrl && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.jobUrl.message}</p>}
-      </div>
-
-      {/* Notes field */}
-      <div className="flex flex-col md:col-span-2">
-        <label htmlFor="notes" className="mb-1 text-sm font-medium text-gray-700 dark:text-slate-200">
-          Notes
-        </label>
-        <textarea
-          className="transition-ring min-h-25 rounded-md border border-gray-300 p-2 duration-200 focus:ring-2 focus:ring-teal-500 focus:outline-none dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder:text-slate-500"
-          id="notes"
-          {...register('notes')}
-          placeholder="Add any details about the interview process..."
-        ></textarea>
-        {errors.notes && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.notes.message}</p>}
-      </div>
-
-      {/* Form actions */}
       <div className="mt-4 flex justify-end gap-3 md:col-span-2">
         <Link
           to="/applications"

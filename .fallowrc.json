@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json.schemastore.org/fallowrc.json",
+  "entry": [
+    "apps/frontend/src/test/setup.ts",
+    "apps/backend/src/types/express-auth.ts"
+  ],
+  "ignorePatterns": [
+    ".fallow/**",
+    "**/dist/**",
+    "apps/backend/src/generated/**"
+  ],
+  "duplicates": {
+    "ignore": [
+      ".fallow/**",
+      "**/dist/**",
+      "apps/backend/src/generated/**"
+    ]
+  },
+  "health": {
+    "ignore": [
+      ".fallow/**",
+      "**/dist/**",
+      "apps/backend/src/generated/**"
+    ]
+  }
+}

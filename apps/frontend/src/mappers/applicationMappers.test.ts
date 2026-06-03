@@ -1,12 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
-import {
-  mapFormToCreatePayload,
-  mapFormToUpdatePayload,
-  mapRowToApplication,
-} from './applicationMappers';
+import { mapRowToApplication } from './applicationMappers';
 import type { ApplicationRow } from '../types/ApplicationRow';
-import type { ApplicationsFormSchema } from '../schemas/ApplicationsFormSchema';
 
 function createRow(overrides: Partial<ApplicationRow> = {}): ApplicationRow {
   return {
@@ -21,19 +16,6 @@ function createRow(overrides: Partial<ApplicationRow> = {}): ApplicationRow {
     created_at: '2026-04-21T00:00:00.000Z',
     updated_at: '2026-04-22T00:00:00.000Z',
     user_id: 'user-1',
-    ...overrides,
-  };
-}
-
-function createFormInput(overrides: Partial<ApplicationsFormSchema> = {}): ApplicationsFormSchema {
-  return {
-    company: 'Acme',
-    role: 'Frontend Engineer',
-    status: 'offer',
-    appliedAt: '2026-04-21',
-    location: 'Remote',
-    jobUrl: 'https://example.com/jobs/1',
-    notes: 'Strong fit',
     ...overrides,
   };
 }
@@ -84,43 +66,5 @@ describe('applicationMappers', () => {
     expect(() => mapRowToApplication(createRow({ status: 'unknown-status' }))).toThrow(
       'Invalid application status: unknown-status',
     );
-  });
-
-  it('maps create form values to the DB payload shape', () => {
-    expect(mapFormToCreatePayload(createFormInput(), 'user-123')).toEqual({
-      company: 'Acme',
-      role: 'Frontend Engineer',
-      status: 'offer',
-      applied_at: '2026-04-21',
-      location: 'Remote',
-      job_url: 'https://example.com/jobs/1',
-      notes: 'Strong fit',
-      user_id: 'user-123',
-    });
-  });
-
-  it('maps update form values to the DB payload shape without user_id', () => {
-    expect(mapFormToUpdatePayload(createFormInput())).toEqual({
-      company: 'Acme',
-      role: 'Frontend Engineer',
-      status: 'offer',
-      applied_at: '2026-04-21',
-      location: 'Remote',
-      job_url: 'https://example.com/jobs/1',
-      notes: 'Strong fit',
-    });
-  });
-
-  it('normalizes empty optional form fields to null', () => {
-    const input = createFormInput({ jobUrl: '', notes: '' });
-
-    expect(mapFormToCreatePayload(input, 'user-123')).toMatchObject({
-      job_url: null,
-      notes: null,
-    });
-    expect(mapFormToUpdatePayload(input)).toMatchObject({
-      job_url: null,
-      notes: null,
-    });
   });
 });

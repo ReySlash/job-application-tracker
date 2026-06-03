@@ -40,4 +40,3 @@ const applicationsFormSchema = z.object({
 });
 
 export default applicationsFormSchema;
-export type ApplicationsFormSchema = z.infer<typeof applicationsFormSchema>;

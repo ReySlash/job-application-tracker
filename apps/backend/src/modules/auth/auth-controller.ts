@@ -26,13 +26,41 @@ import {
   verifyEmail,
 } from './auth-service.js';
 
+const GENERIC_SERVER_ERROR = { error: 'Internal server error' };
+const FORGOT_PASSWORD_SUCCESS_MESSAGE = {
+  message: 'If that email is registered, a password reset link has been sent.',
+};
 
-// Handler for user signup
+function getValidationError(error: z.ZodError) {
+  return { error: z.flattenError(error) };
+}
+
+function respondWithAppError(res: Parameters<RequestHandler>[1], error: unknown) {
+  if (error instanceof AppError) {
+    return res.status(error.statusCode).json({ error: error.message });
+  }
+
+  return res.status(500).json(GENERIC_SERVER_ERROR);
+}
+
+function respondWithAuthResult(
+  res: Parameters<RequestHandler>[1],
+  authResult: Awaited<ReturnType<typeof login>>,
+) {
+  setRefreshTokenCookie(res, authResult.refreshToken, authResult.refreshTokenExpiresAt);
+
+  return res.status(200).json({
+    user: authResult.user,
+    accessToken: authResult.accessToken,
+  });
+}
+
+
 export const signupHandler: RequestHandler = async (req, res) => {
   const validationResult = authCredentialsSchema.safeParse(req.body);
 
   if (!validationResult.success) {
-    return res.status(400).json({ error: z.flattenError(validationResult.error) });
+    return res.status(400).json(getValidationError(validationResult.error));
   }
 
   const { email, password } = validationResult.data;
@@ -50,7 +78,7 @@ export const signupHandler: RequestHandler = async (req, res) => {
       error,
     });
 
-    return res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json(GENERIC_SERVER_ERROR);
   }
 };
 
@@ -77,41 +105,25 @@ export const loginHandler: RequestHandler = async (req, res) => {
   const validationResult = authCredentialsSchema.safeParse(req.body);
 
   if (!validationResult.success) {
-    return res.status(400).json({ error: z.flattenError(validationResult.error) });
+    return res.status(400).json(getValidationError(validationResult.error));
   }
 
   const { email, password } = validationResult.data;
 
   try {
     const authResult = await login(email, password);
-
-    setRefreshTokenCookie(res, authResult.refreshToken, authResult.refreshTokenExpiresAt);
-
-    return res.status(200).json({
-      user: authResult.user,
-      accessToken: authResult.accessToken,
-    });
+    return respondWithAuthResult(res, authResult);
   } catch (error) {
-    if (error instanceof AppError) {
-      return res.status(error.statusCode).json({ error: error.message });
-    }
-
-    return res.status(500).json({ error: 'Internal server error' });
+    return respondWithAppError(res, error);
   }
 };
 
 export const demoLoginHandler: RequestHandler = async (_req, res) => {
   try {
     const authResult = await createDemoLogin();
-
-    setRefreshTokenCookie(res, authResult.refreshToken, authResult.refreshTokenExpiresAt);
-
-    return res.status(200).json({
-      user: authResult.user,
-      accessToken: authResult.accessToken,
-    });
+    return respondWithAuthResult(res, authResult);
   } catch {
-    return res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json(GENERIC_SERVER_ERROR);
   }
 };
 
@@ -119,23 +131,19 @@ export const forgotPasswordHandler: RequestHandler = async (req, res) => {
   const validationResult = forgotPasswordSchema.safeParse(req.body);
 
   if (!validationResult.success) {
-    return res.status(400).json({ error: z.flattenError(validationResult.error) });
+    return res.status(400).json(getValidationError(validationResult.error));
   }
 
   try {
     await forgotPassword(validationResult.data.email);
-    return res.status(200).json({
-      message: 'If that email is registered, a password reset link has been sent.',
-    });
+    return res.status(200).json(FORGOT_PASSWORD_SUCCESS_MESSAGE);
   } catch (error) {
     console.error('Forgot password flow failed', {
       email: validationResult.data.email,
       error,
     });
 
-    return res.status(200).json({
-      message: 'If that email is registered, a password reset link has been sent.',
-    });
+    return res.status(200).json(FORGOT_PASSWORD_SUCCESS_MESSAGE);
   }
 };
 
@@ -143,44 +151,28 @@ export const resetPasswordHandler: RequestHandler = async (req, res) => {
   const validationResult = resetPasswordSchema.safeParse(req.body);
 
   if (!validationResult.success) {
-    return res.status(400).json({ error: z.flattenError(validationResult.error) });
+    return res.status(400).json(getValidationError(validationResult.error));
   }
 
   try {
     await resetPassword(validationResult.data.token, validationResult.data.password);
     return res.status(200).json({ message: 'Password updated successfully' });
   } catch (error) {
-    if (error instanceof AppError) {
-      return res.status(error.statusCode).json({ error: error.message });
-    }
-
-    return res.status(500).json({ error: 'Internal server error' });
+    return respondWithAppError(res, error);
   }
 };
 
-// Handler for access-token refresh
 export const refreshHandler: RequestHandler = async (req, res) => {
   const refreshToken = req.cookies?.[REFRESH_TOKEN_COOKIE_NAME];
 
   try {
     const authResult = await refresh(refreshToken);
-
-    setRefreshTokenCookie(res, authResult.refreshToken, authResult.refreshTokenExpiresAt);
-
-    return res.status(200).json({
-      user: authResult.user,
-      accessToken: authResult.accessToken,
-    });
+    return respondWithAuthResult(res, authResult);
   } catch (error) {
-    if (error instanceof AppError) {
-      return res.status(error.statusCode).json({ error: error.message });
-    }
-
-    return res.status(500).json({ error: 'Internal server error' });
+    return respondWithAppError(res, error);
   }
 };
 
-// Handler for user logout
 export const logoutHandler: RequestHandler = async (req, res) => {
   const refreshToken = req.cookies?.[REFRESH_TOKEN_COOKIE_NAME];
 
@@ -190,11 +182,10 @@ export const logoutHandler: RequestHandler = async (req, res) => {
 
     return res.status(200).json({ message: 'Logged out successfully' });
   } catch {
-    return res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json(GENERIC_SERVER_ERROR);
   }
 };
 
-// Handler for the current authenticated user
 export const meHandler: RequestHandler = async (req, res) => {
   if (!req.user) {
     return res.status(401).json({ error: 'Unauthorized' });
@@ -205,10 +196,6 @@ export const meHandler: RequestHandler = async (req, res) => {
 
     return res.status(200).json({ user });
   } catch (error) {
-    if (error instanceof AppError) {
-      return res.status(error.statusCode).json({ error: error.message });
-    }
-
-    return res.status(500).json({ error: 'Internal server error' });
+    return respondWithAppError(res, error);
   }
 };

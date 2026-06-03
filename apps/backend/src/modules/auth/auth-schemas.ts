@@ -19,4 +19,3 @@ export const verifyEmailSchema = z.object({
 });
 
 export default authCredentialsSchema;
-export type AuthCredentialsData = z.infer<typeof authCredentialsSchema>;

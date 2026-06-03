@@ -1,4 +1,5 @@
 import type { AuthUser } from '../types/AuthUser';
+import { parseApiResponse } from './http';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:4000/api';
 
@@ -7,36 +8,9 @@ type AuthSuccessResponse = {
   accessToken: string;
 };
 
-type MeResponse = {
-  user: AuthUser;
-};
-
 type GenericMessageResponse = {
   message: string;
 };
-
-type ApiErrorResponse = {
-  error?: string;
-};
-
-async function parseResponse<T>(response: Response, fallbackMessage: string): Promise<T> {
-  const text = await response.text();
-  const payload = text ? (JSON.parse(text) as T | ApiErrorResponse) : null;
-
-  if (!response.ok) {
-    const errorMessage =
-      payload &&
-      typeof payload === 'object' &&
-      'error' in payload &&
-      typeof payload.error === 'string' &&
-      payload.error
-        ? payload.error
-        : fallbackMessage;
-    throw new Error(errorMessage);
-  }
-
-  return payload as T;
-}
 
 export async function signUp(email: string, password: string) {
   const response = await fetch(`${API_BASE_URL}/auth/signup`, {
@@ -46,7 +20,7 @@ export async function signUp(email: string, password: string) {
     body: JSON.stringify({ email, password }),
   });
 
-  return parseResponse<GenericMessageResponse>(response, 'Failed to sign up');
+  return parseApiResponse<GenericMessageResponse>(response, 'Failed to sign up');
 }
 
 export async function signIn(email: string, password: string) {
@@ -57,7 +31,7 @@ export async function signIn(email: string, password: string) {
     body: JSON.stringify({ email, password }),
   });
 
-  return parseResponse<AuthSuccessResponse>(response, 'Failed to sign in');
+  return parseApiResponse<AuthSuccessResponse>(response, 'Failed to sign in');
 }
 
 export async function demoLogin() {
@@ -66,7 +40,7 @@ export async function demoLogin() {
     credentials: 'include',
   });
 
-  return parseResponse<AuthSuccessResponse>(response, 'Failed to start demo session');
+  return parseApiResponse<AuthSuccessResponse>(response, 'Failed to start demo session');
 }
 
 export async function signOut() {
@@ -75,7 +49,7 @@ export async function signOut() {
     credentials: 'include',
   });
 
-  await parseResponse<{ message: string }>(response, 'Failed to sign out');
+  await parseApiResponse<{ message: string }>(response, 'Failed to sign out');
 }
 
 export async function restoreSession() {
@@ -84,17 +58,7 @@ export async function restoreSession() {
     credentials: 'include',
   });
 
-  return parseResponse<AuthSuccessResponse>(response, 'Failed to restore session');
-}
-
-export async function getCurrentUser(accessToken: string) {
-  const response = await fetch(`${API_BASE_URL}/auth/me`, {
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-    },
-  });
-
-  return parseResponse<MeResponse>(response, 'Failed to fetch current user');
+  return parseApiResponse<AuthSuccessResponse>(response, 'Failed to restore session');
 }
 
 export async function requestPasswordReset(email: string) {
@@ -104,7 +68,7 @@ export async function requestPasswordReset(email: string) {
     body: JSON.stringify({ email }),
   });
 
-  return parseResponse<GenericMessageResponse>(response, 'Failed to send password reset email');
+  return parseApiResponse<GenericMessageResponse>(response, 'Failed to send password reset email');
 }
 
 export async function updatePassword(token: string, password: string) {
@@ -114,5 +78,5 @@ export async function updatePassword(token: string, password: string) {
     body: JSON.stringify({ token, password }),
   });
 
-  return parseResponse<GenericMessageResponse>(response, 'Failed to update password');
+  return parseApiResponse<GenericMessageResponse>(response, 'Failed to update password');
 }

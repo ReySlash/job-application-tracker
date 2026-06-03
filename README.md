@@ -38,6 +38,7 @@ The migration is not complete yet. Current behavior:
 - frontend auth state restores through `/api/auth/refresh` and stores the access token in memory
 - frontend application list/create/update/delete now use the protected backend API
 - demo reset works through `POST /api/applications/demo-reset`
+- expired demo users are cleaned up hourly while the backend process is running
 - backend CORS is enabled for credentialed frontend requests using `FRONTEND_URL`
 - forgot-password always returns a generic success message and can deliver reset emails through Gmail SMTP
 - reset-password validates the token, updates the password, marks outstanding reset tokens used, and revokes active refresh tokens

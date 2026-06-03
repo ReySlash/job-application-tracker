@@ -98,7 +98,7 @@ function mapDemoSeedsToCreateManyData(userId: string) {
 export async function cleanupExpiredDemoUsers() {
   const expiresBefore = new Date(Date.now() - DEMO_USER_TTL_MS);
 
-  await prisma.user.deleteMany({
+  const result = await prisma.user.deleteMany({
     where: {
       isDemo: true,
       createdAt: {
@@ -106,6 +106,8 @@ export async function cleanupExpiredDemoUsers() {
       },
     },
   });
+
+  return result.count;
 }
 
 export async function createDemoUser() {

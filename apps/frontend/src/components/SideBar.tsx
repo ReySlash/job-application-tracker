@@ -1,15 +1,18 @@
 import { useState } from 'react';
-import { NavLink, useNavigate } from 'react-router';
+import { NavLink } from 'react-router';
 import { resetDemoApplications } from '../api/applications';
 import { useAuth } from '../hooks/useAuth';
 import { queryClient } from '../lib/queryClient';
 import ThemeToggle from './ThemeToggle';
 
-function SideBar() {
-  const { accessToken, signOut, user } = useAuth();
-  const navigate = useNavigate();
-  const [isSigningOut, setIsSigningOut] = useState(false);
-  const [signOutError, setSignOutError] = useState<string | null>(null);
+type Props = {
+  openDialog: () => void;
+  isSigningOut: boolean;
+};
+
+function SideBar(props: Props) {
+  const { isSigningOut, openDialog } = props;
+  const { accessToken, user } = useAuth();
   const [isResettingDemo, setIsResettingDemo] = useState(false);
   const [demoResetMessage, setDemoResetMessage] = useState<string | null>(null);
   const [demoResetError, setDemoResetError] = useState<string | null>(null);
@@ -34,28 +37,6 @@ function SideBar() {
       setDemoResetError(error instanceof Error ? error.message : 'Failed to reset demo data.');
     } finally {
       setIsResettingDemo(false);
-    }
-  };
-
-  const handleSignOut = async () => {
-    if (isSigningOut) return;
-
-    setSignOutError(null);
-
-    if (!confirm('Are you sure you want to sign out?')) return;
-
-    setIsSigningOut(true);
-
-    try {
-      await signOut();
-      queryClient.clear();
-      navigate('/login', { replace: true });
-    } catch (error) {
-      setSignOutError(
-        error instanceof Error ? error.message : 'Failed to sign out. Please try again.',
-      );
-    } finally {
-      setIsSigningOut(false);
     }
   };
 
@@ -114,14 +95,6 @@ function SideBar() {
             {demoResetError}
           </p>
         )}
-        {signOutError && (
-          <p
-            className="mb-3 rounded border border-red-300 bg-red-100 px-3 py-2 text-sm text-red-700 dark:border-red-800 dark:bg-red-950/60 dark:text-red-200"
-            role="alert"
-          >
-            {signOutError}
-          </p>
-        )}
         {isDemoUser && (
           <button
             type="button"
@@ -135,7 +108,7 @@ function SideBar() {
         <button
           type="button"
           disabled={isSigningOut}
-          onClick={handleSignOut}
+          onClick={openDialog}
           className="w-full rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-70 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
         >
           {isSigningOut ? 'Signing out...' : 'Sign out'}

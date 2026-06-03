@@ -24,7 +24,10 @@ function renderSideBar() {
   return render(
     <MemoryRouter initialEntries={['/dashboard']}>
       <Routes>
-        <Route path="/dashboard" element={<SideBar />} />
+        <Route
+          path="/dashboard"
+          element={<SideBar openDialog={vi.fn()} isSigningOut={false} />}
+        />
         <Route path="/applications" element={<div>Applications page</div>} />
         <Route path="/login" element={<div>Login page</div>} />
       </Routes>

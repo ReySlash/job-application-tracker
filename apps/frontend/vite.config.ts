@@ -1,8 +1,8 @@
 import { defineConfig } from 'vitest/config';
 import tailwindcss from '@tailwindcss/vite';
 
-export default defineConfig(({ command }) => ({
-  base: command === 'build' ? '/job-application-tracker/' : '/',
+export default defineConfig({
+  base: '/',
   plugins: [tailwindcss()],
   test: {
     passWithNoTests: true,
@@ -53,4 +53,4 @@ export default defineConfig(({ command }) => ({
       },
     },
   },
-}));
+});

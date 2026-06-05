@@ -41,8 +41,6 @@ vi.mock('../src/modules/auth/auth-service.js', () => ({
 
 import { createApp } from '../src/app.js';
 
-const app = createApp();
-
 function createKnownRequestError(code: string) {
   return new Prisma.PrismaClientKnownRequestError('request failed', {
     code,
@@ -64,13 +62,37 @@ describe('auth routes', () => {
   });
 
   it('returns ok from the health endpoint', async () => {
+    const app = createApp();
     const response = await request(app).get('/health');
 
     expect(response.status).toBe(200);
     expect(response.body).toEqual({ status: 'ok' });
   });
 
+  it('returns ok from the readiness endpoint when the database check succeeds', async () => {
+    const readinessCheck = vi.fn().mockResolvedValue(undefined);
+    const app = createApp({ readinessCheck });
+
+    const response = await request(app).get('/ready');
+
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual({ status: 'ok', database: 'ok' });
+    expect(readinessCheck).toHaveBeenCalledTimes(1);
+  });
+
+  it('returns 503 from the readiness endpoint when the database check fails', async () => {
+    const readinessCheck = vi.fn().mockRejectedValue(new Error('db unavailable'));
+    const app = createApp({ readinessCheck });
+
+    const response = await request(app).get('/ready');
+
+    expect(response.status).toBe(503);
+    expect(response.body).toEqual({ status: 'error', database: 'unavailable' });
+    expect(readinessCheck).toHaveBeenCalledTimes(1);
+  });
+
   it('returns 201 from signup without setting a session cookie', async () => {
+    const app = createApp();
     createUser.mockResolvedValue({
       message: 'Account created. Check your email to verify your account before signing in.',
     });
@@ -88,6 +110,7 @@ describe('auth routes', () => {
   });
 
   it('maps duplicate signup errors to 409', async () => {
+    const app = createApp();
     createUser.mockRejectedValue(createKnownRequestError('P2002'));
 
     const response = await request(app).post('/api/auth/signup').send({
@@ -100,6 +123,7 @@ describe('auth routes', () => {
   });
 
   it('returns login auth data and sets the refresh cookie', async () => {
+    const app = createApp();
     login.mockResolvedValue({
       user: verifiedUser,
       accessToken: 'access-token',
@@ -121,6 +145,7 @@ describe('auth routes', () => {
   });
 
   it('returns AppError responses from login', async () => {
+    const app = createApp();
     login.mockRejectedValue(new AppError('Verify your email before signing in', 403));
 
     const response = await request(app).post('/api/auth/login').send({
@@ -133,6 +158,7 @@ describe('auth routes', () => {
   });
 
   it('returns auth data and rotates the cookie on refresh', async () => {
+    const app = createApp();
     refresh.mockResolvedValue({
       user: verifiedUser,
       accessToken: 'next-access-token',
@@ -153,6 +179,7 @@ describe('auth routes', () => {
   });
 
   it('always returns the generic forgot-password response', async () => {
+    const app = createApp();
     forgotPassword.mockRejectedValue(new Error('smtp failure'));
 
     const response = await request(app).post('/api/auth/forgot-password').send({
@@ -166,6 +193,7 @@ describe('auth routes', () => {
   });
 
   it('returns success from reset-password', async () => {
+    const app = createApp();
     resetPassword.mockResolvedValue(undefined);
 
     const response = await request(app).post('/api/auth/reset-password').send({
@@ -178,6 +206,7 @@ describe('auth routes', () => {
   });
 
   it('redirects verify-email to the frontend result URL', async () => {
+    const app = createApp();
     verifyEmail.mockResolvedValue('http://localhost:5173/verify-email?status=success');
 
     const response = await request(app).get('/api/auth/verify-email?token=verify-token');
@@ -187,6 +216,7 @@ describe('auth routes', () => {
   });
 
   it('clears the refresh cookie on logout', async () => {
+    const app = createApp();
     logout.mockResolvedValue(undefined);
 
     const response = await request(app)
@@ -199,6 +229,7 @@ describe('auth routes', () => {
   });
 
   it('rejects /me without a bearer token', async () => {
+    const app = createApp();
     const response = await request(app).get('/api/auth/me');
 
     expect(response.status).toBe(401);
@@ -206,6 +237,7 @@ describe('auth routes', () => {
   });
 
   it('returns the current user for a valid bearer token', async () => {
+    const app = createApp();
     getCurrentUser.mockResolvedValue(verifiedUser);
     const accessToken = generateAccessToken({
       userId: verifiedUser.id,

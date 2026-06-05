@@ -3,12 +3,18 @@ import cors from 'cors';
 import express from 'express';
 
 import { env } from './config/env.js';
+import { checkDatabaseConnection } from './db.js';
 import applicationsRouter from './modules/applications/applications-routes.js';
 import authRouter from './modules/auth/auth-routes.js';
 
-export function createApp() {
+type CreateAppOptions = {
+  readinessCheck?: () => Promise<void>;
+};
+
+export function createApp(options: CreateAppOptions = {}) {
   const app = express();
   const allowedOrigins = new Set(env.frontendUrls);
+  const readinessCheck = options.readinessCheck ?? checkDatabaseConnection;
 
   // Middleware
   app.use(
@@ -32,10 +38,19 @@ export function createApp() {
     res.status(200).json({ status: 'ok' });
   });
 
+  app.get('/ready', async (_req, res) => {
+    try {
+      await readinessCheck();
+      res.status(200).json({ status: 'ok', database: 'ok' });
+    } catch (error) {
+      console.error('Database readiness check failed', error);
+      res.status(503).json({ status: 'error', database: 'unavailable' });
+    }
+  });
+
   // Routers
   app.use('/api/applications', applicationsRouter);
   app.use('/api/auth', authRouter);
-
 
   return app;
 }

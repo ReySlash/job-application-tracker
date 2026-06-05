@@ -31,6 +31,21 @@ function getTransporter() {
   return cachedTransporter;
 }
 
+export function getEmailConfigurationSummary() {
+  return {
+    gmailUserConfigured: Boolean(env.gmailUser),
+    gmailAppPasswordConfigured: Boolean(env.gmailAppPassword),
+    emailFrom: env.emailFrom ?? env.gmailUser ?? null,
+    backendUrl: env.backendUrl,
+    frontendVerifyEmailUrl: env.frontendVerifyEmailUrl,
+    frontendResetPasswordUrl: env.frontendResetPasswordUrl,
+  };
+}
+
+export async function verifyEmailTransport() {
+  await getTransporter().verify();
+}
+
 export async function sendEmail(options: SendEmailOptions) {
   await getTransporter().sendMail({
     from: env.emailFrom ?? env.gmailUser,

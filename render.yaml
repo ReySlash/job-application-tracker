@@ -7,7 +7,7 @@ services:
     # pnpm --filter backend exec prisma migrate deploy
     buildCommand: pnpm install --frozen-lockfile && pnpm --filter backend prisma:generate && pnpm --filter backend build
     startCommand: pnpm --filter backend start
-    healthCheckPath: /health
+    healthCheckPath: /ready
     autoDeploy: false
     envVars:
       - key: NODE_ENV

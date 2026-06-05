@@ -207,6 +207,12 @@ async function sendVerificationEmail(user: { id: string; email: string }) {
   });
 }
 
+async function rollbackUserAfterFailedSignup(userId: string) {
+  await prisma.user.delete({
+    where: { id: userId },
+  });
+}
+
 export async function createDemoLogin(): Promise<AuthResult> {
   const user = await createDemoUser();
   return issueAuthTokens(toAuthUser(user));
@@ -223,7 +229,12 @@ export async function createUser(email: string, password: string): Promise<Signu
     },
   });
 
-  await sendVerificationEmail(user);
+  try {
+    await sendVerificationEmail(user);
+  } catch (error) {
+    await rollbackUserAfterFailedSignup(user.id);
+    throw error;
+  }
 
   return {
     message: 'Account created. Check your email to verify your account before signing in.',
@@ -370,11 +381,19 @@ export async function forgotPassword(email: string): Promise<void> {
       fallbackLogMessage: `Password reset link for ${user.email}: ${resetUrlString}`,
     });
   } catch (error) {
+    await prisma.passwordResetToken.deleteMany({
+      where: {
+        tokenHash,
+        userId: user.id,
+      },
+    });
+
     console.error('Failed to send password reset email', {
       email: user.email,
       error,
       gmailUserConfigured: Boolean(env.gmailUser),
       gmailAppPasswordConfigured: Boolean(env.gmailAppPassword),
+      frontendResetPasswordUrl: env.frontendResetPasswordUrl,
     });
   }
 }

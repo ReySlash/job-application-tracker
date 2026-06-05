@@ -32,7 +32,7 @@ function getNumberEnvValue(value: string | undefined, fallback: number) {
 }
 
 function getDefaultFrontendPageUrl(pathname: string) {
-  return `${frontendUrlValue ?? DEFAULT_FRONTEND_URL}${pathname}`;
+  return `${frontendUrls[0] ?? DEFAULT_FRONTEND_URL}${pathname}`;
 }
 
 // Centralized environment configuration

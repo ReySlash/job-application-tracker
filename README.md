@@ -261,10 +261,11 @@ Staging URL topology:
 Operational expectations:
 
 - `render.yaml` intentionally builds and starts the backend only; it does not run Prisma migrations automatically for the first deploy
-- Render health checks should continue using `GET /health`
-- `GET /health` is a process health endpoint, not a database readiness endpoint
+- Render health checks should use `GET /ready`
+- `GET /health` remains a process health endpoint, not a database readiness endpoint
 - Cross-origin refresh auth in production depends on `HttpOnly`, `Secure`, `SameSite=None` cookies and a working `POST /api/auth/refresh` flow after a browser reload
 - No staged runtime path should depend on Supabase
+- Use `pnpm --filter backend email:verify` in the backend runtime to confirm SMTP env wiring before debugging missing verification/reset emails
 
 ## Migration Verification
 

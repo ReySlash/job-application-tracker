@@ -76,6 +76,10 @@ export const signupHandler: RequestHandler = async (req, res) => {
     console.error('Signup flow failed', {
       email,
       error,
+      gmailUserConfigured: Boolean(env.gmailUser),
+      gmailAppPasswordConfigured: Boolean(env.gmailAppPassword),
+      backendUrl: env.backendUrl,
+      frontendVerifyEmailUrl: env.frontendVerifyEmailUrl,
     });
 
     return res.status(500).json(GENERIC_SERVER_ERROR);
@@ -141,6 +145,9 @@ export const forgotPasswordHandler: RequestHandler = async (req, res) => {
     console.error('Forgot password flow failed', {
       email: validationResult.data.email,
       error,
+      gmailUserConfigured: Boolean(env.gmailUser),
+      gmailAppPasswordConfigured: Boolean(env.gmailAppPassword),
+      frontendResetPasswordUrl: env.frontendResetPasswordUrl,
     });
 
     return res.status(200).json(FORGOT_PASSWORD_SUCCESS_MESSAGE);

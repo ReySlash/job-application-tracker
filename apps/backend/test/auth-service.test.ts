@@ -20,6 +20,7 @@ const {
   const prisma = {
     user: {
       create: vi.fn(),
+      delete: vi.fn(),
       findUnique: vi.fn(),
       update: vi.fn(),
     },
@@ -31,6 +32,7 @@ const {
     },
     passwordResetToken: {
       create: vi.fn(),
+      deleteMany: vi.fn(),
       findFirst: vi.fn(),
       updateMany: vi.fn(),
     },
@@ -174,6 +176,29 @@ describe('auth-service', () => {
     );
   });
 
+  it('rolls back signup when verification email delivery fails', async () => {
+    mockPrisma.user.create.mockResolvedValue({
+      ...unverifiedUser,
+      passwordHash: 'hashed-password',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+    mockPrisma.emailVerificationToken.create.mockResolvedValue({
+      id: 'verify-token-1',
+      tokenHash: 'verify-hash:verify-raw-token',
+    });
+    mockPrisma.user.delete.mockResolvedValue(unverifiedUser);
+    mockSendEmail.mockRejectedValue(new Error('smtp failure'));
+
+    await expect(createUser('pending@example.com', 'Password123!')).rejects.toThrow('smtp failure');
+
+    expect(mockPrisma.user.delete).toHaveBeenCalledWith({
+      where: {
+        id: unverifiedUser.id,
+      },
+    });
+  });
+
   it('rejects login for unverified non-demo users', async () => {
     const passwordHash = await bcrypt.hash('Password123!', 10);
 
@@ -244,6 +269,30 @@ describe('auth-service', () => {
         subject: 'Reset password',
       }),
     );
+  });
+
+  it('removes a password reset token when email delivery fails', async () => {
+    mockPrisma.user.findUnique.mockResolvedValue({
+      ...verifiedUser,
+      passwordHash: 'hashed-password',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+    mockPrisma.passwordResetToken.create.mockResolvedValue({
+      id: 'password-reset-1',
+      tokenHash: 'reset-hash:reset-raw-token',
+    });
+    mockPrisma.passwordResetToken.deleteMany.mockResolvedValue({ count: 1 });
+    mockSendEmail.mockRejectedValue(new Error('smtp failure'));
+
+    await forgotPassword(verifiedUser.email);
+
+    expect(mockPrisma.passwordResetToken.deleteMany).toHaveBeenCalledWith({
+      where: {
+        tokenHash: 'reset-hash:reset-raw-token',
+        userId: verifiedUser.id,
+      },
+    });
   });
 
   it('marks the password as updated and revokes active tokens on password reset', async () => {

@@ -57,11 +57,26 @@ COOKIE_DOMAIN=
 
 ## Runtime expectations
 
-- Render health checks use `GET /health`
-- `/health` only confirms the app process is running; it is not a database readiness check
+- Render health checks use `GET /ready`
+- `GET /health` is liveness-only
+- `GET /ready` must confirm both the app process and Neon connectivity
 - Production refresh cookies must be `HttpOnly`, `Secure`, and `SameSite=None`
 - Session restore must work through `POST /api/auth/refresh` after a full browser reload
 - Verification and reset emails must link to the deployed frontend pages, not localhost
+
+## Email preflight
+
+Before treating email delivery failures as application bugs, verify the Render runtime email config directly:
+
+```bash
+pnpm --filter backend email:verify
+```
+
+Expected behavior:
+
+- prints whether `GMAIL_USER`, `GMAIL_APP_PASSWORD`, `EMAIL_FROM`, `BACKEND_URL`, `FRONTEND_VERIFY_EMAIL_URL`, and `FRONTEND_RESET_PASSWORD_URL` resolve as expected
+- verifies the configured SMTP transport without sending an email
+- exits non-zero if required email env values are missing or Gmail SMTP verification fails
 
 ## Release blockers
 

@@ -8,4 +8,8 @@ const prisma: PrismaClientType = new PrismaClient({
   adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL! }),
 });
 
+export async function checkDatabaseConnection() {
+  await prisma.$queryRawUnsafe('SELECT 1');
+}
+
 export default prisma;

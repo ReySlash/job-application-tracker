@@ -4,6 +4,7 @@ const {
   fetchMock,
   getFirebaseAuthMock,
   createUserWithEmailAndPasswordMock,
+  onIdTokenChangedMock,
   signInWithEmailAndPasswordMock,
   sendEmailVerificationMock,
   sendPasswordResetEmailMock,
@@ -14,6 +15,7 @@ const {
   fetchMock: vi.fn(),
   getFirebaseAuthMock: vi.fn(),
   createUserWithEmailAndPasswordMock: vi.fn(),
+  onIdTokenChangedMock: vi.fn(),
   signInWithEmailAndPasswordMock: vi.fn(),
   sendEmailVerificationMock: vi.fn(),
   sendPasswordResetEmailMock: vi.fn(),
@@ -32,7 +34,7 @@ vi.mock('firebase/auth', () => ({
   applyActionCode: applyActionCodeMock,
   confirmPasswordReset: confirmPasswordResetMock,
   createUserWithEmailAndPassword: createUserWithEmailAndPasswordMock,
-  onIdTokenChanged: vi.fn(),
+  onIdTokenChanged: onIdTokenChangedMock,
   sendEmailVerification: sendEmailVerificationMock,
   sendPasswordResetEmail: sendPasswordResetEmailMock,
   signInWithEmailAndPassword: signInWithEmailAndPasswordMock,
@@ -41,6 +43,8 @@ vi.mock('firebase/auth', () => ({
 
 import {
   demoLogin,
+  getAuthStateFromFirebaseUser,
+  observeFirebaseAuthState,
   requestPasswordReset,
   restoreSession,
   signIn,
@@ -71,6 +75,7 @@ describe('auth API wrappers', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     getFirebaseAuthMock.mockReturnValue({ currentUser: null });
+    onIdTokenChangedMock.mockReturnValue(() => undefined);
   });
 
   it('signUp creates a Firebase user, sends verification email, and signs the user out', async () => {
@@ -93,6 +98,24 @@ describe('auth API wrappers', () => {
       }),
     );
     expect(signOutFromFirebaseMock).toHaveBeenCalledWith(auth);
+  });
+
+  it('signUp maps Firebase signup errors and preserves missing-config messages', async () => {
+    const auth = { currentUser: null };
+    getFirebaseAuthMock.mockReturnValue(auth);
+
+    createUserWithEmailAndPasswordMock.mockRejectedValueOnce({ code: 'auth/email-already-in-use' });
+    await expect(signUp('user@example.com', 'secret123')).rejects.toThrow('User already exists');
+
+    createUserWithEmailAndPasswordMock.mockRejectedValueOnce(
+      new Error('Missing Firebase frontend configuration: VITE_FIREBASE_API_KEY'),
+    );
+    await expect(signUp('user@example.com', 'secret123')).rejects.toThrow(
+      'Missing Firebase frontend configuration: VITE_FIREBASE_API_KEY',
+    );
+
+    createUserWithEmailAndPasswordMock.mockRejectedValueOnce(new Error('Unexpected failure'));
+    await expect(signUp('user@example.com', 'secret123')).rejects.toThrow('Failed to sign up');
   });
 
   it('signIn authenticates with Firebase and returns the mapped auth state', async () => {
@@ -121,6 +144,19 @@ describe('auth API wrappers', () => {
 
     await expect(signIn('user@example.com', 'secret123')).rejects.toThrow('Verify your email before signing in');
     expect(signOutFromFirebaseMock).toHaveBeenCalledWith(auth);
+  });
+
+  it('signIn maps Firebase credential and rate-limit errors', async () => {
+    const auth = { currentUser: null };
+    getFirebaseAuthMock.mockReturnValue(auth);
+
+    signInWithEmailAndPasswordMock.mockRejectedValueOnce({ code: 'auth/invalid-login-credentials' });
+    await expect(signIn('user@example.com', 'secret123')).rejects.toThrow('Invalid email or password');
+
+    signInWithEmailAndPasswordMock.mockRejectedValueOnce({ code: 'auth/too-many-requests' });
+    await expect(signIn('user@example.com', 'secret123')).rejects.toThrow(
+      'Too many attempts. Please try again later.',
+    );
   });
 
   it('restoreSession uses the backend refresh endpoint with cookies included', async () => {
@@ -185,6 +221,19 @@ describe('auth API wrappers', () => {
     );
   });
 
+  it('requestPasswordReset maps Firebase reset-email errors', async () => {
+    const auth = { currentUser: null };
+    getFirebaseAuthMock.mockReturnValue(auth);
+
+    sendPasswordResetEmailMock.mockRejectedValueOnce({ code: 'auth/user-not-found' });
+    await expect(requestPasswordReset('user@example.com')).rejects.toThrow('Invalid email or password');
+
+    sendPasswordResetEmailMock.mockRejectedValueOnce({ code: 'auth/weak-password' });
+    await expect(requestPasswordReset('user@example.com')).rejects.toThrow(
+      'Password must be at least 8 characters',
+    );
+  });
+
   it('updatePassword completes the Firebase password reset flow', async () => {
     const auth = { currentUser: null };
     getFirebaseAuthMock.mockReturnValue(auth);
@@ -196,6 +245,21 @@ describe('auth API wrappers', () => {
     expect(confirmPasswordResetMock).toHaveBeenCalledWith(auth, 'oob-code-123', 'new-secret123');
   });
 
+  it('updatePassword maps expired and fallback errors', async () => {
+    const auth = { currentUser: null };
+    getFirebaseAuthMock.mockReturnValue(auth);
+
+    confirmPasswordResetMock.mockRejectedValueOnce({ code: 'auth/expired-action-code' });
+    await expect(updatePassword('oob-code-123', 'new-secret123')).rejects.toThrow(
+      'This link is invalid or has expired.',
+    );
+
+    confirmPasswordResetMock.mockRejectedValueOnce(new Error('Unexpected failure'));
+    await expect(updatePassword('oob-code-123', 'new-secret123')).rejects.toThrow(
+      'Failed to update password',
+    );
+  });
+
   it('verifyEmail applies the Firebase action code', async () => {
     const auth = { currentUser: null };
     getFirebaseAuthMock.mockReturnValue(auth);
@@ -205,5 +269,73 @@ describe('auth API wrappers', () => {
       message: 'Your email has been verified. You can sign in now.',
     });
     expect(applyActionCodeMock).toHaveBeenCalledWith(auth, 'oob-code-123');
+  });
+
+  it('verifyEmail maps invalid action-code errors', async () => {
+    const auth = { currentUser: null };
+    getFirebaseAuthMock.mockReturnValue(auth);
+    applyActionCodeMock.mockRejectedValueOnce({ code: 'auth/invalid-action-code' });
+
+    await expect(verifyEmail('oob-code-123')).rejects.toThrow('This link is invalid or has expired.');
+  });
+
+  it('getAuthStateFromFirebaseUser maps the Firebase user and token', async () => {
+    const firebaseUser = {
+      uid: 'firebase-user-1',
+      email: null,
+      emailVerified: true,
+      getIdToken: vi.fn().mockResolvedValue('fresh-token'),
+    };
+
+    await expect(
+      getAuthStateFromFirebaseUser(firebaseUser as never),
+    ).resolves.toEqual({
+      user: {
+        id: 'firebase-user-1',
+        email: '',
+        isDemo: false,
+        isEmailVerified: true,
+      },
+      accessToken: 'fresh-token',
+    });
+  });
+
+  it('observeFirebaseAuthState emits both null and authenticated Firebase states', async () => {
+    const listener = vi.fn().mockResolvedValue(undefined);
+    let capturedHandler: ((user: ReturnType<typeof createFirebaseUser> | null) => Promise<void>) | undefined;
+
+    onIdTokenChangedMock.mockImplementation((_auth, handler) => {
+      capturedHandler = handler;
+      return () => undefined;
+    });
+
+    const unsubscribe = observeFirebaseAuthState(listener);
+
+    await capturedHandler?.(null);
+    await capturedHandler?.(createFirebaseUser({ token: 'observed-token' }));
+
+    expect(listener).toHaveBeenNthCalledWith(1, null);
+    expect(listener).toHaveBeenNthCalledWith(2, {
+      user: {
+        id: 'firebase-user-1',
+        email: 'user@example.com',
+        isDemo: false,
+        isEmailVerified: true,
+      },
+      accessToken: 'observed-token',
+    });
+    expect(typeof unsubscribe).toBe('function');
+  });
+
+  it('observeFirebaseAuthState falls back to a null auth state when Firebase setup throws', async () => {
+    const listener = vi.fn().mockResolvedValue(undefined);
+    getFirebaseAuthMock.mockImplementation(() => {
+      throw new Error('Missing Firebase frontend configuration: VITE_FIREBASE_API_KEY');
+    });
+
+    const unsubscribe = observeFirebaseAuthState(listener);
+
+    expect(listener).toHaveBeenCalledWith(null);
+    expect(typeof unsubscribe).toBe('function');
   });
 });

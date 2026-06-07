@@ -66,6 +66,7 @@ Use [backend-migration-plan.md](/Users/reynaldocarmenatearias/Documents/ReactPro
 - TypeScript
 - Prisma
 - Neon Postgres
+- Firebase Admin SDK
 - Zod
 - bcrypt
 - jsonwebtoken
@@ -96,16 +97,19 @@ job-application-tracker/
 
 `apps/backend/.env` is the source of truth for Prisma and backend runtime configuration.
 
-Current required variables:
+Core backend variables:
 
 ```env
 DATABASE_URL=your-neon-connection-string
 JWT_SECRET=replace-this-with-a-real-secret
 FRONTEND_URL=http://localhost:5173
+BACKEND_URL=http://localhost:4000
 FIREBASE_PROJECT_ID=your-firebase-project-id
 FIREBASE_CLIENT_EMAIL=firebase-adminsdk-xxxxx@your-project-id.iam.gserviceaccount.com
 FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n"
 ```
+
+These are the production-required backend variables. Local development typically uses the localhost URL defaults shown above.
 
 Optional backend auth tuning variables:
 
@@ -258,12 +262,10 @@ Provider-specific environment contract:
   - `FIREBASE_PROJECT_ID`
   - `FIREBASE_CLIENT_EMAIL`
   - `FIREBASE_PRIVATE_KEY`
-  - `GMAIL_USER`
-  - `GMAIL_APP_PASSWORD`
-  - `EMAIL_FROM`
   - `FRONTEND_RESET_PASSWORD_URL`
   - `FRONTEND_VERIFY_EMAIL_URL`
   - optional `COOKIE_DOMAIN`
+  - legacy-only if you still exercise backend-owned email routes: `GMAIL_USER`, `GMAIL_APP_PASSWORD`, `EMAIL_FROM`
 
 Staging URL topology:
 

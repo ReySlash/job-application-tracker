@@ -1,20 +1,20 @@
 # Job Application Tracker
 
-Job Application Tracker is being migrated from a frontend-direct Supabase app to a monorepo full-stack architecture:
+Job Application Tracker now runs as a monorepo full-stack application:
 
 ```txt
 React frontend -> Express API -> Prisma -> Neon Postgres
 ```
 
-The stable deployed app still lives on the Supabase-based implementation, while the active migration work happens on `migration/express-prisma-neon`.
+The Supabase to Express/Prisma/Neon migration is complete on `migration/express-prisma-neon`, and this branch contains the verified post-migration application.
 
 ## Current Status
 
-- `apps/frontend` contains the existing React application
-- `apps/backend` contains the new Express/Prisma backend scaffold
+- `apps/frontend` contains the React client application
+- `apps/backend` contains the Express/Prisma backend
 - Prisma and the backend runtime are configured to use `apps/backend/.env`
 - Prisma migration history is checked into the backend workspace
-- backend auth routes currently implemented:
+- backend auth routes are implemented:
   - `POST /api/auth/demo-login`
   - `POST /api/auth/logout`
   - `POST /api/auth/refresh`
@@ -24,9 +24,6 @@ The stable deployed app still lives on the Supabase-based implementation, while 
 - frontend auth is wired to Firebase Authentication for real users
 - frontend applications CRUD is wired to the backend applications API
 - frontend and backend automated test suites are in place
-
-The migration is not complete yet. Current behavior:
-
 - signup creates a Firebase-authenticated user and sends a Firebase-managed verification email
 - verified users sign in through Firebase and call the Express API with Firebase ID tokens
 - demo login works through `POST /api/auth/demo-login`
@@ -38,9 +35,9 @@ The migration is not complete yet. Current behavior:
 - forgot-password, password reset, and email verification are handled by Firebase-managed email actions
 - backend middleware verifies Firebase ID tokens and upserts Prisma users by `firebaseUid`
 - Supabase is no longer required by the active frontend/backend auth flow
-- deployment verification and the AGENTS merge checklist are complete pending branch merge into `main`
+- deployment verification is complete and the branch is ready for final review and merge into `main`
 
-Use [backend-migration-plan.md](/Users/reynaldocarmenatearias/Documents/ReactProjects/job-application-tracker/backend-migration-plan.md) as the target architecture, not as a claim that all milestones listed there are already complete.
+Use [backend-migration-plan.md](/Users/reynaldocarmenatearias/Documents/ReactProjects/job-application-tracker/backend-migration-plan.md) as a historical implementation roadmap.
 
 ## Tech Stack
 
@@ -55,7 +52,7 @@ Use [backend-migration-plan.md](/Users/reynaldocarmenatearias/Documents/ReactPro
 - React Hook Form
 - Zod
 
-### Backend Migration Target
+### Backend
 
 - Express
 - TypeScript
@@ -201,7 +198,7 @@ In production, the backend fails fast if `DATABASE_URL`, `JWT_SECRET`, `FRONTEND
 
 ## Deployment Targets
 
-The migration target is:
+The current deployment architecture is:
 
 - frontend deployed from `apps/frontend` to Vercel
 - backend deployed from the monorepo to Render using [render.yaml](/Users/reynaldocarmenatearias/Documents/ReactProjects/job-application-tracker/render.yaml:1)
@@ -211,7 +208,7 @@ Files added for deployment wiring:
 - [apps/frontend/vercel.json](/Users/reynaldocarmenatearias/Documents/ReactProjects/job-application-tracker/apps/frontend/vercel.json:1) adds SPA rewrites for the Vercel frontend
 - [render.yaml](/Users/reynaldocarmenatearias/Documents/ReactProjects/job-application-tracker/render.yaml:1) defines the backend service blueprint and production env keys
 
-The old GitHub Pages deployment workflow has been removed from this branch because GitHub Pages is not the deployment target for the migrated stack.
+The old GitHub Pages deployment workflow has been removed from this branch because GitHub Pages is not the deployment target for the current stack.
 
 ## Staging Deployment Flow
 
@@ -259,7 +256,7 @@ Operational expectations:
 
 ## Migration Verification
 
-Use [docs/migration-verification-checklist.md](/Users/reynaldocarmenatearias/Documents/ReactProjects/job-application-tracker/docs/migration-verification-checklist.md:1) to record the final AGENTS merge checks before merging this branch into `main`.
+The completed verification record lives in [docs/migration-verification-checklist.md](/Users/reynaldocarmenatearias/Documents/ReactProjects/job-application-tracker/docs/migration-verification-checklist.md:1).
 
 ## Database State
 
@@ -280,8 +277,8 @@ apps/backend/prisma/migrations/20260607000200_remove_legacy_auth_artifacts/migra
 
 ## Notes
 
-- The current production deployment should not be switched to the new backend until the migration is complete and manually verified.
-- For the implementation roadmap, use [backend-migration-plan.md](/Users/reynaldocarmenatearias/Documents/ReactProjects/job-application-tracker/backend-migration-plan.md).
+- The migration work on `migration/express-prisma-neon` is complete and verified; the remaining repository step is merging this branch into `main`.
+- For the implementation roadmap and historical scope, use [backend-migration-plan.md](/Users/reynaldocarmenatearias/Documents/ReactProjects/job-application-tracker/backend-migration-plan.md).
 - The backend still uses `JWT_SECRET` for demo-session tokens and falls back to a development-only default if it is missing. Do not rely on that fallback outside local development.
 - In production, refresh cookies are configured as `SameSite=None` and `Secure=true` for cross-origin frontend/backend deployments.
 

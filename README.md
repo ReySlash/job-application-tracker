@@ -43,7 +43,7 @@ The migration is not complete yet. Current behavior:
 - forgot-password and email verification are handled by Firebase-managed email actions
 - backend middleware verifies Firebase ID tokens and upserts Prisma users by `firebaseUid`
 - Supabase is no longer required by the active frontend/backend auth flow
-- deployment verification and the AGENTS merge checklist are still pending manual signoff
+- deployment verification and the AGENTS merge checklist are complete pending branch merge into `main`
 
 Use [backend-migration-plan.md](/Users/reynaldocarmenatearias/Documents/ReactProjects/job-application-tracker/backend-migration-plan.md) as the target architecture, not as a claim that all milestones listed there are already complete.
 

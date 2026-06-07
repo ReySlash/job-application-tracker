@@ -1,10 +1,43 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-const { fetchMock } = vi.hoisted(() => ({
+const {
+  fetchMock,
+  getFirebaseAuthMock,
+  createUserWithEmailAndPasswordMock,
+  signInWithEmailAndPasswordMock,
+  sendEmailVerificationMock,
+  sendPasswordResetEmailMock,
+  confirmPasswordResetMock,
+  applyActionCodeMock,
+  signOutFromFirebaseMock,
+} = vi.hoisted(() => ({
   fetchMock: vi.fn(),
+  getFirebaseAuthMock: vi.fn(),
+  createUserWithEmailAndPasswordMock: vi.fn(),
+  signInWithEmailAndPasswordMock: vi.fn(),
+  sendEmailVerificationMock: vi.fn(),
+  sendPasswordResetEmailMock: vi.fn(),
+  confirmPasswordResetMock: vi.fn(),
+  applyActionCodeMock: vi.fn(),
+  signOutFromFirebaseMock: vi.fn(),
 }));
 
 vi.stubGlobal('fetch', fetchMock);
+
+vi.mock('../lib/firebase', () => ({
+  getFirebaseAuth: getFirebaseAuthMock,
+}));
+
+vi.mock('firebase/auth', () => ({
+  applyActionCode: applyActionCodeMock,
+  confirmPasswordReset: confirmPasswordResetMock,
+  createUserWithEmailAndPassword: createUserWithEmailAndPasswordMock,
+  onIdTokenChanged: vi.fn(),
+  sendEmailVerification: sendEmailVerificationMock,
+  sendPasswordResetEmail: sendPasswordResetEmailMock,
+  signInWithEmailAndPassword: signInWithEmailAndPasswordMock,
+  signOut: signOutFromFirebaseMock,
+}));
 
 import {
   demoLogin,
@@ -14,6 +47,7 @@ import {
   signOut,
   signUp,
   updatePassword,
+  verifyEmail,
 } from './auth';
 
 function jsonResponse(body: unknown, init: ResponseInit = {}) {
@@ -24,45 +58,73 @@ function jsonResponse(body: unknown, init: ResponseInit = {}) {
   });
 }
 
+function createFirebaseUser(overrides: Partial<{ email: string; emailVerified: boolean; uid: string; token: string }> = {}) {
+  return {
+    uid: overrides.uid ?? 'firebase-user-1',
+    email: overrides.email ?? 'user@example.com',
+    emailVerified: overrides.emailVerified ?? true,
+    getIdToken: vi.fn().mockResolvedValue(overrides.token ?? 'firebase-token'),
+  };
+}
+
 describe('auth API wrappers', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    getFirebaseAuthMock.mockReturnValue({ currentUser: null });
   });
 
-  it('signUp posts credentials to the backend auth API', async () => {
-    const data = { message: 'Account created. Check your email to verify your account before signing in.' };
-    fetchMock.mockResolvedValue(jsonResponse(data));
+  it('signUp creates a Firebase user, sends verification email, and signs the user out', async () => {
+    const auth = { currentUser: null };
+    const user = createFirebaseUser({ emailVerified: false });
+    getFirebaseAuthMock.mockReturnValue(auth);
+    createUserWithEmailAndPasswordMock.mockResolvedValue({ user });
+    sendEmailVerificationMock.mockResolvedValue(undefined);
+    signOutFromFirebaseMock.mockResolvedValue(undefined);
 
-    await expect(signUp('user@example.com', 'secret123')).resolves.toEqual(data);
-    expect(fetchMock).toHaveBeenCalledWith(
-      'http://localhost:4000/api/auth/signup',
+    await expect(signUp('user@example.com', 'secret123')).resolves.toEqual({
+      message: 'Account created. Check your email to verify your account before signing in.',
+    });
+
+    expect(createUserWithEmailAndPasswordMock).toHaveBeenCalledWith(auth, 'user@example.com', 'secret123');
+    expect(sendEmailVerificationMock).toHaveBeenCalledWith(
+      user,
       expect.objectContaining({
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: 'user@example.com', password: 'secret123' }),
+        handleCodeInApp: true,
       }),
     );
+    expect(signOutFromFirebaseMock).toHaveBeenCalledWith(auth);
   });
 
-  it('signIn posts credentials to the backend auth API', async () => {
-    const data = { user: { id: 'user-1' }, accessToken: 'token' };
-    fetchMock.mockResolvedValue(jsonResponse(data));
+  it('signIn authenticates with Firebase and returns the mapped auth state', async () => {
+    const auth = { currentUser: null };
+    const user = createFirebaseUser();
+    getFirebaseAuthMock.mockReturnValue(auth);
+    signInWithEmailAndPasswordMock.mockResolvedValue({ user });
 
-    await expect(signIn('user@example.com', 'secret123')).resolves.toEqual(data);
-    expect(fetchMock).toHaveBeenCalledWith(
-      'http://localhost:4000/api/auth/login',
-      expect.objectContaining({
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: 'user@example.com', password: 'secret123' }),
-      }),
-    );
+    await expect(signIn('user@example.com', 'secret123')).resolves.toEqual({
+      user: {
+        id: 'firebase-user-1',
+        email: 'user@example.com',
+        isDemo: false,
+        isEmailVerified: true,
+      },
+      accessToken: 'firebase-token',
+    });
+  });
+
+  it('signIn blocks unverified Firebase users', async () => {
+    const auth = { currentUser: null };
+    const user = createFirebaseUser({ emailVerified: false });
+    getFirebaseAuthMock.mockReturnValue(auth);
+    signInWithEmailAndPasswordMock.mockResolvedValue({ user });
+    signOutFromFirebaseMock.mockResolvedValue(undefined);
+
+    await expect(signIn('user@example.com', 'secret123')).rejects.toThrow('Verify your email before signing in');
+    expect(signOutFromFirebaseMock).toHaveBeenCalledWith(auth);
   });
 
   it('restoreSession uses the backend refresh endpoint with cookies included', async () => {
-    const data = { user: { id: 'user-1' }, accessToken: 'token' };
+    const data = { user: { id: 'demo-user-1', isDemo: true }, accessToken: 'demo-token' };
     fetchMock.mockResolvedValue(jsonResponse(data));
 
     await expect(restoreSession()).resolves.toEqual(data);
@@ -75,10 +137,14 @@ describe('auth API wrappers', () => {
     );
   });
 
-  it('signOut calls the backend logout endpoint', async () => {
+  it('signOut signs out Firebase and clears the backend demo session cookie', async () => {
+    const auth = { currentUser: createFirebaseUser() };
+    getFirebaseAuthMock.mockReturnValue(auth);
+    signOutFromFirebaseMock.mockResolvedValue(undefined);
     fetchMock.mockResolvedValue(jsonResponse({ message: 'Logged out successfully' }));
 
     await expect(signOut()).resolves.toBeUndefined();
+    expect(signOutFromFirebaseMock).toHaveBeenCalledWith(auth);
     expect(fetchMock).toHaveBeenCalledWith(
       'http://localhost:4000/api/auth/logout',
       expect.objectContaining({
@@ -102,67 +168,42 @@ describe('auth API wrappers', () => {
     );
   });
 
-  it('requestPasswordReset posts the email to the backend forgot-password route', async () => {
-    const data = { message: 'If that email is registered, a password reset link has been sent.' };
-    fetchMock.mockResolvedValue(jsonResponse(data));
+  it('requestPasswordReset uses Firebase password reset email delivery', async () => {
+    const auth = { currentUser: null };
+    getFirebaseAuthMock.mockReturnValue(auth);
+    sendPasswordResetEmailMock.mockResolvedValue(undefined);
 
-    await expect(requestPasswordReset('user@example.com')).resolves.toEqual(data);
-    expect(fetchMock).toHaveBeenCalledWith(
-      'http://localhost:4000/api/auth/forgot-password',
+    await expect(requestPasswordReset('user@example.com')).resolves.toEqual({
+      message: 'If that email is registered, a password reset link has been sent.',
+    });
+    expect(sendPasswordResetEmailMock).toHaveBeenCalledWith(
+      auth,
+      'user@example.com',
       expect.objectContaining({
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: 'user@example.com' }),
+        handleCodeInApp: true,
       }),
     );
   });
 
-  it('updatePassword posts the token and new password to the backend', async () => {
-    const data = { message: 'Password updated successfully' };
-    fetchMock.mockResolvedValue(jsonResponse(data));
+  it('updatePassword completes the Firebase password reset flow', async () => {
+    const auth = { currentUser: null };
+    getFirebaseAuthMock.mockReturnValue(auth);
+    confirmPasswordResetMock.mockResolvedValue(undefined);
 
-    await expect(updatePassword('reset-token-123', 'new-secret123')).resolves.toEqual(data);
-    expect(fetchMock).toHaveBeenCalledWith(
-      'http://localhost:4000/api/auth/reset-password',
-      expect.objectContaining({
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token: 'reset-token-123', password: 'new-secret123' }),
-      }),
-    );
+    await expect(updatePassword('oob-code-123', 'new-secret123')).resolves.toEqual({
+      message: 'Password updated successfully',
+    });
+    expect(confirmPasswordResetMock).toHaveBeenCalledWith(auth, 'oob-code-123', 'new-secret123');
   });
 
-  it('throws backend error messages for auth endpoint failures', async () => {
-    fetchMock.mockResolvedValueOnce(jsonResponse({ error: 'User already exists' }, { status: 409 }));
-    fetchMock.mockResolvedValueOnce(jsonResponse({ error: 'Invalid email or password' }, { status: 401 }));
-    fetchMock.mockResolvedValueOnce(jsonResponse({ error: 'Refresh token is required' }, { status: 401 }));
-    fetchMock.mockResolvedValueOnce(jsonResponse({ error: 'Network error during sign out' }, { status: 500 }));
-    fetchMock.mockResolvedValueOnce(jsonResponse({ error: 'Demo login failed' }, { status: 500 }));
-    fetchMock.mockResolvedValueOnce(jsonResponse({ error: 'Reset password failed' }, { status: 500 }));
+  it('verifyEmail applies the Firebase action code', async () => {
+    const auth = { currentUser: null };
+    getFirebaseAuthMock.mockReturnValue(auth);
+    applyActionCodeMock.mockResolvedValue(undefined);
 
-    await expect(signUp('user@example.com', 'secret123')).rejects.toThrow('User already exists');
-    await expect(signIn('user@example.com', 'secret123')).rejects.toThrow('Invalid email or password');
-    await expect(restoreSession()).rejects.toThrow('Refresh token is required');
-    await expect(signOut()).rejects.toThrow('Network error during sign out');
-    await expect(demoLogin()).rejects.toThrow('Demo login failed');
-    await expect(updatePassword('reset-token-123', 'new-secret123')).rejects.toThrow('Reset password failed');
-  });
-
-  it('uses fallback messages when backend responses omit error text', async () => {
-    fetchMock.mockResolvedValueOnce(jsonResponse({}, { status: 500 }));
-    fetchMock.mockResolvedValueOnce(jsonResponse({}, { status: 500 }));
-    fetchMock.mockResolvedValueOnce(jsonResponse({}, { status: 500 }));
-    fetchMock.mockResolvedValueOnce(jsonResponse({}, { status: 500 }));
-    fetchMock.mockResolvedValueOnce(jsonResponse({}, { status: 500 }));
-    fetchMock.mockResolvedValueOnce(jsonResponse({}, { status: 500 }));
-    fetchMock.mockResolvedValueOnce(jsonResponse({}, { status: 500 }));
-
-    await expect(signUp('user@example.com', 'secret123')).rejects.toThrow('Failed to sign up');
-    await expect(signIn('user@example.com', 'secret123')).rejects.toThrow('Failed to sign in');
-    await expect(restoreSession()).rejects.toThrow('Failed to restore session');
-    await expect(signOut()).rejects.toThrow('Failed to sign out');
-    await expect(demoLogin()).rejects.toThrow('Failed to start demo session');
-    await expect(requestPasswordReset('user@example.com')).rejects.toThrow('Failed to send password reset email');
-    await expect(updatePassword('reset-token-123', 'new-secret123')).rejects.toThrow('Failed to update password');
+    await expect(verifyEmail('oob-code-123')).resolves.toEqual({
+      message: 'Your email has been verified. You can sign in now.',
+    });
+    expect(applyActionCodeMock).toHaveBeenCalledWith(auth, 'oob-code-123');
   });
 });

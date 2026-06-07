@@ -11,8 +11,6 @@ const PRODUCTION_REQUIRED_ENV_KEYS = [
   'DATABASE_URL',
   'FRONTEND_URL',
   'BACKEND_URL',
-  'GMAIL_USER',
-  'GMAIL_APP_PASSWORD',
 ] as const;
 
 function parseFrontendUrls(value: string | undefined) {
@@ -33,6 +31,10 @@ function getNumberEnvValue(value: string | undefined, fallback: number) {
 
 function getDefaultFrontendPageUrl(pathname: string) {
   return `${frontendUrls[0] ?? DEFAULT_FRONTEND_URL}${pathname}`;
+}
+
+function normalizePrivateKey(value: string | undefined) {
+  return value?.replace(/\\n/g, '\n');
 }
 
 // Centralized environment configuration
@@ -61,6 +63,9 @@ export const env = {
   gmailAppPassword: process.env.GMAIL_APP_PASSWORD,
   emailFrom: process.env.EMAIL_FROM,
   cookieDomain: process.env.COOKIE_DOMAIN,
+  firebaseProjectId: process.env.FIREBASE_PROJECT_ID,
+  firebaseClientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+  firebasePrivateKey: normalizePrivateKey(process.env.FIREBASE_PRIVATE_KEY),
   passwordResetEmailSubject:
     process.env.PASSWORD_RESET_EMAIL_SUBJECT ?? DEFAULT_PASSWORD_RESET_EMAIL_SUBJECT,
   verifyEmailSubject: process.env.VERIFY_EMAIL_SUBJECT ?? DEFAULT_VERIFY_EMAIL_SUBJECT,
@@ -75,6 +80,18 @@ function assertProductionEnv() {
 
   if (!process.env.JWT_SECRET || env.jwtSecret === DEFAULT_JWT_SECRET) {
     missingValues.push('JWT_SECRET');
+  }
+
+  if (!env.firebaseProjectId) {
+    missingValues.push('FIREBASE_PROJECT_ID');
+  }
+
+  if (!env.firebaseClientEmail) {
+    missingValues.push('FIREBASE_CLIENT_EMAIL');
+  }
+
+  if (!env.firebasePrivateKey) {
+    missingValues.push('FIREBASE_PRIVATE_KEY');
   }
 
   if (missingValues.length > 0) {

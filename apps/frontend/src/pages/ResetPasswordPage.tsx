@@ -11,7 +11,7 @@ function ResetPasswordPage() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const resetToken = searchParams.get('token');
+  const resetToken = searchParams.get('oobCode') ?? searchParams.get('token');
 
   const handleSubmit: SubmitEventHandler<HTMLFormElement> = async (event) => {
     event.preventDefault();

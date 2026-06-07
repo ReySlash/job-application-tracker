@@ -7,7 +7,7 @@ Use this runbook to deploy the migrated stack from `migration/express-prisma-neo
 - Frontend: Vercel project rooted at `apps/frontend`
 - Backend: Render web service from this monorepo using `render.yaml`
 - Database: Neon Postgres
-- Mail: Gmail SMTP
+- Auth email delivery: Firebase Authentication managed email actions
 
 For staging:
 
@@ -27,7 +27,13 @@ pnpm --filter backend exec prisma migrate deploy
 ```
 
 4. Deploy the Render backend.
-5. Set `VITE_API_BASE_URL` in Vercel to the deployed backend API URL.
+5. Set the Vercel frontend env vars:
+   - `VITE_API_BASE_URL`
+   - `VITE_APP_BASE_URL`
+   - `VITE_FIREBASE_API_KEY`
+   - `VITE_FIREBASE_AUTH_DOMAIN`
+   - `VITE_FIREBASE_PROJECT_ID`
+   - `VITE_FIREBASE_APP_ID`
 6. Deploy the Vercel frontend.
 7. Run the full staging verification checklist in [migration-verification-checklist.md](/Users/reynaldocarmenatearias/Documents/ReactProjects/job-application-tracker/docs/migration-verification-checklist.md:1).
 
@@ -37,6 +43,11 @@ pnpm --filter backend exec prisma migrate deploy
 
 ```env
 VITE_API_BASE_URL=https://your-render-service.onrender.com/api
+VITE_APP_BASE_URL=https://your-vercel-project.vercel.app
+VITE_FIREBASE_API_KEY=
+VITE_FIREBASE_AUTH_DOMAIN=
+VITE_FIREBASE_PROJECT_ID=
+VITE_FIREBASE_APP_ID=
 ```
 
 ### Render backend
@@ -47,9 +58,9 @@ DATABASE_URL=postgresql://...
 JWT_SECRET=replace-with-a-long-random-secret
 FRONTEND_URL=https://your-vercel-project.vercel.app
 BACKEND_URL=https://your-render-service.onrender.com
-GMAIL_USER=your-email@gmail.com
-GMAIL_APP_PASSWORD=your-16-character-app-password
-EMAIL_FROM=Job Application Tracker <your-email@gmail.com>
+FIREBASE_PROJECT_ID=your-firebase-project-id
+FIREBASE_CLIENT_EMAIL=firebase-adminsdk-xxxxx@your-project-id.iam.gserviceaccount.com
+FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n"
 FRONTEND_RESET_PASSWORD_URL=https://your-vercel-project.vercel.app/reset-password
 FRONTEND_VERIFY_EMAIL_URL=https://your-vercel-project.vercel.app/verify-email
 COOKIE_DOMAIN=
@@ -60,23 +71,9 @@ COOKIE_DOMAIN=
 - Render health checks use `GET /ready`
 - `GET /health` is liveness-only
 - `GET /ready` must confirm both the app process and Neon connectivity
-- Production refresh cookies must be `HttpOnly`, `Secure`, and `SameSite=None`
-- Session restore must work through `POST /api/auth/refresh` after a full browser reload
-- Verification and reset emails must link to the deployed frontend pages, not localhost
-
-## Email preflight
-
-Before treating email delivery failures as application bugs, verify the Render runtime email config directly:
-
-```bash
-pnpm --filter backend email:verify
-```
-
-Expected behavior:
-
-- prints whether `GMAIL_USER`, `GMAIL_APP_PASSWORD`, `EMAIL_FROM`, `BACKEND_URL`, `FRONTEND_VERIFY_EMAIL_URL`, and `FRONTEND_RESET_PASSWORD_URL` resolve as expected
-- verifies the configured SMTP transport without sending an email
-- exits non-zero if required email env values are missing or Gmail SMTP verification fails
+- Firebase email verification and password-reset actions must point to the deployed frontend pages, not localhost
+- Non-demo protected API requests must send a valid Firebase ID token in `Authorization: Bearer ...`
+- Demo session restore must still work through `POST /api/auth/refresh` after a full browser reload
 
 ## Release blockers
 
@@ -85,5 +82,5 @@ Do not continue from staging to production until all of the following are true:
 - `pnpm lint` passes
 - `pnpm build` passes
 - `pnpm test` passes in an environment that permits backend `supertest` socket binding
-- Signup, verification, login, logout, refresh, protected routes, CRUD, demo flows, and password reset all pass in staging
+- Signup, verification, login, logout, Firebase session restore, protected routes, CRUD, demo flows, and password reset all pass in staging
 - No deployed runtime path depends on Supabase

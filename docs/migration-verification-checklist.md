@@ -6,10 +6,10 @@ Use this checklist before merging `migration/express-prisma-neon` into `main`.
 
 - [x] `pnpm lint`
 - [x] `pnpm build`
-- [x] `pnpm test`
-- [x] `pnpm test:coverage`
-- [x] Re-run `pnpm test` outside the sandbox if backend `supertest` fails with `listen EPERM`
-- [x] Re-run `pnpm test:coverage` outside the sandbox if backend `supertest` fails with `listen EPERM`
+- [ ] `pnpm test`
+- [ ] `pnpm test:coverage`
+- [ ] Re-run `pnpm test` outside the sandbox if backend `supertest` fails with `listen EPERM`
+- [ ] Re-run `pnpm test:coverage` outside the sandbox if backend `supertest` fails with `listen EPERM`
 
 ## Local Manual Checks
 
@@ -33,11 +33,14 @@ Use this checklist before merging `migration/express-prisma-neon` into `main`.
 - [ ] Frontend deploy works on Vercel
 - [ ] Backend deploy works on Render
 - [ ] `VITE_API_BASE_URL` points to the deployed backend API
-- [ ] `pnpm --filter backend email:verify` succeeds in the deployed backend runtime
-- [ ] Cross-origin refresh cookie works in the browser
-- [ ] Refresh cookie is `HttpOnly`, `Secure`, and `SameSite=None`
-- [ ] Email verification works against deployed frontend/backend URLs
-- [ ] Password reset works against deployed frontend/backend URLs
+- [ ] Firebase frontend env vars are configured on Vercel
+- [ ] Firebase Admin env vars are configured on Render
+- [ ] Firebase authorized domains include the deployed frontend origin
+- [ ] Firebase email verification works against deployed frontend/backend URLs
+- [ ] Firebase password reset works against deployed frontend/backend URLs
+- [ ] Firebase ID token auth works against deployed backend routes
+- [ ] Demo refresh cookie works in the browser
+- [ ] Demo refresh cookie is `HttpOnly`, `Secure`, and `SameSite=None`
 - [ ] `GET /ready` passes on Render
 - [ ] Neon database connectivity is confirmed from the deployed backend during manual verification
 - [ ] No deployed runtime path depends on Supabase

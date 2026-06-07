@@ -15,6 +15,6 @@ describe('SignupSuccessPage', () => {
       </MemoryRouter>,
     );
 
-    expect(screen.getByText('We sent a verification link to user@example.com.')).toBeInTheDocument();
+    expect(screen.getByText('We sent a Firebase verification link to user@example.com.')).toBeInTheDocument();
   });
 });

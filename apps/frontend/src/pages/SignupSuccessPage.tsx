@@ -13,13 +13,13 @@ function SignupSuccessPage() {
       <div className="w-full rounded-lg border border-gray-200 bg-white p-6 shadow-lg dark:border-slate-700 dark:bg-slate-900">
         <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100">Check your email</h1>
         <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">
-          Your account was created successfully. Verify your email before signing in.
+          Your account was created successfully. Verify your email with the Firebase link before signing in.
         </p>
 
         <div className="mt-6 rounded border border-green-300 bg-green-100 px-4 py-3 text-sm text-green-800 dark:border-green-800 dark:bg-green-950/70 dark:text-green-200">
           {locationState?.email
-            ? `We sent a verification link to ${locationState.email}.`
-            : 'We sent you a verification link.'}
+            ? `We sent a Firebase verification link to ${locationState.email}.`
+            : 'We sent you a Firebase verification link.'}
         </div>
 
         <p className="mt-5 text-center text-sm text-slate-600 dark:text-slate-400">

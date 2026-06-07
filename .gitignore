@@ -24,6 +24,7 @@ testsPlan.md
 .env
 .env.*
 !.env.example
+job-applications-tracker-auth-firebase-adminsdk-*.json
 
 # Tool caches
 .cache/
@@ -53,5 +54,4 @@ AGENTS.MD
 backend-migration-plan.md
 
 /prisma/apps/backend/prisma
-
 

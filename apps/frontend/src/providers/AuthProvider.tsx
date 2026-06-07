@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
 import {
   demoLogin,
+  observeFirebaseAuthState,
   requestPasswordReset as requestPasswordResetFromBackend,
   restoreSession,
   signIn as signInWithPassword,
@@ -24,32 +25,48 @@ export function AuthProvider({ children }: Props) {
 
   useEffect(() => {
     let isMounted = true;
+    let runId = 0;
 
-    restoreSession()
-      .then((authState) => {
-        if (!isMounted) {
+    const unsubscribe = observeFirebaseAuthState(async (authState) => {
+      const currentRunId = ++runId;
+
+      if (authState) {
+        if (!isMounted || currentRunId !== runId) {
           return;
         }
 
         setUser(authState.user);
         setAccessToken(authState.accessToken);
-      })
-      .catch(() => {
-        if (!isMounted) {
+        setIsAuthLoading(false);
+        return;
+      }
+
+      try {
+        const demoAuthState = await restoreSession();
+
+        if (!isMounted || currentRunId !== runId || !demoAuthState.user.isDemo) {
+          return;
+        }
+
+        setUser(demoAuthState.user);
+        setAccessToken(demoAuthState.accessToken);
+      } catch {
+        if (!isMounted || currentRunId !== runId) {
           return;
         }
 
         setUser(null);
         setAccessToken(null);
-      })
-      .finally(() => {
-        if (isMounted) {
+      } finally {
+        if (isMounted && currentRunId === runId) {
           setIsAuthLoading(false);
         }
-      });
+      }
+    });
 
     return () => {
       isMounted = false;
+      unsubscribe();
     };
   }, []);
 

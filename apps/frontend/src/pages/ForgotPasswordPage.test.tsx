@@ -47,7 +47,9 @@ describe('ForgotPasswordPage', () => {
     });
 
     expect(
-      await screen.findByText('If that email is registered, a password reset link has been sent.'),
+      await screen.findByText(
+        "If that email is registered, a password reset link has been sent. If you don't see it within a few minutes, check your spam or promotions folder.",
+      ),
     ).toBeInTheDocument();
   });
 

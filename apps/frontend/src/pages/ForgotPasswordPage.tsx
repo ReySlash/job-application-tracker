@@ -18,7 +18,9 @@ function ForgotPasswordPage() {
 
     try {
       await requestPasswordReset(email);
-      setInfoMessage('If that email is registered, a password reset link has been sent.');
+      setInfoMessage(
+        "If that email is registered, a password reset link has been sent. If you don't see it within a few minutes, check your spam or promotions folder.",
+      );
     } catch (error) {
       setErrorMessage(
         error instanceof Error ? error.message : 'Failed to send password reset email',

@@ -22,6 +22,10 @@ function SignupSuccessPage() {
             : 'We sent you a Firebase verification link.'}
         </div>
 
+        <p className="mt-4 text-sm text-slate-600 dark:text-slate-400">
+          If you don&apos;t see it within a few minutes, check your spam or promotions folder.
+        </p>
+
         <p className="mt-5 text-center text-sm text-slate-600 dark:text-slate-400">
           Already verified?{' '}
           <Link className="font-medium text-teal-700 hover:underline dark:text-teal-300" to="/login">

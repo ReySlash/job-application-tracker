@@ -16,5 +16,8 @@ describe('SignupSuccessPage', () => {
     );
 
     expect(screen.getByText('We sent a Firebase verification link to user@example.com.')).toBeInTheDocument();
+    expect(
+      screen.getByText("If you don't see it within a few minutes, check your spam or promotions folder."),
+    ).toBeInTheDocument();
   });
 });

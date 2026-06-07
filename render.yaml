@@ -18,23 +18,11 @@ services:
         sync: false
       - key: FRONTEND_URL
         sync: false
-      - key: BACKEND_URL
-        sync: false
       - key: FIREBASE_PROJECT_ID
         sync: false
       - key: FIREBASE_CLIENT_EMAIL
         sync: false
       - key: FIREBASE_PRIVATE_KEY
-        sync: false
-      - key: GMAIL_USER
-        sync: false
-      - key: GMAIL_APP_PASSWORD
-        sync: false
-      - key: EMAIL_FROM
-        sync: false
-      - key: FRONTEND_RESET_PASSWORD_URL
-        sync: false
-      - key: FRONTEND_VERIFY_EMAIL_URL
         sync: false
       - key: COOKIE_DOMAIN
         sync: false

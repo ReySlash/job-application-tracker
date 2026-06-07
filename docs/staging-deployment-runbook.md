@@ -12,8 +12,7 @@ Use this runbook to deploy the migrated stack from `migration/express-prisma-neo
 For staging:
 
 - Set the Vercel frontend URL as `FRONTEND_URL`
-- Set the Render backend URL as `BACKEND_URL`
-- Set `VITE_API_BASE_URL` to `${BACKEND_URL}/api`
+- Set `VITE_API_BASE_URL` to `https://<render-backend-origin>/api`
 - Leave `COOKIE_DOMAIN` unset unless you have a real shared parent-domain requirement
 
 ## Deployment order
@@ -57,12 +56,9 @@ NODE_ENV=production
 DATABASE_URL=postgresql://...
 JWT_SECRET=replace-with-a-long-random-secret
 FRONTEND_URL=https://your-vercel-project.vercel.app
-BACKEND_URL=https://your-render-service.onrender.com
 FIREBASE_PROJECT_ID=your-firebase-project-id
 FIREBASE_CLIENT_EMAIL=firebase-adminsdk-xxxxx@your-project-id.iam.gserviceaccount.com
 FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n"
-FRONTEND_RESET_PASSWORD_URL=https://your-vercel-project.vercel.app/reset-password
-FRONTEND_VERIFY_EMAIL_URL=https://your-vercel-project.vercel.app/verify-email
 COOKIE_DOMAIN=
 ```
 
@@ -71,7 +67,7 @@ COOKIE_DOMAIN=
 - Render health checks use `GET /ready`
 - `GET /health` is liveness-only
 - `GET /ready` must confirm both the app process and Neon connectivity
-- Firebase email verification and password-reset actions must point to the deployed frontend pages, not localhost
+- Firebase email verification and password-reset actions must use a deployed frontend `VITE_APP_BASE_URL`, not localhost or the backend origin
 - Non-demo protected API requests must send a valid Firebase ID token in `Authorization: Bearer ...`
 - Demo session restore must still work through `POST /api/auth/refresh` after a full browser reload
 

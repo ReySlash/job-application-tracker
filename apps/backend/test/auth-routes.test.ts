@@ -1,45 +1,28 @@
 import request from 'supertest';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { Prisma } from '../src/generated/prisma/client.js';
-import { AppError } from '../src/lib/errors.js';
 import { verifiedUser } from './helpers/auth-fixtures.js';
 
 const {
-  createUser,
   createDemoLogin,
-  forgotPassword,
   getCurrentUser,
-  login,
   logout,
   refresh,
-  resetPassword,
   syncFirebaseUserMock,
   verifyIdTokenMock,
-  verifyEmail,
 } = vi.hoisted(() => ({
-  createUser: vi.fn(),
   createDemoLogin: vi.fn(),
-  forgotPassword: vi.fn(),
   getCurrentUser: vi.fn(),
-  login: vi.fn(),
   logout: vi.fn(),
   refresh: vi.fn(),
-  resetPassword: vi.fn(),
   syncFirebaseUserMock: vi.fn(),
   verifyIdTokenMock: vi.fn(),
-  verifyEmail: vi.fn(),
 }));
 
 vi.mock('../src/modules/auth/auth-service.js', () => ({
-  createUser,
   createDemoLogin,
-  forgotPassword,
   getCurrentUser,
-  login,
   logout,
   refresh,
-  resetPassword,
-  verifyEmail,
 }));
 
 vi.mock('../src/lib/firebase-admin.js', () => ({
@@ -54,26 +37,14 @@ vi.mock('../src/modules/auth/firebase-auth-service.js', () => ({
 
 import { createApp } from '../src/app.js';
 
-function createKnownRequestError(code: string) {
-  return new Prisma.PrismaClientKnownRequestError('request failed', {
-    code,
-    clientVersion: '7.8.0',
-  });
-}
-
 describe('auth routes', () => {
   beforeEach(() => {
-    createUser.mockReset();
     createDemoLogin.mockReset();
-    forgotPassword.mockReset();
     getCurrentUser.mockReset();
-    login.mockReset();
     logout.mockReset();
     refresh.mockReset();
-    resetPassword.mockReset();
     syncFirebaseUserMock.mockReset();
     verifyIdTokenMock.mockReset();
-    verifyEmail.mockReset();
   });
 
   it('returns ok from the health endpoint', async () => {
@@ -106,72 +77,6 @@ describe('auth routes', () => {
     expect(readinessCheck).toHaveBeenCalledTimes(1);
   });
 
-  it('returns 201 from signup without setting a session cookie', async () => {
-    const app = createApp();
-    createUser.mockResolvedValue({
-      message: 'Account created. Check your email to verify your account before signing in.',
-    });
-
-    const response = await request(app).post('/api/auth/signup').send({
-      email: 'pending@example.com',
-      password: 'Password123!',
-    });
-
-    expect(response.status).toBe(201);
-    expect(response.body).toEqual({
-      message: 'Account created. Check your email to verify your account before signing in.',
-    });
-    expect(response.headers['set-cookie']).toBeUndefined();
-  });
-
-  it('maps duplicate signup errors to 409', async () => {
-    const app = createApp();
-    createUser.mockRejectedValue(createKnownRequestError('P2002'));
-
-    const response = await request(app).post('/api/auth/signup').send({
-      email: 'existing@example.com',
-      password: 'Password123!',
-    });
-
-    expect(response.status).toBe(409);
-    expect(response.body).toEqual({ error: 'User already exists' });
-  });
-
-  it('returns login auth data and sets the refresh cookie', async () => {
-    const app = createApp();
-    login.mockResolvedValue({
-      user: verifiedUser,
-      accessToken: 'access-token',
-      refreshToken: 'refresh-token',
-      refreshTokenExpiresAt: new Date('2030-01-01T00:00:00.000Z'),
-    });
-
-    const response = await request(app).post('/api/auth/login').send({
-      email: verifiedUser.email,
-      password: 'Password123!',
-    });
-
-    expect(response.status).toBe(200);
-    expect(response.body).toEqual({
-      user: verifiedUser,
-      accessToken: 'access-token',
-    });
-    expect(response.headers['set-cookie'][0]).toContain('refreshToken=refresh-token');
-  });
-
-  it('returns AppError responses from login', async () => {
-    const app = createApp();
-    login.mockRejectedValue(new AppError('Verify your email before signing in', 403));
-
-    const response = await request(app).post('/api/auth/login').send({
-      email: 'pending@example.com',
-      password: 'Password123!',
-    });
-
-    expect(response.status).toBe(403);
-    expect(response.body).toEqual({ error: 'Verify your email before signing in' });
-  });
-
   it('returns auth data and rotates the cookie on refresh', async () => {
     const app = createApp();
     refresh.mockResolvedValue({
@@ -193,41 +98,23 @@ describe('auth routes', () => {
     expect(response.headers['set-cookie'][0]).toContain('refreshToken=next-refresh-token');
   });
 
-  it('always returns the generic forgot-password response', async () => {
+  it('returns demo auth data and sets the refresh cookie on demo login', async () => {
     const app = createApp();
-    forgotPassword.mockRejectedValue(new Error('smtp failure'));
-
-    const response = await request(app).post('/api/auth/forgot-password').send({
-      email: 'anyone@example.com',
+    createDemoLogin.mockResolvedValue({
+      user: verifiedUser,
+      accessToken: 'demo-access-token',
+      refreshToken: 'demo-refresh-token',
+      refreshTokenExpiresAt: new Date('2030-01-01T00:00:00.000Z'),
     });
+
+    const response = await request(app).post('/api/auth/demo-login');
 
     expect(response.status).toBe(200);
     expect(response.body).toEqual({
-      message: 'If that email is registered, a password reset link has been sent.',
+      user: verifiedUser,
+      accessToken: 'demo-access-token',
     });
-  });
-
-  it('returns success from reset-password', async () => {
-    const app = createApp();
-    resetPassword.mockResolvedValue(undefined);
-
-    const response = await request(app).post('/api/auth/reset-password').send({
-      token: 'reset-token',
-      password: 'UpdatedPassword123!',
-    });
-
-    expect(response.status).toBe(200);
-    expect(response.body).toEqual({ message: 'Password updated successfully' });
-  });
-
-  it('redirects verify-email to the frontend result URL', async () => {
-    const app = createApp();
-    verifyEmail.mockResolvedValue('http://localhost:5173/verify-email?status=success');
-
-    const response = await request(app).get('/api/auth/verify-email?token=verify-token');
-
-    expect(response.status).toBe(302);
-    expect(response.headers.location).toBe('http://localhost:5173/verify-email?status=success');
+    expect(response.headers['set-cookie'][0]).toContain('refreshToken=demo-refresh-token');
   });
 
   it('clears the refresh cookie on logout', async () => {

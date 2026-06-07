@@ -28,7 +28,6 @@ export type UserMinAggregateOutputType = {
   id: string | null
   email: string | null
   firebaseUid: string | null
-  passwordHash: string | null
   isDemo: boolean | null
   isEmailVerified: boolean | null
   createdAt: Date | null
@@ -39,7 +38,6 @@ export type UserMaxAggregateOutputType = {
   id: string | null
   email: string | null
   firebaseUid: string | null
-  passwordHash: string | null
   isDemo: boolean | null
   isEmailVerified: boolean | null
   createdAt: Date | null
@@ -50,7 +48,6 @@ export type UserCountAggregateOutputType = {
   id: number
   email: number
   firebaseUid: number
-  passwordHash: number
   isDemo: number
   isEmailVerified: number
   createdAt: number
@@ -63,7 +60,6 @@ export type UserMinAggregateInputType = {
   id?: true
   email?: true
   firebaseUid?: true
-  passwordHash?: true
   isDemo?: true
   isEmailVerified?: true
   createdAt?: true
@@ -74,7 +70,6 @@ export type UserMaxAggregateInputType = {
   id?: true
   email?: true
   firebaseUid?: true
-  passwordHash?: true
   isDemo?: true
   isEmailVerified?: true
   createdAt?: true
@@ -85,7 +80,6 @@ export type UserCountAggregateInputType = {
   id?: true
   email?: true
   firebaseUid?: true
-  passwordHash?: true
   isDemo?: true
   isEmailVerified?: true
   createdAt?: true
@@ -169,7 +163,6 @@ export type UserGroupByOutputType = {
   id: string
   email: string
   firebaseUid: string | null
-  passwordHash: string | null
   isDemo: boolean
   isEmailVerified: boolean
   createdAt: Date
@@ -201,14 +194,11 @@ export type UserWhereInput = {
   id?: Prisma.StringFilter<"User"> | string
   email?: Prisma.StringFilter<"User"> | string
   firebaseUid?: Prisma.StringNullableFilter<"User"> | string | null
-  passwordHash?: Prisma.StringNullableFilter<"User"> | string | null
   isDemo?: Prisma.BoolFilter<"User"> | boolean
   isEmailVerified?: Prisma.BoolFilter<"User"> | boolean
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
   applications?: Prisma.ApplicationListRelationFilter
-  emailVerificationTokens?: Prisma.EmailVerificationTokenListRelationFilter
-  passwordResetTokens?: Prisma.PasswordResetTokenListRelationFilter
   refreshTokens?: Prisma.RefreshTokenListRelationFilter
 }
 
@@ -216,14 +206,11 @@ export type UserOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   email?: Prisma.SortOrder
   firebaseUid?: Prisma.SortOrderInput | Prisma.SortOrder
-  passwordHash?: Prisma.SortOrderInput | Prisma.SortOrder
   isDemo?: Prisma.SortOrder
   isEmailVerified?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   applications?: Prisma.ApplicationOrderByRelationAggregateInput
-  emailVerificationTokens?: Prisma.EmailVerificationTokenOrderByRelationAggregateInput
-  passwordResetTokens?: Prisma.PasswordResetTokenOrderByRelationAggregateInput
   refreshTokens?: Prisma.RefreshTokenOrderByRelationAggregateInput
 }
 
@@ -234,14 +221,11 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   AND?: Prisma.UserWhereInput | Prisma.UserWhereInput[]
   OR?: Prisma.UserWhereInput[]
   NOT?: Prisma.UserWhereInput | Prisma.UserWhereInput[]
-  passwordHash?: Prisma.StringNullableFilter<"User"> | string | null
   isDemo?: Prisma.BoolFilter<"User"> | boolean
   isEmailVerified?: Prisma.BoolFilter<"User"> | boolean
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
   applications?: Prisma.ApplicationListRelationFilter
-  emailVerificationTokens?: Prisma.EmailVerificationTokenListRelationFilter
-  passwordResetTokens?: Prisma.PasswordResetTokenListRelationFilter
   refreshTokens?: Prisma.RefreshTokenListRelationFilter
 }, "id" | "email" | "firebaseUid">
 
@@ -249,7 +233,6 @@ export type UserOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   email?: Prisma.SortOrder
   firebaseUid?: Prisma.SortOrderInput | Prisma.SortOrder
-  passwordHash?: Prisma.SortOrderInput | Prisma.SortOrder
   isDemo?: Prisma.SortOrder
   isEmailVerified?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -266,7 +249,6 @@ export type UserScalarWhereWithAggregatesInput = {
   id?: Prisma.StringWithAggregatesFilter<"User"> | string
   email?: Prisma.StringWithAggregatesFilter<"User"> | string
   firebaseUid?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
-  passwordHash?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
   isDemo?: Prisma.BoolWithAggregatesFilter<"User"> | boolean
   isEmailVerified?: Prisma.BoolWithAggregatesFilter<"User"> | boolean
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"User"> | Date | string
@@ -277,14 +259,11 @@ export type UserCreateInput = {
   id?: string
   email: string
   firebaseUid?: string | null
-  passwordHash?: string | null
   isDemo?: boolean
   isEmailVerified?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   applications?: Prisma.ApplicationCreateNestedManyWithoutUserInput
-  emailVerificationTokens?: Prisma.EmailVerificationTokenCreateNestedManyWithoutUserInput
-  passwordResetTokens?: Prisma.PasswordResetTokenCreateNestedManyWithoutUserInput
   refreshTokens?: Prisma.RefreshTokenCreateNestedManyWithoutUserInput
 }
 
@@ -292,14 +271,11 @@ export type UserUncheckedCreateInput = {
   id?: string
   email: string
   firebaseUid?: string | null
-  passwordHash?: string | null
   isDemo?: boolean
   isEmailVerified?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   applications?: Prisma.ApplicationUncheckedCreateNestedManyWithoutUserInput
-  emailVerificationTokens?: Prisma.EmailVerificationTokenUncheckedCreateNestedManyWithoutUserInput
-  passwordResetTokens?: Prisma.PasswordResetTokenUncheckedCreateNestedManyWithoutUserInput
   refreshTokens?: Prisma.RefreshTokenUncheckedCreateNestedManyWithoutUserInput
 }
 
@@ -307,14 +283,11 @@ export type UserUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   firebaseUid?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isDemo?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isEmailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   applications?: Prisma.ApplicationUpdateManyWithoutUserNestedInput
-  emailVerificationTokens?: Prisma.EmailVerificationTokenUpdateManyWithoutUserNestedInput
-  passwordResetTokens?: Prisma.PasswordResetTokenUpdateManyWithoutUserNestedInput
   refreshTokens?: Prisma.RefreshTokenUpdateManyWithoutUserNestedInput
 }
 
@@ -322,14 +295,11 @@ export type UserUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   firebaseUid?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isDemo?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isEmailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   applications?: Prisma.ApplicationUncheckedUpdateManyWithoutUserNestedInput
-  emailVerificationTokens?: Prisma.EmailVerificationTokenUncheckedUpdateManyWithoutUserNestedInput
-  passwordResetTokens?: Prisma.PasswordResetTokenUncheckedUpdateManyWithoutUserNestedInput
   refreshTokens?: Prisma.RefreshTokenUncheckedUpdateManyWithoutUserNestedInput
 }
 
@@ -337,7 +307,6 @@ export type UserCreateManyInput = {
   id?: string
   email: string
   firebaseUid?: string | null
-  passwordHash?: string | null
   isDemo?: boolean
   isEmailVerified?: boolean
   createdAt?: Date | string
@@ -348,7 +317,6 @@ export type UserUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   firebaseUid?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isDemo?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isEmailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -359,7 +327,6 @@ export type UserUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   firebaseUid?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isDemo?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isEmailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -370,7 +337,6 @@ export type UserCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   email?: Prisma.SortOrder
   firebaseUid?: Prisma.SortOrder
-  passwordHash?: Prisma.SortOrder
   isDemo?: Prisma.SortOrder
   isEmailVerified?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -381,7 +347,6 @@ export type UserMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   email?: Prisma.SortOrder
   firebaseUid?: Prisma.SortOrder
-  passwordHash?: Prisma.SortOrder
   isDemo?: Prisma.SortOrder
   isEmailVerified?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -392,7 +357,6 @@ export type UserMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   email?: Prisma.SortOrder
   firebaseUid?: Prisma.SortOrder
-  passwordHash?: Prisma.SortOrder
   isDemo?: Prisma.SortOrder
   isEmailVerified?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -448,45 +412,14 @@ export type UserUpdateOneRequiredWithoutRefreshTokensNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutRefreshTokensInput, Prisma.UserUpdateWithoutRefreshTokensInput>, Prisma.UserUncheckedUpdateWithoutRefreshTokensInput>
 }
 
-export type UserCreateNestedOneWithoutPasswordResetTokensInput = {
-  create?: Prisma.XOR<Prisma.UserCreateWithoutPasswordResetTokensInput, Prisma.UserUncheckedCreateWithoutPasswordResetTokensInput>
-  connectOrCreate?: Prisma.UserCreateOrConnectWithoutPasswordResetTokensInput
-  connect?: Prisma.UserWhereUniqueInput
-}
-
-export type UserUpdateOneRequiredWithoutPasswordResetTokensNestedInput = {
-  create?: Prisma.XOR<Prisma.UserCreateWithoutPasswordResetTokensInput, Prisma.UserUncheckedCreateWithoutPasswordResetTokensInput>
-  connectOrCreate?: Prisma.UserCreateOrConnectWithoutPasswordResetTokensInput
-  upsert?: Prisma.UserUpsertWithoutPasswordResetTokensInput
-  connect?: Prisma.UserWhereUniqueInput
-  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutPasswordResetTokensInput, Prisma.UserUpdateWithoutPasswordResetTokensInput>, Prisma.UserUncheckedUpdateWithoutPasswordResetTokensInput>
-}
-
-export type UserCreateNestedOneWithoutEmailVerificationTokensInput = {
-  create?: Prisma.XOR<Prisma.UserCreateWithoutEmailVerificationTokensInput, Prisma.UserUncheckedCreateWithoutEmailVerificationTokensInput>
-  connectOrCreate?: Prisma.UserCreateOrConnectWithoutEmailVerificationTokensInput
-  connect?: Prisma.UserWhereUniqueInput
-}
-
-export type UserUpdateOneRequiredWithoutEmailVerificationTokensNestedInput = {
-  create?: Prisma.XOR<Prisma.UserCreateWithoutEmailVerificationTokensInput, Prisma.UserUncheckedCreateWithoutEmailVerificationTokensInput>
-  connectOrCreate?: Prisma.UserCreateOrConnectWithoutEmailVerificationTokensInput
-  upsert?: Prisma.UserUpsertWithoutEmailVerificationTokensInput
-  connect?: Prisma.UserWhereUniqueInput
-  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutEmailVerificationTokensInput, Prisma.UserUpdateWithoutEmailVerificationTokensInput>, Prisma.UserUncheckedUpdateWithoutEmailVerificationTokensInput>
-}
-
 export type UserCreateWithoutApplicationsInput = {
   id?: string
   email: string
   firebaseUid?: string | null
-  passwordHash?: string | null
   isDemo?: boolean
   isEmailVerified?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
-  emailVerificationTokens?: Prisma.EmailVerificationTokenCreateNestedManyWithoutUserInput
-  passwordResetTokens?: Prisma.PasswordResetTokenCreateNestedManyWithoutUserInput
   refreshTokens?: Prisma.RefreshTokenCreateNestedManyWithoutUserInput
 }
 
@@ -494,13 +427,10 @@ export type UserUncheckedCreateWithoutApplicationsInput = {
   id?: string
   email: string
   firebaseUid?: string | null
-  passwordHash?: string | null
   isDemo?: boolean
   isEmailVerified?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
-  emailVerificationTokens?: Prisma.EmailVerificationTokenUncheckedCreateNestedManyWithoutUserInput
-  passwordResetTokens?: Prisma.PasswordResetTokenUncheckedCreateNestedManyWithoutUserInput
   refreshTokens?: Prisma.RefreshTokenUncheckedCreateNestedManyWithoutUserInput
 }
 
@@ -524,13 +454,10 @@ export type UserUpdateWithoutApplicationsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   firebaseUid?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isDemo?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isEmailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  emailVerificationTokens?: Prisma.EmailVerificationTokenUpdateManyWithoutUserNestedInput
-  passwordResetTokens?: Prisma.PasswordResetTokenUpdateManyWithoutUserNestedInput
   refreshTokens?: Prisma.RefreshTokenUpdateManyWithoutUserNestedInput
 }
 
@@ -538,13 +465,10 @@ export type UserUncheckedUpdateWithoutApplicationsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   firebaseUid?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isDemo?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isEmailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  emailVerificationTokens?: Prisma.EmailVerificationTokenUncheckedUpdateManyWithoutUserNestedInput
-  passwordResetTokens?: Prisma.PasswordResetTokenUncheckedUpdateManyWithoutUserNestedInput
   refreshTokens?: Prisma.RefreshTokenUncheckedUpdateManyWithoutUserNestedInput
 }
 
@@ -552,28 +476,22 @@ export type UserCreateWithoutRefreshTokensInput = {
   id?: string
   email: string
   firebaseUid?: string | null
-  passwordHash?: string | null
   isDemo?: boolean
   isEmailVerified?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   applications?: Prisma.ApplicationCreateNestedManyWithoutUserInput
-  emailVerificationTokens?: Prisma.EmailVerificationTokenCreateNestedManyWithoutUserInput
-  passwordResetTokens?: Prisma.PasswordResetTokenCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutRefreshTokensInput = {
   id?: string
   email: string
   firebaseUid?: string | null
-  passwordHash?: string | null
   isDemo?: boolean
   isEmailVerified?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   applications?: Prisma.ApplicationUncheckedCreateNestedManyWithoutUserInput
-  emailVerificationTokens?: Prisma.EmailVerificationTokenUncheckedCreateNestedManyWithoutUserInput
-  passwordResetTokens?: Prisma.PasswordResetTokenUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutRefreshTokensInput = {
@@ -596,172 +514,22 @@ export type UserUpdateWithoutRefreshTokensInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   firebaseUid?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isDemo?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isEmailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   applications?: Prisma.ApplicationUpdateManyWithoutUserNestedInput
-  emailVerificationTokens?: Prisma.EmailVerificationTokenUpdateManyWithoutUserNestedInput
-  passwordResetTokens?: Prisma.PasswordResetTokenUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutRefreshTokensInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   firebaseUid?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isDemo?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isEmailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   applications?: Prisma.ApplicationUncheckedUpdateManyWithoutUserNestedInput
-  emailVerificationTokens?: Prisma.EmailVerificationTokenUncheckedUpdateManyWithoutUserNestedInput
-  passwordResetTokens?: Prisma.PasswordResetTokenUncheckedUpdateManyWithoutUserNestedInput
-}
-
-export type UserCreateWithoutPasswordResetTokensInput = {
-  id?: string
-  email: string
-  firebaseUid?: string | null
-  passwordHash?: string | null
-  isDemo?: boolean
-  isEmailVerified?: boolean
-  createdAt?: Date | string
-  updatedAt?: Date | string
-  applications?: Prisma.ApplicationCreateNestedManyWithoutUserInput
-  emailVerificationTokens?: Prisma.EmailVerificationTokenCreateNestedManyWithoutUserInput
-  refreshTokens?: Prisma.RefreshTokenCreateNestedManyWithoutUserInput
-}
-
-export type UserUncheckedCreateWithoutPasswordResetTokensInput = {
-  id?: string
-  email: string
-  firebaseUid?: string | null
-  passwordHash?: string | null
-  isDemo?: boolean
-  isEmailVerified?: boolean
-  createdAt?: Date | string
-  updatedAt?: Date | string
-  applications?: Prisma.ApplicationUncheckedCreateNestedManyWithoutUserInput
-  emailVerificationTokens?: Prisma.EmailVerificationTokenUncheckedCreateNestedManyWithoutUserInput
-  refreshTokens?: Prisma.RefreshTokenUncheckedCreateNestedManyWithoutUserInput
-}
-
-export type UserCreateOrConnectWithoutPasswordResetTokensInput = {
-  where: Prisma.UserWhereUniqueInput
-  create: Prisma.XOR<Prisma.UserCreateWithoutPasswordResetTokensInput, Prisma.UserUncheckedCreateWithoutPasswordResetTokensInput>
-}
-
-export type UserUpsertWithoutPasswordResetTokensInput = {
-  update: Prisma.XOR<Prisma.UserUpdateWithoutPasswordResetTokensInput, Prisma.UserUncheckedUpdateWithoutPasswordResetTokensInput>
-  create: Prisma.XOR<Prisma.UserCreateWithoutPasswordResetTokensInput, Prisma.UserUncheckedCreateWithoutPasswordResetTokensInput>
-  where?: Prisma.UserWhereInput
-}
-
-export type UserUpdateToOneWithWhereWithoutPasswordResetTokensInput = {
-  where?: Prisma.UserWhereInput
-  data: Prisma.XOR<Prisma.UserUpdateWithoutPasswordResetTokensInput, Prisma.UserUncheckedUpdateWithoutPasswordResetTokensInput>
-}
-
-export type UserUpdateWithoutPasswordResetTokensInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  email?: Prisma.StringFieldUpdateOperationsInput | string
-  firebaseUid?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  isDemo?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  isEmailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  applications?: Prisma.ApplicationUpdateManyWithoutUserNestedInput
-  emailVerificationTokens?: Prisma.EmailVerificationTokenUpdateManyWithoutUserNestedInput
-  refreshTokens?: Prisma.RefreshTokenUpdateManyWithoutUserNestedInput
-}
-
-export type UserUncheckedUpdateWithoutPasswordResetTokensInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  email?: Prisma.StringFieldUpdateOperationsInput | string
-  firebaseUid?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  isDemo?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  isEmailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  applications?: Prisma.ApplicationUncheckedUpdateManyWithoutUserNestedInput
-  emailVerificationTokens?: Prisma.EmailVerificationTokenUncheckedUpdateManyWithoutUserNestedInput
-  refreshTokens?: Prisma.RefreshTokenUncheckedUpdateManyWithoutUserNestedInput
-}
-
-export type UserCreateWithoutEmailVerificationTokensInput = {
-  id?: string
-  email: string
-  firebaseUid?: string | null
-  passwordHash?: string | null
-  isDemo?: boolean
-  isEmailVerified?: boolean
-  createdAt?: Date | string
-  updatedAt?: Date | string
-  applications?: Prisma.ApplicationCreateNestedManyWithoutUserInput
-  passwordResetTokens?: Prisma.PasswordResetTokenCreateNestedManyWithoutUserInput
-  refreshTokens?: Prisma.RefreshTokenCreateNestedManyWithoutUserInput
-}
-
-export type UserUncheckedCreateWithoutEmailVerificationTokensInput = {
-  id?: string
-  email: string
-  firebaseUid?: string | null
-  passwordHash?: string | null
-  isDemo?: boolean
-  isEmailVerified?: boolean
-  createdAt?: Date | string
-  updatedAt?: Date | string
-  applications?: Prisma.ApplicationUncheckedCreateNestedManyWithoutUserInput
-  passwordResetTokens?: Prisma.PasswordResetTokenUncheckedCreateNestedManyWithoutUserInput
-  refreshTokens?: Prisma.RefreshTokenUncheckedCreateNestedManyWithoutUserInput
-}
-
-export type UserCreateOrConnectWithoutEmailVerificationTokensInput = {
-  where: Prisma.UserWhereUniqueInput
-  create: Prisma.XOR<Prisma.UserCreateWithoutEmailVerificationTokensInput, Prisma.UserUncheckedCreateWithoutEmailVerificationTokensInput>
-}
-
-export type UserUpsertWithoutEmailVerificationTokensInput = {
-  update: Prisma.XOR<Prisma.UserUpdateWithoutEmailVerificationTokensInput, Prisma.UserUncheckedUpdateWithoutEmailVerificationTokensInput>
-  create: Prisma.XOR<Prisma.UserCreateWithoutEmailVerificationTokensInput, Prisma.UserUncheckedCreateWithoutEmailVerificationTokensInput>
-  where?: Prisma.UserWhereInput
-}
-
-export type UserUpdateToOneWithWhereWithoutEmailVerificationTokensInput = {
-  where?: Prisma.UserWhereInput
-  data: Prisma.XOR<Prisma.UserUpdateWithoutEmailVerificationTokensInput, Prisma.UserUncheckedUpdateWithoutEmailVerificationTokensInput>
-}
-
-export type UserUpdateWithoutEmailVerificationTokensInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  email?: Prisma.StringFieldUpdateOperationsInput | string
-  firebaseUid?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  isDemo?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  isEmailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  applications?: Prisma.ApplicationUpdateManyWithoutUserNestedInput
-  passwordResetTokens?: Prisma.PasswordResetTokenUpdateManyWithoutUserNestedInput
-  refreshTokens?: Prisma.RefreshTokenUpdateManyWithoutUserNestedInput
-}
-
-export type UserUncheckedUpdateWithoutEmailVerificationTokensInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  email?: Prisma.StringFieldUpdateOperationsInput | string
-  firebaseUid?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  isDemo?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  isEmailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  applications?: Prisma.ApplicationUncheckedUpdateManyWithoutUserNestedInput
-  passwordResetTokens?: Prisma.PasswordResetTokenUncheckedUpdateManyWithoutUserNestedInput
-  refreshTokens?: Prisma.RefreshTokenUncheckedUpdateManyWithoutUserNestedInput
 }
 
 
@@ -771,15 +539,11 @@ export type UserUncheckedUpdateWithoutEmailVerificationTokensInput = {
 
 export type UserCountOutputType = {
   applications: number
-  emailVerificationTokens: number
-  passwordResetTokens: number
   refreshTokens: number
 }
 
 export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   applications?: boolean | UserCountOutputTypeCountApplicationsArgs
-  emailVerificationTokens?: boolean | UserCountOutputTypeCountEmailVerificationTokensArgs
-  passwordResetTokens?: boolean | UserCountOutputTypeCountPasswordResetTokensArgs
   refreshTokens?: boolean | UserCountOutputTypeCountRefreshTokensArgs
 }
 
@@ -803,20 +567,6 @@ export type UserCountOutputTypeCountApplicationsArgs<ExtArgs extends runtime.Typ
 /**
  * UserCountOutputType without action
  */
-export type UserCountOutputTypeCountEmailVerificationTokensArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  where?: Prisma.EmailVerificationTokenWhereInput
-}
-
-/**
- * UserCountOutputType without action
- */
-export type UserCountOutputTypeCountPasswordResetTokensArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  where?: Prisma.PasswordResetTokenWhereInput
-}
-
-/**
- * UserCountOutputType without action
- */
 export type UserCountOutputTypeCountRefreshTokensArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.RefreshTokenWhereInput
 }
@@ -826,14 +576,11 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   id?: boolean
   email?: boolean
   firebaseUid?: boolean
-  passwordHash?: boolean
   isDemo?: boolean
   isEmailVerified?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   applications?: boolean | Prisma.User$applicationsArgs<ExtArgs>
-  emailVerificationTokens?: boolean | Prisma.User$emailVerificationTokensArgs<ExtArgs>
-  passwordResetTokens?: boolean | Prisma.User$passwordResetTokensArgs<ExtArgs>
   refreshTokens?: boolean | Prisma.User$refreshTokensArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
@@ -842,7 +589,6 @@ export type UserSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   id?: boolean
   email?: boolean
   firebaseUid?: boolean
-  passwordHash?: boolean
   isDemo?: boolean
   isEmailVerified?: boolean
   createdAt?: boolean
@@ -853,7 +599,6 @@ export type UserSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   id?: boolean
   email?: boolean
   firebaseUid?: boolean
-  passwordHash?: boolean
   isDemo?: boolean
   isEmailVerified?: boolean
   createdAt?: boolean
@@ -864,18 +609,15 @@ export type UserSelectScalar = {
   id?: boolean
   email?: boolean
   firebaseUid?: boolean
-  passwordHash?: boolean
   isDemo?: boolean
   isEmailVerified?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "email" | "firebaseUid" | "passwordHash" | "isDemo" | "isEmailVerified" | "createdAt" | "updatedAt", ExtArgs["result"]["user"]>
+export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "email" | "firebaseUid" | "isDemo" | "isEmailVerified" | "createdAt" | "updatedAt", ExtArgs["result"]["user"]>
 export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   applications?: boolean | Prisma.User$applicationsArgs<ExtArgs>
-  emailVerificationTokens?: boolean | Prisma.User$emailVerificationTokensArgs<ExtArgs>
-  passwordResetTokens?: boolean | Prisma.User$passwordResetTokensArgs<ExtArgs>
   refreshTokens?: boolean | Prisma.User$refreshTokensArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }
@@ -886,15 +628,12 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   name: "User"
   objects: {
     applications: Prisma.$ApplicationPayload<ExtArgs>[]
-    emailVerificationTokens: Prisma.$EmailVerificationTokenPayload<ExtArgs>[]
-    passwordResetTokens: Prisma.$PasswordResetTokenPayload<ExtArgs>[]
     refreshTokens: Prisma.$RefreshTokenPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     email: string
     firebaseUid: string | null
-    passwordHash: string | null
     isDemo: boolean
     isEmailVerified: boolean
     createdAt: Date
@@ -1294,8 +1033,6 @@ readonly fields: UserFieldRefs;
 export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
   applications<T extends Prisma.User$applicationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$applicationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ApplicationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
-  emailVerificationTokens<T extends Prisma.User$emailVerificationTokensArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$emailVerificationTokensArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$EmailVerificationTokenPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
-  passwordResetTokens<T extends Prisma.User$passwordResetTokensArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$passwordResetTokensArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PasswordResetTokenPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   refreshTokens<T extends Prisma.User$refreshTokensArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$refreshTokensArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$RefreshTokenPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -1329,7 +1066,6 @@ export interface UserFieldRefs {
   readonly id: Prisma.FieldRef<"User", 'String'>
   readonly email: Prisma.FieldRef<"User", 'String'>
   readonly firebaseUid: Prisma.FieldRef<"User", 'String'>
-  readonly passwordHash: Prisma.FieldRef<"User", 'String'>
   readonly isDemo: Prisma.FieldRef<"User", 'Boolean'>
   readonly isEmailVerified: Prisma.FieldRef<"User", 'Boolean'>
   readonly createdAt: Prisma.FieldRef<"User", 'DateTime'>
@@ -1748,54 +1484,6 @@ export type User$applicationsArgs<ExtArgs extends runtime.Types.Extensions.Inter
   take?: number
   skip?: number
   distinct?: Prisma.ApplicationScalarFieldEnum | Prisma.ApplicationScalarFieldEnum[]
-}
-
-/**
- * User.emailVerificationTokens
- */
-export type User$emailVerificationTokensArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  /**
-   * Select specific fields to fetch from the EmailVerificationToken
-   */
-  select?: Prisma.EmailVerificationTokenSelect<ExtArgs> | null
-  /**
-   * Omit specific fields from the EmailVerificationToken
-   */
-  omit?: Prisma.EmailVerificationTokenOmit<ExtArgs> | null
-  /**
-   * Choose, which related nodes to fetch as well
-   */
-  include?: Prisma.EmailVerificationTokenInclude<ExtArgs> | null
-  where?: Prisma.EmailVerificationTokenWhereInput
-  orderBy?: Prisma.EmailVerificationTokenOrderByWithRelationInput | Prisma.EmailVerificationTokenOrderByWithRelationInput[]
-  cursor?: Prisma.EmailVerificationTokenWhereUniqueInput
-  take?: number
-  skip?: number
-  distinct?: Prisma.EmailVerificationTokenScalarFieldEnum | Prisma.EmailVerificationTokenScalarFieldEnum[]
-}
-
-/**
- * User.passwordResetTokens
- */
-export type User$passwordResetTokensArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  /**
-   * Select specific fields to fetch from the PasswordResetToken
-   */
-  select?: Prisma.PasswordResetTokenSelect<ExtArgs> | null
-  /**
-   * Omit specific fields from the PasswordResetToken
-   */
-  omit?: Prisma.PasswordResetTokenOmit<ExtArgs> | null
-  /**
-   * Choose, which related nodes to fetch as well
-   */
-  include?: Prisma.PasswordResetTokenInclude<ExtArgs> | null
-  where?: Prisma.PasswordResetTokenWhereInput
-  orderBy?: Prisma.PasswordResetTokenOrderByWithRelationInput | Prisma.PasswordResetTokenOrderByWithRelationInput[]
-  cursor?: Prisma.PasswordResetTokenWhereUniqueInput
-  take?: number
-  skip?: number
-  distinct?: Prisma.PasswordResetTokenScalarFieldEnum | Prisma.PasswordResetTokenScalarFieldEnum[]
 }
 
 /**

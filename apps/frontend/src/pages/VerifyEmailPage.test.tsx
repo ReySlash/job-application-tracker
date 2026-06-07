@@ -17,19 +17,6 @@ describe('VerifyEmailPage', () => {
     vi.clearAllMocks();
   });
 
-  it('shows the success message from the redirect query params', () => {
-    render(
-      <MemoryRouter initialEntries={['/verify-email?status=success&message=Verified']}>
-        <Routes>
-          <Route path="/verify-email" element={<VerifyEmailPage />} />
-          <Route path="/login" element={<div>Login</div>} />
-        </Routes>
-      </MemoryRouter>,
-    );
-
-    expect(screen.getByText('Verified')).toBeInTheDocument();
-  });
-
   it('applies the Firebase action code when an oobCode is present', async () => {
     verifyEmailMock.mockResolvedValue({
       message: 'Your email has been verified. You can sign in now.',
@@ -48,9 +35,9 @@ describe('VerifyEmailPage', () => {
     expect(verifyEmailMock).toHaveBeenCalledWith('firebase-code-123');
   });
 
-  it('shows a fallback error when verification fails', () => {
+  it('shows a fallback error when the verification code is missing', () => {
     render(
-      <MemoryRouter initialEntries={['/verify-email?status=error']}>
+      <MemoryRouter initialEntries={['/verify-email']}>
         <Routes>
           <Route path="/verify-email" element={<VerifyEmailPage />} />
           <Route path="/login" element={<div>Login</div>} />

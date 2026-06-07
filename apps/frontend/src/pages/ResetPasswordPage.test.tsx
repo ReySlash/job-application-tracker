@@ -25,7 +25,7 @@ import ResetPasswordPage from './ResetPasswordPage';
 
 function renderResetPasswordPage() {
   return render(
-    <MemoryRouter initialEntries={['/reset-password?token=reset-token-123']}>
+    <MemoryRouter initialEntries={['/reset-password?oobCode=reset-token-123']}>
       <Routes>
         <Route path="/reset-password" element={<ResetPasswordPage />} />
         <Route path="/forgot-password" element={<div>Forgot password page</div>} />

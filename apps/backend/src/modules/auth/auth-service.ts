@@ -1,29 +1,14 @@
-import bcrypt from 'bcrypt';
 import prisma from '../../db.js';
 import { AppError } from '../../lib/errors.js';
-import { sendEmail } from '../../lib/email.js';
-import {
-  env,
-  getPasswordResetTokenExpiresAt,
-  getRefreshTokenExpiresAt,
-  getVerifyEmailTokenExpiresAt,
-} from '../../config/env.js';
+import { getRefreshTokenExpiresAt } from '../../config/env.js';
 import {
   generateAccessToken,
-  generateEmailVerificationToken,
-  generatePasswordResetToken,
   generateRefreshToken,
-  hashEmailVerificationToken,
-  hashPasswordResetToken,
   hashRefreshToken,
 } from '../../lib/tokens.js';
 import { createDemoUser } from '../../demo/demo-services.js';
 
-type SignupResult = {
-  message: string;
-};
-
-type AuthResult = {
+export type AuthResult = {
   accessToken: string;
   refreshToken: string;
   refreshTokenExpiresAt: Date;
@@ -36,64 +21,6 @@ type AuthResult = {
 };
 
 type AuthUser = AuthResult['user'];
-type PersistedUser = {
-  id: string;
-  email: string;
-  isDemo: boolean;
-  isEmailVerified: boolean;
-  passwordHash: string | null;
-};
-
-function createVerifyEmailResultUrl(status: 'success' | 'error', message?: string) {
-  const verifyUrl = new URL(env.frontendVerifyEmailUrl);
-  verifyUrl.searchParams.set('status', status);
-
-  if (message) {
-    verifyUrl.searchParams.set('message', message);
-  }
-
-  return verifyUrl.toString();
-}
-
-function createPasswordResetEmail(resetUrl: string) {
-  const expiresInMinutes = env.passwordResetTokenTtlMinutes;
-
-  return {
-    subject: env.passwordResetEmailSubject,
-    text: [
-      'We received a request to reset your Job Application Tracker password.',
-      '',
-      `Reset your password: ${resetUrl}`,
-      '',
-      `This link expires in ${expiresInMinutes} minutes. If you did not request this, you can ignore this email.`,
-    ].join('\n'),
-    html: [
-      '<p>We received a request to reset your Job Application Tracker password.</p>',
-      `<p><a href="${resetUrl}">Reset your password</a></p>`,
-      `<p>This link expires in ${expiresInMinutes} minutes. If you did not request this, you can ignore this email.</p>`,
-    ].join(''),
-  };
-}
-
-function createVerificationEmail(verificationUrl: string) {
-  const expiresInMinutes = env.verifyEmailTokenTtlMinutes;
-
-  return {
-    subject: env.verifyEmailSubject,
-    text: [
-      'Welcome to Job Application Tracker.',
-      '',
-      `Verify your email: ${verificationUrl}`,
-      '',
-      `This link expires in ${expiresInMinutes} minutes. If you did not create this account, you can ignore this email.`,
-    ].join('\n'),
-    html: [
-      '<p>Welcome to Job Application Tracker.</p>',
-      `<p><a href="${verificationUrl}">Verify your email</a></p>`,
-      `<p>This link expires in ${expiresInMinutes} minutes. If you did not create this account, you can ignore this email.</p>`,
-    ].join(''),
-  };
-}
 
 function toAuthUser(user: {
   id: string;
@@ -107,20 +34,6 @@ function toAuthUser(user: {
     isDemo: user.isDemo,
     isEmailVerified: user.isEmailVerified,
   };
-}
-
-function assertCredentialUser(user: PersistedUser | null): PersistedUser & { passwordHash: string } {
-  if (!user?.passwordHash) {
-    throw new AppError('Invalid email or password', 401);
-  }
-
-  return user as PersistedUser & { passwordHash: string };
-}
-
-function assertVerifiedUser(user: Pick<PersistedUser, 'isDemo' | 'isEmailVerified'>) {
-  if (!user.isDemo && !user.isEmailVerified) {
-    throw new AppError('Verify your email before signing in', 403);
-  }
 }
 
 async function createStoredRefreshToken(userId: string, refreshToken: string, expiresAt: Date) {
@@ -138,26 +51,6 @@ async function findRefreshTokenRecord(refreshToken: string) {
     where: { tokenHash: hashRefreshToken(refreshToken) },
     include: { user: true },
   });
-}
-
-async function sendConfiguredEmail(options: {
-  to: string;
-  subject: string;
-  text: string;
-  html: string;
-  missingConfigMessage: string;
-  fallbackLogMessage: string;
-}) {
-  if (env.gmailUser && env.gmailAppPassword) {
-    await sendEmail(options);
-    return;
-  }
-
-  if (env.nodeEnv === 'production') {
-    throw new Error(options.missingConfigMessage);
-  }
-
-  console.info(options.fallbackLogMessage);
 }
 
 async function issueAuthTokens(user: AuthUser): Promise<AuthResult> {
@@ -178,83 +71,9 @@ async function issueAuthTokens(user: AuthUser): Promise<AuthResult> {
   };
 }
 
-async function sendVerificationEmail(user: { id: string; email: string }) {
-  const rawToken = generateEmailVerificationToken();
-  const tokenHash = hashEmailVerificationToken(rawToken);
-  const expiresAt = getVerifyEmailTokenExpiresAt();
-
-  await prisma.emailVerificationToken.create({
-    data: {
-      tokenHash,
-      userId: user.id,
-      expiresAt,
-    },
-  });
-
-  const verificationUrl = new URL(env.backendUrl);
-  verificationUrl.pathname = '/api/auth/verify-email';
-  verificationUrl.searchParams.set('token', rawToken);
-
-  const emailMessage = createVerificationEmail(verificationUrl.toString());
-
-  await sendConfiguredEmail({
-    to: user.email,
-    subject: emailMessage.subject,
-    text: emailMessage.text,
-    html: emailMessage.html,
-    missingConfigMessage: 'Email verification delivery is not configured',
-    fallbackLogMessage: `Email verification link for ${user.email}: ${verificationUrl.toString()}`,
-  });
-}
-
-async function rollbackUserAfterFailedSignup(userId: string) {
-  await prisma.user.delete({
-    where: { id: userId },
-  });
-}
-
 export async function createDemoLogin(): Promise<AuthResult> {
   const user = await createDemoUser();
   return issueAuthTokens(toAuthUser(user));
-}
-
-export async function createUser(email: string, password: string): Promise<SignupResult> {
-  const passwordHash = await bcrypt.hash(password, 10);
-
-  const user = await prisma.user.create({
-    data: {
-      email,
-      passwordHash,
-      isDemo: false,
-    },
-  });
-
-  try {
-    await sendVerificationEmail(user);
-  } catch (error) {
-    await rollbackUserAfterFailedSignup(user.id);
-    throw error;
-  }
-
-  return {
-    message: 'Account created. Check your email to verify your account before signing in.',
-  };
-}
-
-export async function login(email: string, password: string): Promise<AuthResult> {
-  const storedUser = assertCredentialUser(await prisma.user.findUnique({
-    where: { email },
-  }));
-
-  const isPasswordValid = await bcrypt.compare(password, storedUser.passwordHash);
-
-  if (!isPasswordValid) {
-    throw new AppError('Invalid email or password', 401);
-  }
-
-  assertVerifiedUser(storedUser);
-
-  return issueAuthTokens(toAuthUser(storedUser));
 }
 
 export async function refresh(refreshToken: string | undefined): Promise<AuthResult> {
@@ -279,8 +98,6 @@ export async function refresh(refreshToken: string | undefined): Promise<AuthRes
   if (!storedRefreshToken.user) {
     throw new AppError('Invalid refresh token', 401);
   }
-
-  assertVerifiedUser(storedRefreshToken.user);
 
   const user = toAuthUser(storedRefreshToken.user);
   const accessToken = generateAccessToken({
@@ -342,128 +159,4 @@ export async function getCurrentUser(userId: string): Promise<AuthUser> {
   }
 
   return toAuthUser(user);
-}
-
-export async function forgotPassword(email: string): Promise<void> {
-  const user = await prisma.user.findUnique({
-    where: { email },
-  });
-
-  if (!user) {
-    return;
-  }
-
-  const rawResetToken = generatePasswordResetToken();
-  const tokenHash = hashPasswordResetToken(rawResetToken);
-  const resetTokenExpiresAt = getPasswordResetTokenExpiresAt();
-
-  await prisma.passwordResetToken.create({
-    data: {
-      tokenHash,
-      userId: user.id,
-      expiresAt: resetTokenExpiresAt,
-    },
-  });
-
-  const resetUrl = new URL(env.frontendResetPasswordUrl);
-  resetUrl.searchParams.set('token', rawResetToken);
-  const resetUrlString = resetUrl.toString();
-
-  const emailMessage = createPasswordResetEmail(resetUrlString);
-
-  try {
-    await sendConfiguredEmail({
-      to: user.email,
-      subject: emailMessage.subject,
-      text: emailMessage.text,
-      html: emailMessage.html,
-      missingConfigMessage: 'Password reset email delivery is not configured',
-      fallbackLogMessage: `Password reset link for ${user.email}: ${resetUrlString}`,
-    });
-  } catch (error) {
-    await prisma.passwordResetToken.deleteMany({
-      where: {
-        tokenHash,
-        userId: user.id,
-      },
-    });
-
-    console.error('Failed to send password reset email', {
-      email: user.email,
-      error,
-      gmailUserConfigured: Boolean(env.gmailUser),
-      gmailAppPasswordConfigured: Boolean(env.gmailAppPassword),
-      frontendResetPasswordUrl: env.frontendResetPasswordUrl,
-    });
-  }
-}
-
-export async function resetPassword(token: string, password: string): Promise<void> {
-  const tokenHash = hashPasswordResetToken(token);
-  const passwordResetToken = await prisma.passwordResetToken.findFirst({
-    where: { tokenHash },
-  });
-
-  if (!passwordResetToken || passwordResetToken.usedAt || passwordResetToken.expiresAt.getTime() <= Date.now()) {
-    throw new AppError('Invalid or expired reset token', 400);
-  }
-
-  const passwordHash = await bcrypt.hash(password, 10);
-  const now = new Date();
-
-  await prisma.$transaction([
-    prisma.user.update({
-      where: { id: passwordResetToken.userId },
-      data: { passwordHash },
-    }),
-    prisma.passwordResetToken.updateMany({
-      where: {
-        userId: passwordResetToken.userId,
-        usedAt: null,
-      },
-      data: { usedAt: now },
-    }),
-    prisma.refreshToken.updateMany({
-      where: {
-        userId: passwordResetToken.userId,
-        revokedAt: null,
-      },
-      data: { revokedAt: now },
-    }),
-  ]);
-}
-
-export async function verifyEmail(token: string): Promise<string> {
-  const tokenHash = hashEmailVerificationToken(token);
-  const verificationToken = await prisma.emailVerificationToken.findFirst({
-    where: { tokenHash },
-    include: { user: true },
-  });
-
-  if (
-    !verificationToken ||
-    verificationToken.usedAt ||
-    verificationToken.expiresAt.getTime() <= Date.now() ||
-    !verificationToken.user
-  ) {
-    return createVerifyEmailResultUrl('error', 'This verification link is invalid or has expired.');
-  }
-
-  const now = new Date();
-
-  await prisma.$transaction([
-    prisma.user.update({
-      where: { id: verificationToken.userId },
-      data: { isEmailVerified: true },
-    }),
-    prisma.emailVerificationToken.updateMany({
-      where: {
-        userId: verificationToken.userId,
-        usedAt: null,
-      },
-      data: { usedAt: now },
-    }),
-  ]);
-
-  return createVerifyEmailResultUrl('success', 'Your email has been verified. You can sign in now.');
 }

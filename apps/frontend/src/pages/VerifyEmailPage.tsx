@@ -9,19 +9,16 @@ type AsyncViewState = {
 
 function VerifyEmailPage() {
   const [searchParams] = useSearchParams();
-  const redirectedStatus = searchParams.get('status');
-  const redirectedMessage = searchParams.get('message');
   const actionCode = searchParams.get('oobCode');
-  const shouldHandleFirebaseCode = !redirectedStatus && Boolean(actionCode);
   const [asyncViewState, setAsyncViewState] = useState<AsyncViewState>({
-    status: shouldHandleFirebaseCode ? 'pending' : 'error',
-    message: shouldHandleFirebaseCode
+    status: actionCode ? 'pending' : 'error',
+    message: actionCode
       ? 'Checking your verification link...'
       : 'This verification link is invalid or has expired.',
   });
 
   useEffect(() => {
-    if (!shouldHandleFirebaseCode || !actionCode) {
+    if (!actionCode) {
       return;
     }
 
@@ -38,21 +35,10 @@ function VerifyEmailPage() {
           message: error instanceof Error ? error.message : 'Unable to verify your email.',
         });
       });
-  }, [actionCode, shouldHandleFirebaseCode]);
+  }, [actionCode]);
 
-  const viewState = redirectedStatus
-    ? {
-        status: redirectedStatus === 'success' ? 'success' : 'error',
-        message:
-          redirectedMessage ??
-          (redirectedStatus === 'success'
-            ? 'Your email has been verified. You can sign in now.'
-            : 'This verification link is invalid or has expired.'),
-      }
-    : asyncViewState;
-
-  const isSuccess = viewState.status === 'success';
-  const isPending = viewState.status === 'pending';
+  const isSuccess = asyncViewState.status === 'success';
+  const isPending = asyncViewState.status === 'pending';
 
   return (
     <section className="mx-auto flex min-h-[calc(100vh-3rem)] max-w-md items-center px-4 py-10">
@@ -71,7 +57,7 @@ function VerifyEmailPage() {
                 : 'border border-amber-300 bg-amber-100 text-amber-900 dark:border-amber-800 dark:bg-amber-950/60 dark:text-amber-200'
           }`}
         >
-          {viewState.message}
+          {asyncViewState.message}
         </div>
 
         <p className="mt-5 text-center text-sm text-slate-600 dark:text-slate-400">

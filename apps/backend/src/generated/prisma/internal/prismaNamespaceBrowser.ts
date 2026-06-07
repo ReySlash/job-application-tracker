@@ -53,9 +53,7 @@ export const AnyNull = runtime.AnyNull
 export const ModelName = {
   User: 'User',
   Application: 'Application',
-  RefreshToken: 'RefreshToken',
-  PasswordResetToken: 'PasswordResetToken',
-  EmailVerificationToken: 'EmailVerificationToken'
+  RefreshToken: 'RefreshToken'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -78,7 +76,6 @@ export const UserScalarFieldEnum = {
   id: 'id',
   email: 'email',
   firebaseUid: 'firebaseUid',
-  passwordHash: 'passwordHash',
   isDemo: 'isDemo',
   isEmailVerified: 'isEmailVerified',
   createdAt: 'createdAt',
@@ -115,30 +112,6 @@ export const RefreshTokenScalarFieldEnum = {
 } as const
 
 export type RefreshTokenScalarFieldEnum = (typeof RefreshTokenScalarFieldEnum)[keyof typeof RefreshTokenScalarFieldEnum]
-
-
-export const PasswordResetTokenScalarFieldEnum = {
-  id: 'id',
-  tokenHash: 'tokenHash',
-  userId: 'userId',
-  expiresAt: 'expiresAt',
-  usedAt: 'usedAt',
-  createdAt: 'createdAt'
-} as const
-
-export type PasswordResetTokenScalarFieldEnum = (typeof PasswordResetTokenScalarFieldEnum)[keyof typeof PasswordResetTokenScalarFieldEnum]
-
-
-export const EmailVerificationTokenScalarFieldEnum = {
-  id: 'id',
-  tokenHash: 'tokenHash',
-  userId: 'userId',
-  expiresAt: 'expiresAt',
-  usedAt: 'usedAt',
-  createdAt: 'createdAt'
-} as const
-
-export type EmailVerificationTokenScalarFieldEnum = (typeof EmailVerificationTokenScalarFieldEnum)[keyof typeof EmailVerificationTokenScalarFieldEnum]
 
 
 export const SortOrder = {

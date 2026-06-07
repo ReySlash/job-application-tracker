@@ -15,12 +15,7 @@ The stable deployed app still lives on the Supabase-based implementation, while 
 - Prisma and the backend runtime are configured to use `apps/backend/.env`
 - Prisma migration history is checked into the backend workspace
 - backend auth routes currently implemented:
-  - `POST /api/auth/signup`
-  - `GET /api/auth/verify-email`
-  - `POST /api/auth/login`
   - `POST /api/auth/demo-login`
-  - `POST /api/auth/forgot-password`
-  - `POST /api/auth/reset-password`
   - `POST /api/auth/logout`
   - `POST /api/auth/refresh`
   - `GET /api/auth/me`
@@ -40,7 +35,7 @@ The migration is not complete yet. Current behavior:
 - demo reset works through `POST /api/applications/demo-reset`
 - expired demo users are cleaned up hourly while the backend process is running
 - backend CORS is enabled for credentialed frontend requests using `FRONTEND_URL`
-- forgot-password and email verification are handled by Firebase-managed email actions
+- forgot-password, password reset, and email verification are handled by Firebase-managed email actions
 - backend middleware verifies Firebase ID tokens and upserts Prisma users by `firebaseUid`
 - Supabase is no longer required by the active frontend/backend auth flow
 - deployment verification and the AGENTS merge checklist are complete pending branch merge into `main`
@@ -68,7 +63,6 @@ Use [backend-migration-plan.md](/Users/reynaldocarmenatearias/Documents/ReactPro
 - Neon Postgres
 - Firebase Admin SDK
 - Zod
-- bcrypt
 - jsonwebtoken
 - cookie-parser
 - cors
@@ -103,7 +97,6 @@ Core backend variables:
 DATABASE_URL=your-neon-connection-string
 JWT_SECRET=replace-this-with-a-real-secret
 FRONTEND_URL=http://localhost:5173
-BACKEND_URL=http://localhost:4000
 FIREBASE_PROJECT_ID=your-firebase-project-id
 FIREBASE_CLIENT_EMAIL=firebase-adminsdk-xxxxx@your-project-id.iam.gserviceaccount.com
 FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n"
@@ -116,16 +109,7 @@ Optional backend auth tuning variables:
 ```env
 ACCESS_TOKEN_TTL_SECONDS=900
 REFRESH_TOKEN_TTL_DAYS=7
-PASSWORD_RESET_TOKEN_TTL_MINUTES=60
-VERIFY_EMAIL_TOKEN_TTL_MINUTES=1440
-FRONTEND_RESET_PASSWORD_URL=http://localhost:5173/reset-password
-FRONTEND_VERIFY_EMAIL_URL=http://localhost:5173/verify-email
-BACKEND_URL=http://localhost:4000
-GMAIL_USER=your-email@gmail.com
-GMAIL_APP_PASSWORD=your-16-character-app-password
-EMAIL_FROM=Job Application Tracker <your-email@gmail.com>
-PASSWORD_RESET_EMAIL_SUBJECT=Reset your Job Application Tracker password
-VERIFY_EMAIL_SUBJECT=Verify your Job Application Tracker email
+COOKIE_DOMAIN=
 ```
 
 Frontend environment:
@@ -189,7 +173,7 @@ pnpm test
 pnpm test:coverage
 ```
 
-The backend test suite uses `Vitest` plus `Supertest` and mocks Prisma and email delivery instead of connecting to Neon or Gmail.
+The backend test suite uses `Vitest` plus `Supertest` and mocks Prisma and Firebase verification boundaries instead of connecting to Neon or Firebase Auth.
 If backend route tests fail in a restricted environment with `listen EPERM`, re-run `pnpm test` in an environment that permits socket binding before treating it as an application regression.
 
 ## Prisma Commands
@@ -211,13 +195,9 @@ Copy `apps/backend/.env.example` into `apps/backend/.env` and set the Firebase A
 
 - `FRONTEND_URL` may be a single origin or a comma-separated list of allowed frontend origins
 - `FIREBASE_PROJECT_ID`, `FIREBASE_CLIENT_EMAIL`, and `FIREBASE_PRIVATE_KEY` should come from a Firebase service account with Auth access
-- `GMAIL_USER`, `GMAIL_APP_PASSWORD`, and `EMAIL_FROM` are temporary legacy settings kept only while the old backend-owned auth routes still exist
-- `FRONTEND_RESET_PASSWORD_URL` should point at the frontend reset page that receives the Firebase `oobCode` query parameter for the real-user flow
-- `FRONTEND_VERIFY_EMAIL_URL` is the frontend page that receives verification results if the legacy backend flow is still used
-- `BACKEND_URL` is still used by legacy backend-owned email flows and deployed-link generation
 - `COOKIE_DOMAIN` is optional and can be used in production if your frontend and backend must share a parent cookie domain
 
-In production, the backend fails fast if `DATABASE_URL`, `JWT_SECRET`, `FRONTEND_URL`, `BACKEND_URL`, `FIREBASE_PROJECT_ID`, `FIREBASE_CLIENT_EMAIL`, or `FIREBASE_PRIVATE_KEY` is missing.
+In production, the backend fails fast if `DATABASE_URL`, `JWT_SECRET`, `FRONTEND_URL`, `FIREBASE_PROJECT_ID`, `FIREBASE_CLIENT_EMAIL`, or `FIREBASE_PRIVATE_KEY` is missing.
 
 ## Deployment Targets
 
@@ -258,20 +238,14 @@ Provider-specific environment contract:
   - `DATABASE_URL`
   - `JWT_SECRET`
   - `FRONTEND_URL`
-  - `BACKEND_URL`
   - `FIREBASE_PROJECT_ID`
   - `FIREBASE_CLIENT_EMAIL`
   - `FIREBASE_PRIVATE_KEY`
-  - `FRONTEND_RESET_PASSWORD_URL`
-  - `FRONTEND_VERIFY_EMAIL_URL`
   - optional `COOKIE_DOMAIN`
-  - legacy-only if you still exercise backend-owned email routes: `GMAIL_USER`, `GMAIL_APP_PASSWORD`, `EMAIL_FROM`
 
 Staging URL topology:
 
 - `FRONTEND_URL` should be the Vercel frontend origin
-- `BACKEND_URL` should be the Render backend origin
-- `FRONTEND_RESET_PASSWORD_URL` and `FRONTEND_VERIFY_EMAIL_URL` should point to the deployed frontend pages
 - Leave `COOKIE_DOMAIN` unset unless you intentionally deploy both apps under a shared parent domain
 - Add the deployed frontend origin to Firebase Authentication authorized domains before verifying signup/reset flows
 
@@ -294,8 +268,6 @@ The current Prisma schema includes these models:
 - `User`
 - `Application`
 - `RefreshToken`
-- `PasswordResetToken`
-- `EmailVerificationToken`
 - `ApplicationStatus`
 
 Migrations currently live at:
@@ -303,6 +275,7 @@ Migrations currently live at:
 ```txt
 apps/backend/prisma/migrations/20260528120000_init/migration.sql
 apps/backend/prisma/migrations/20260607000100_add_firebase_uid_to_user/migration.sql
+apps/backend/prisma/migrations/20260607000200_remove_legacy_auth_artifacts/migration.sql
 ```
 
 ## Notes

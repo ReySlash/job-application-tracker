@@ -2,7 +2,6 @@ import request from 'supertest';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { Prisma } from '../src/generated/prisma/client.js';
 import { AppError } from '../src/lib/errors.js';
-import { generateAccessToken } from '../src/lib/tokens.js';
 import { verifiedUser } from './helpers/auth-fixtures.js';
 
 const {
@@ -14,6 +13,8 @@ const {
   logout,
   refresh,
   resetPassword,
+  syncFirebaseUserMock,
+  verifyIdTokenMock,
   verifyEmail,
 } = vi.hoisted(() => ({
   createUser: vi.fn(),
@@ -24,6 +25,8 @@ const {
   logout: vi.fn(),
   refresh: vi.fn(),
   resetPassword: vi.fn(),
+  syncFirebaseUserMock: vi.fn(),
+  verifyIdTokenMock: vi.fn(),
   verifyEmail: vi.fn(),
 }));
 
@@ -37,6 +40,16 @@ vi.mock('../src/modules/auth/auth-service.js', () => ({
   refresh,
   resetPassword,
   verifyEmail,
+}));
+
+vi.mock('../src/lib/firebase-admin.js', () => ({
+  getFirebaseAdminAuth: () => ({
+    verifyIdToken: verifyIdTokenMock,
+  }),
+}));
+
+vi.mock('../src/modules/auth/firebase-auth-service.js', () => ({
+  syncFirebaseUser: syncFirebaseUserMock,
 }));
 
 import { createApp } from '../src/app.js';
@@ -58,6 +71,8 @@ describe('auth routes', () => {
     logout.mockReset();
     refresh.mockReset();
     resetPassword.mockReset();
+    syncFirebaseUserMock.mockReset();
+    verifyIdTokenMock.mockReset();
     verifyEmail.mockReset();
   });
 
@@ -239,15 +254,22 @@ describe('auth routes', () => {
   it('returns the current user for a valid bearer token', async () => {
     const app = createApp();
     getCurrentUser.mockResolvedValue(verifiedUser);
-    const accessToken = generateAccessToken({
-      userId: verifiedUser.id,
+    verifyIdTokenMock.mockResolvedValue({
+      uid: 'firebase-user-1',
       email: verifiedUser.email,
-      isDemo: verifiedUser.isDemo,
+      email_verified: true,
+    });
+    syncFirebaseUserMock.mockResolvedValue({
+      id: verifiedUser.id,
+      email: verifiedUser.email,
+      isDemo: false,
+      isEmailVerified: true,
+      firebaseUid: 'firebase-user-1',
     });
 
     const response = await request(app)
       .get('/api/auth/me')
-      .set('Authorization', `Bearer ${accessToken}`);
+      .set('Authorization', 'Bearer firebase-token');
 
     expect(response.status).toBe(200);
     expect(response.body).toEqual({ user: verifiedUser });

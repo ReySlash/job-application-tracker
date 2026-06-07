@@ -6,9 +6,9 @@ Use this checklist before merging `migration/express-prisma-neon` into `main`.
 
 - [x] `pnpm lint`
 - [x] `pnpm build`
-- [ ] `pnpm test`
+- [x] `pnpm test`
 - [ ] `pnpm test:coverage`
-- [ ] Re-run `pnpm test` outside the sandbox if backend `supertest` fails with `listen EPERM`
+- [x] Re-run `pnpm test` outside the sandbox if backend `supertest` fails with `listen EPERM`
 - [ ] Re-run `pnpm test:coverage` outside the sandbox if backend `supertest` fails with `listen EPERM`
 
 ## Local Manual Checks

@@ -10,14 +10,18 @@ const {
   getApplicationById,
   getApplicationsList,
   resetDemoApplications,
+  syncFirebaseUserMock,
   updateApplication,
+  verifyIdTokenMock,
 } = vi.hoisted(() => ({
   createApplication: vi.fn(),
   deleteApplication: vi.fn(),
   getApplicationById: vi.fn(),
   getApplicationsList: vi.fn(),
   resetDemoApplications: vi.fn(),
+  syncFirebaseUserMock: vi.fn(),
   updateApplication: vi.fn(),
+  verifyIdTokenMock: vi.fn(),
 }));
 
 vi.mock('../src/modules/applications/applications-service.js', () => ({
@@ -29,14 +33,20 @@ vi.mock('../src/modules/applications/applications-service.js', () => ({
   updateApplication,
 }));
 
+vi.mock('../src/lib/firebase-admin.js', () => ({
+  getFirebaseAdminAuth: () => ({
+    verifyIdToken: verifyIdTokenMock,
+  }),
+}));
+
+vi.mock('../src/modules/auth/firebase-auth-service.js', () => ({
+  syncFirebaseUser: syncFirebaseUserMock,
+}));
+
 import { createApp } from '../src/app.js';
 
 const app = createApp();
-const accessToken = generateAccessToken({
-  userId: 'user-1',
-  email: 'verified@example.com',
-  isDemo: false,
-});
+const accessToken = 'firebase-token';
 const serializedApplicationRecord = {
   ...applicationRecord,
   appliedAt: applicationRecord.appliedAt.toISOString(),
@@ -51,7 +61,22 @@ describe('applications routes', () => {
     getApplicationById.mockReset();
     getApplicationsList.mockReset();
     resetDemoApplications.mockReset();
+    syncFirebaseUserMock.mockReset();
     updateApplication.mockReset();
+    verifyIdTokenMock.mockReset();
+
+    verifyIdTokenMock.mockResolvedValue({
+      uid: 'firebase-user-1',
+      email: 'verified@example.com',
+      email_verified: true,
+    });
+    syncFirebaseUserMock.mockResolvedValue({
+      id: 'user-1',
+      email: 'verified@example.com',
+      isDemo: false,
+      isEmailVerified: true,
+      firebaseUid: 'firebase-user-1',
+    });
   });
 
   it('returns the authenticated user application list', async () => {

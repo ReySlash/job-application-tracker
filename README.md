@@ -238,7 +238,7 @@ Required deployment order:
 1. Provision Neon staging database
 2. Apply Prisma migrations manually with `pnpm --filter backend exec prisma migrate deploy`
 3. Deploy the Render backend
-4. Deploy the Vercel frontend with `VITE_API_BASE_URL` pointed at the deployed backend API
+4. Deploy the Vercel frontend with `VITE_API_BASE_URL` pointed at the deployed backend API and `VITE_APP_BASE_URL` pointed at the deployed frontend origin
 5. Run the full staging verification checklist
 
 Provider-specific environment contract:

@@ -88,6 +88,19 @@ job-application-tracker/
 
 `apps/backend/.env` is the source of truth for Prisma and backend runtime configuration.
 
+Supported env-file layout in this repo:
+
+- `apps/backend/.env`: local backend development
+- `apps/backend/.env.example`: backend local template
+- `apps/backend/.env.docker.example`: backend Docker `--env-file` template
+- `apps/frontend/.env`: local frontend development
+- `apps/frontend/.env.example`: frontend local template
+
+Unsupported for the active workflow:
+
+- root-level `.env` and `.env.*` files are not part of the supported frontend/backend runtime contract for this monorepo
+- if you have older root env files locally, treat them as leftovers and do not use them for backend Docker runs
+
 Core backend variables:
 
 ```env
@@ -195,6 +208,13 @@ Copy `apps/backend/.env.example` into `apps/backend/.env` and set the Firebase A
 - `COOKIE_DOMAIN` is optional and can be used in production if your frontend and backend must share a parent cookie domain
 
 In production, the backend fails fast if `DATABASE_URL`, `JWT_SECRET`, `FRONTEND_URL`, `FIREBASE_PROJECT_ID`, `FIREBASE_CLIENT_EMAIL`, or `FIREBASE_PRIVATE_KEY` is missing.
+
+For Docker deployments, use [apps/backend/.env.docker.example](/Users/reynaldocarmenatearias/Documents/ReactProjects/job-application-tracker/apps/backend/.env.docker.example:1) as the backend container template.
+
+- Docker `--env-file` values must be unquoted
+- Do not include frontend `VITE_*` variables in the backend container env file
+- Keep `FIREBASE_PRIVATE_KEY` as a single line with escaped `\n` characters
+- Do not use root `.env` or `.env.production` files for the backend container
 
 ## Deployment Targets
 

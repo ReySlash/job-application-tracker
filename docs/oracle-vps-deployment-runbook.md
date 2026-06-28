@@ -74,7 +74,14 @@ Required deployment assets for the next implementation step:
 - Nginx config example for `api.reyslash.com`
 - deployment command set for build, run, replace, logs, and rollback
 
-Those assets should implement this runbook directly and should not introduce application behavior changes.
+Implemented assets:
+
+- [apps/backend/Dockerfile](/Users/reynaldocarmenatearias/Documents/ReactProjects/job-application-tracker/apps/backend/Dockerfile:1)
+- [.dockerignore](/Users/reynaldocarmenatearias/Documents/ReactProjects/job-application-tracker/.dockerignore:1)
+- [ops/nginx/api.reyslash.com.conf.example](/Users/reynaldocarmenatearias/Documents/ReactProjects/job-application-tracker/ops/nginx/api.reyslash.com.conf.example:1)
+- [docs/oracle-vps-deploy-commands.md](/Users/reynaldocarmenatearias/Documents/ReactProjects/job-application-tracker/docs/oracle-vps-deploy-commands.md:1)
+
+These assets implement this runbook directly and should not introduce application behavior changes.
 
 ## Prisma Migrations
 
@@ -115,7 +122,7 @@ JWT_SECRET=replace-with-a-long-random-secret
 FRONTEND_URL=https://your-vercel-project.vercel.app
 FIREBASE_PROJECT_ID=your-firebase-project-id
 FIREBASE_CLIENT_EMAIL=firebase-adminsdk-xxxxx@your-project-id.iam.gserviceaccount.com
-FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n"
+FIREBASE_PRIVATE_KEY=-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n
 COOKIE_DOMAIN=
 ```
 
@@ -125,6 +132,10 @@ Environment defaults and assumptions:
 - `VITE_API_BASE_URL` should be `https://api.reyslash.com/api`
 - leave `COOKIE_DOMAIN` unset unless frontend and backend later share a parent domain
 - production backend startup must still satisfy the existing env checks in the app
+- for Docker `--env-file`, do not wrap values in quotes; Docker passes quote characters through literally
+- keep `\n` escapes in `FIREBASE_PRIVATE_KEY`; the backend converts them back to real newlines at runtime
+- use [apps/backend/.env.docker.example](/Users/reynaldocarmenatearias/Documents/ReactProjects/job-application-tracker/apps/backend/.env.docker.example:1) as the template for the backend container env file
+- do not use root `.env` or `.env.production` files for the backend container; they are not part of the supported Oracle Docker workflow
 
 ## Release Procedure
 
@@ -147,56 +158,7 @@ Release order:
 
 ## Deployment Commands
 
-These commands are the target command set for the next implementation step.
-
-### Build
-
-```bash
-docker build -f apps/backend/Dockerfile -t job-application-tracker-backend:latest .
-```
-
-### Run
-
-```bash
-docker run -d \
-  --name job-application-tracker-backend \
-  --restart unless-stopped \
-  --env-file /path/to/backend.env \
-  -p 127.0.0.1:4000:4000 \
-  job-application-tracker-backend:latest
-```
-
-### Replace
-
-```bash
-docker stop job-application-tracker-backend
-docker rm job-application-tracker-backend
-docker run -d \
-  --name job-application-tracker-backend \
-  --restart unless-stopped \
-  --env-file /path/to/backend.env \
-  -p 127.0.0.1:4000:4000 \
-  job-application-tracker-backend:latest
-```
-
-### Logs
-
-```bash
-docker logs -f job-application-tracker-backend
-```
-
-### Rollback
-
-```bash
-docker stop job-application-tracker-backend
-docker rm job-application-tracker-backend
-docker run -d \
-  --name job-application-tracker-backend \
-  --restart unless-stopped \
-  --env-file /path/to/backend.env \
-  -p 127.0.0.1:4000:4000 \
-  job-application-tracker-backend:<previous-tag>
-```
+The concrete build, run, replace, logs, and rollback commands live in [oracle-vps-deploy-commands.md](/Users/reynaldocarmenatearias/Documents/ReactProjects/job-application-tracker/docs/oracle-vps-deploy-commands.md:1).
 
 ## Nginx and TLS Expectations
 
@@ -212,7 +174,7 @@ Certbot should:
 - issue the initial Let's Encrypt certificate for `api.reyslash.com`
 - keep renewal configured on the host
 
-The Nginx config example itself should be added as part of the next implementation step.
+The Nginx config example lives at [ops/nginx/api.reyslash.com.conf.example](/Users/reynaldocarmenatearias/Documents/ReactProjects/job-application-tracker/ops/nginx/api.reyslash.com.conf.example:1).
 
 ## Acceptance Criteria
 

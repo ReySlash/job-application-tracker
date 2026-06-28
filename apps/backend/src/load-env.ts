@@ -1,9 +1,11 @@
-import { config as loadEnv } from 'dotenv';
-import { dirname, resolve } from 'node:path';
-import { fileURLToPath } from 'node:url';
+if (process.env.NODE_ENV !== 'production') {
+  const { config: loadEnv } = await import('dotenv');
+  const { dirname, resolve } = await import('node:path');
+  const { fileURLToPath } = await import('node:url');
 
-const currentDir = dirname(fileURLToPath(import.meta.url));
+  const currentDir = dirname(fileURLToPath(import.meta.url));
 
-loadEnv({
-  path: resolve(currentDir, '../.env'),
-});
+  loadEnv({
+    path: resolve(currentDir, '../.env'),
+  });
+}

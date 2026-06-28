@@ -31,18 +31,20 @@ Use this checklist before merging `migration/express-prisma-neon` into `main`.
 - [x] Neon staging database is provisioned
 - [x] Prisma production migrations were applied manually with `pnpm --filter backend exec prisma migrate deploy`
 - [x] Frontend deploy works on Vercel
-- [x] Backend deploy works on Render
-- [x] `VITE_API_BASE_URL` points to the deployed backend API
+- [x] Backend deploy works on the Oracle Cloud VPS
+- [x] `VITE_API_BASE_URL` points to `https://api.reyslash.com/api`
 - [x] Firebase frontend env vars are configured on Vercel
-- [x] Firebase Admin env vars are configured on Render
+- [x] Firebase Admin env vars are configured for the backend container on the Oracle VM
 - [x] Firebase authorized domains include the deployed frontend origin
 - [x] Firebase email verification works against deployed frontend/backend URLs
 - [x] Firebase password reset works against deployed frontend/backend URLs
 - [x] Firebase ID token auth works against deployed backend routes
 - [x] Demo refresh cookie works in the browser
 - [x] Demo refresh cookie is `HttpOnly`, `Secure`, and `SameSite=None`
-- [x] `GET /ready` passes on Render
-- [x] Neon database connectivity is confirmed from the deployed backend during manual verification
+- [x] Host Nginx proxies `/api`, `/health`, and `/ready` to the Dockerized backend
+- [x] Certbot issues a valid certificate for `api.reyslash.com`
+- [x] `GET /ready` passes on `https://api.reyslash.com/ready`
+- [x] Neon database connectivity is confirmed from the Oracle-hosted backend during manual verification
 - [x] No deployed runtime path depends on Supabase
 
 ## Signoff

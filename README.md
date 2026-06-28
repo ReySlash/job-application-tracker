@@ -37,7 +37,7 @@ The Supabase to Express/Prisma/Neon migration is complete on `migration/express-
 - Supabase is no longer required by the active frontend/backend auth flow
 - deployment verification is complete and the branch is ready for final review and merge into `main`
 
-Use [backend-migration-plan.md](/Users/reynaldocarmenatearias/Documents/ReactProjects/job-application-tracker/backend-migration-plan.md) as a historical implementation roadmap.
+Use [backend-migration-plan.md](job-application-tracker/backend-migration-plan.md) as a historical implementation roadmap.
 
 ## Tech Stack
 
@@ -198,29 +198,39 @@ In production, the backend fails fast if `DATABASE_URL`, `JWT_SECRET`, `FRONTEND
 
 ## Deployment Targets
 
-The current deployment architecture is:
+The active deployment architecture is:
 
 - frontend deployed from `apps/frontend` to Vercel
-- backend deployed from the monorepo to Render using [render.yaml](/Users/reynaldocarmenatearias/Documents/ReactProjects/job-application-tracker/render.yaml:1)
+- backend deployed to an Oracle Cloud VPS as a Dockerized Express API behind host-installed Nginx and Certbot
+- backend public origin exposed at `https://api.reyslash.com`
 
-Files added for deployment wiring:
+Deployment wiring already present in the repo:
 
-- [apps/frontend/vercel.json](/Users/reynaldocarmenatearias/Documents/ReactProjects/job-application-tracker/apps/frontend/vercel.json:1) adds SPA rewrites for the Vercel frontend
-- [render.yaml](/Users/reynaldocarmenatearias/Documents/ReactProjects/job-application-tracker/render.yaml:1) defines the backend service blueprint and production env keys
+- [apps/frontend/vercel.json](job-application-tracker/apps/frontend/vercel.json:1) adds SPA rewrites for the Vercel frontend
+
+Deployment documentation:
+
+- [docs/oracle-vps-deployment-runbook.md](job-application-tracker/docs/oracle-vps-deployment-runbook.md:1) is the source of truth for the Oracle VPS backend topology, Docker contract, Nginx/Certbot setup, and deployment procedure
+- [docs/staging-deployment-runbook.md](job-application-tracker/docs/staging-deployment-runbook.md:1) summarizes the staged deployment flow for Vercel + Oracle VPS + Neon
+
+Historical note:
+
+- [render.yaml](job-application-tracker/render.yaml:1) remains in the repo as the previous Render backend blueprint, but Render is no longer the active backend deployment target in this branch's docs
 
 The old GitHub Pages deployment workflow has been removed from this branch because GitHub Pages is not the deployment target for the current stack.
 
 ## Staging Deployment Flow
 
-Use [docs/staging-deployment-runbook.md](/Users/reynaldocarmenatearias/Documents/ReactProjects/job-application-tracker/docs/staging-deployment-runbook.md:1) as the source of truth for the first staged deployment.
+Use [docs/oracle-vps-deployment-runbook.md](job-application-tracker/docs/oracle-vps-deployment-runbook.md:1) as the source of truth for the backend deployment contract and [docs/staging-deployment-runbook.md](job-application-tracker/docs/staging-deployment-runbook.md:1) for the staged rollout order.
 
 Required deployment order:
 
-1. Provision Neon staging database
-2. Apply Prisma migrations manually with `pnpm --filter backend exec prisma migrate deploy`
-3. Deploy the Render backend
-4. Deploy the Vercel frontend with `VITE_API_BASE_URL` pointed at the deployed backend API and `VITE_APP_BASE_URL` pointed at the deployed frontend origin
-5. Run the full staging verification checklist
+1. Provision the Neon staging database
+2. Prepare the Oracle VPS with Docker, Nginx, Certbot, and DNS for `api.reyslash.com`
+3. Apply Prisma migrations manually from the repo checkout on the VM with `pnpm --filter backend exec prisma migrate deploy`
+4. Build and replace the Dockerized backend on the Oracle VPS
+5. Deploy the Vercel frontend with `VITE_API_BASE_URL` pointed at `https://api.reyslash.com/api` and `VITE_APP_BASE_URL` pointed at the deployed frontend origin
+6. Run the full staging verification checklist
 
 Provider-specific environment contract:
 
@@ -231,7 +241,7 @@ Provider-specific environment contract:
   - `VITE_FIREBASE_AUTH_DOMAIN`
   - `VITE_FIREBASE_PROJECT_ID`
   - `VITE_FIREBASE_APP_ID`
-- Render backend:
+- Oracle VPS backend container:
   - `DATABASE_URL`
   - `JWT_SECRET`
   - `FRONTEND_URL`
@@ -243,20 +253,23 @@ Provider-specific environment contract:
 Staging URL topology:
 
 - `FRONTEND_URL` should be the Vercel frontend origin
-- Leave `COOKIE_DOMAIN` unset unless you intentionally deploy both apps under a shared parent domain
+- `VITE_API_BASE_URL` should be `https://api.reyslash.com/api`
+- Leave `COOKIE_DOMAIN` unset unless you intentionally move frontend and backend under the same parent domain
 - Add the deployed frontend origin to Firebase Authentication authorized domains before verifying signup/reset flows
 
 Operational expectations:
 
-- `render.yaml` intentionally builds and starts the backend only; it does not run Prisma migrations automatically for the first deploy
-- Render health checks should use `GET /ready`
+- The backend Docker image installs dependencies, generates the Prisma client, and builds TypeScript during `docker build`
+- Container startup runs only the compiled API server
+- Prisma production migrations are a manual one-off deploy step run from the VM repo checkout before replacing the running API container
+- Oracle VPS health checks should use `GET /ready`
 - `GET /health` remains a process health endpoint, not a database readiness endpoint
 - Cross-origin demo auth in production depends on `HttpOnly`, `Secure`, `SameSite=None` cookies and a working `POST /api/auth/refresh` flow after a browser reload
 - No staged runtime path should depend on Supabase
 
 ## Migration Verification
 
-The completed verification record lives in [docs/migration-verification-checklist.md](/Users/reynaldocarmenatearias/Documents/ReactProjects/job-application-tracker/docs/migration-verification-checklist.md:1).
+The completed verification record lives in [docs/migration-verification-checklist.md](job-application-tracker/docs/migration-verification-checklist.md:1).
 
 ## Database State
 
@@ -278,7 +291,7 @@ apps/backend/prisma/migrations/20260607000200_remove_legacy_auth_artifacts/migra
 ## Notes
 
 - The migration work on `migration/express-prisma-neon` is complete and verified; the remaining repository step is merging this branch into `main`.
-- For the implementation roadmap and historical scope, use [backend-migration-plan.md](/Users/reynaldocarmenatearias/Documents/ReactProjects/job-application-tracker/backend-migration-plan.md).
+- For the implementation roadmap and historical scope, use [backend-migration-plan.md](job-application-tracker/backend-migration-plan.md).
 - The backend still uses `JWT_SECRET` for demo-session tokens and falls back to a development-only default if it is missing. Do not rely on that fallback outside local development.
 - In production, refresh cookies are configured as `SameSite=None` and `Secure=true` for cross-origin frontend/backend deployments.
 

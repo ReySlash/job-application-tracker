@@ -2,6 +2,8 @@
 
 These commands implement the deployment flow described in [oracle-vps-deployment-runbook.md](/Users/reynaldocarmenatearias/Documents/ReactProjects/job-application-tracker/docs/oracle-vps-deployment-runbook.md:1).
 
+For repeatable VM operations, use [scripts/deploy-backend-docker.sh](/Users/reynaldocarmenatearias/Documents/ReactProjects/job-application-tracker/scripts/deploy-backend-docker.sh:1).
+
 Assumptions:
 
 - the repo is checked out on the Oracle VM
@@ -26,6 +28,12 @@ pnpm --filter backend exec prisma migrate deploy
 docker build -f apps/backend/Dockerfile -t job-application-tracker-backend:latest .
 ```
 
+Script equivalent:
+
+```bash
+scripts/deploy-backend-docker.sh build
+```
+
 ## First Run
 
 ```bash
@@ -35,6 +43,12 @@ docker run -d \
   --env-file /opt/job-application-tracker/backend.env \
   -p 127.0.0.1:4000:4000 \
   job-application-tracker-backend:latest
+```
+
+Script equivalent:
+
+```bash
+ENV_FILE=/opt/job-application-tracker/backend.env scripts/deploy-backend-docker.sh run
 ```
 
 Do not include frontend `VITE_*` variables in the backend container env file.
@@ -52,10 +66,22 @@ docker run -d \
   job-application-tracker-backend:latest
 ```
 
+Script equivalent:
+
+```bash
+ENV_FILE=/opt/job-application-tracker/backend.env scripts/deploy-backend-docker.sh replace
+```
+
 ## Logs
 
 ```bash
 docker logs -f job-application-tracker-backend
+```
+
+Script equivalent:
+
+```bash
+scripts/deploy-backend-docker.sh logs
 ```
 
 ## Rollback
@@ -69,4 +95,10 @@ docker run -d \
   --env-file /opt/job-application-tracker/backend.env \
   -p 127.0.0.1:4000:4000 \
   job-application-tracker-backend:<previous-tag>
+```
+
+Script equivalent:
+
+```bash
+ENV_FILE=/opt/job-application-tracker/backend.env scripts/deploy-backend-docker.sh rollback <previous-tag>
 ```

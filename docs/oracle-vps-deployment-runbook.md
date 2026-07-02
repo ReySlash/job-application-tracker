@@ -13,7 +13,7 @@ Vercel frontend -> Nginx on Oracle VM -> Dockerized Express API -> Prisma -> Neo
 The backend public origin is:
 
 ```txt
-https://api.reyslash.com
+https://job-tracker-api.reyslash.com
 ```
 
 This deployment plan does not change API routes, Prisma schema, or auth behavior. It changes only where and how the backend is hosted.
@@ -29,7 +29,7 @@ This deployment plan does not change API routes, Prisma schema, or auth behavior
 
 Traffic flow:
 
-1. Browser requests hit `https://api.reyslash.com`
+1. Browser requests hit `https://job-tracker-api.reyslash.com`
 2. Host Nginx terminates TLS
 3. Nginx proxies `/api`, `/health`, and `/ready` to the backend container on a local port
 4. The backend container serves the compiled Express API
@@ -48,7 +48,7 @@ The Oracle VPS is responsible for:
 Recommended host layout:
 
 - Oracle Cloud VPS with Ubuntu 24.04 or 22.04
-- DNS `A` record for `api.reyslash.com` pointed at the VM public IP
+- DNS `A` record for `job-tracker-api.reyslash.com` pointed at the VM public IP
 - Oracle network security rules and host firewall permitting `22`, `80`, and `443`
 - backend container bound only to localhost, for example `127.0.0.1:4000:4000`
 
@@ -71,14 +71,14 @@ Required deployment assets for the next implementation step:
 
 - `apps/backend/Dockerfile`
 - `.dockerignore` if needed at the repo root or backend level
-- Nginx config example for `api.reyslash.com`
+- Nginx config example for `job-tracker-api.reyslash.com`
 - deployment command set for build, run, replace, logs, and rollback
 
 Implemented assets:
 
 - [apps/backend/Dockerfile](/Users/reynaldocarmenatearias/Documents/ReactProjects/job-application-tracker/apps/backend/Dockerfile:1)
 - [.dockerignore](/Users/reynaldocarmenatearias/Documents/ReactProjects/job-application-tracker/.dockerignore:1)
-- [ops/nginx/api.reyslash.com.conf.example](/Users/reynaldocarmenatearias/Documents/ReactProjects/job-application-tracker/ops/nginx/api.reyslash.com.conf.example:1)
+- [ops/nginx/job-tracker-api.reyslash.com.conf.example](/Users/reynaldocarmenatearias/Documents/ReactProjects/job-application-tracker/ops/nginx/job-tracker-api.reyslash.com.conf.example:1)
 - [docs/oracle-vps-deploy-commands.md](/Users/reynaldocarmenatearias/Documents/ReactProjects/job-application-tracker/docs/oracle-vps-deploy-commands.md:1)
 
 These assets implement this runbook directly and should not introduce application behavior changes.
@@ -104,7 +104,7 @@ Do not move this command into container startup for the current deployment desig
 ### Vercel frontend
 
 ```env
-VITE_API_BASE_URL=https://api.reyslash.com/api
+VITE_API_BASE_URL=https://job-tracker-api.reyslash.com/api
 VITE_APP_BASE_URL=https://your-vercel-project.vercel.app
 VITE_FIREBASE_API_KEY=
 VITE_FIREBASE_AUTH_DOMAIN=
@@ -129,7 +129,7 @@ COOKIE_DOMAIN=
 Environment defaults and assumptions:
 
 - `FRONTEND_URL` should be the deployed Vercel frontend origin
-- `VITE_API_BASE_URL` should be `https://api.reyslash.com/api`
+- `VITE_API_BASE_URL` should be `https://job-tracker-api.reyslash.com/api`
 - leave `COOKIE_DOMAIN` unset unless frontend and backend later share a parent domain
 - production backend startup must still satisfy the existing env checks in the app
 - for Docker `--env-file`, do not wrap values in quotes; Docker passes quote characters through literally
@@ -151,9 +151,9 @@ Release order:
 3. Run Prisma production migrations from the VM repo checkout
 4. Build the backend Docker image
 5. Replace the running backend container with the new image
-6. Verify `https://api.reyslash.com/health`
-7. Verify `https://api.reyslash.com/ready`
-8. Redeploy or confirm the Vercel frontend with `VITE_API_BASE_URL=https://api.reyslash.com/api`
+6. Verify `https://job-tracker-api.reyslash.com/health`
+7. Verify `https://job-tracker-api.reyslash.com/ready`
+8. Redeploy or confirm the Vercel frontend with `VITE_API_BASE_URL=https://job-tracker-api.reyslash.com/api`
 9. Run the full deployed verification checklist
 
 ## Deployment Commands
@@ -164,17 +164,17 @@ The concrete build, run, replace, logs, and rollback commands live in [oracle-vp
 
 The host Nginx config should:
 
-- serve `api.reyslash.com`
+- serve `job-tracker-api.reyslash.com`
 - terminate TLS
 - proxy `/api`, `/health`, and `/ready` to `http://127.0.0.1:4000`
 - preserve headers required for Express to understand the original request context
 
 Certbot should:
 
-- issue the initial Let's Encrypt certificate for `api.reyslash.com`
+- issue the initial Let's Encrypt certificate for `job-tracker-api.reyslash.com`
 - keep renewal configured on the host
 
-The Nginx config example lives at [ops/nginx/api.reyslash.com.conf.example](/Users/reynaldocarmenatearias/Documents/ReactProjects/job-application-tracker/ops/nginx/api.reyslash.com.conf.example:1).
+The Nginx config example lives at [ops/nginx/job-tracker-api.reyslash.com.conf.example](/Users/reynaldocarmenatearias/Documents/ReactProjects/job-application-tracker/ops/nginx/job-tracker-api.reyslash.com.conf.example:1).
 
 ## Acceptance Criteria
 
@@ -184,6 +184,6 @@ This deployment shape is complete only when all of the following are true:
 - container startup runs only the compiled API server
 - migrations are run manually before container replacement
 - Nginx proxies `/api`, `/health`, and `/ready` correctly
-- Certbot provides a valid certificate for `api.reyslash.com`
+- Certbot provides a valid certificate for `job-tracker-api.reyslash.com`
 - the Vercel frontend can talk to the Oracle-hosted backend without CORS or cookie regressions
 - signup, login, logout, reload restore, protected routes, CRUD, demo flows, and Firebase email flows all pass against the deployed stack

@@ -1,6 +1,6 @@
-# Migration Verification Checklist
+# Oracle Deployment Verification Checklist
 
-Use this checklist before merging `migration/express-prisma-neon` into `main`.
+Use this checklist as the deployed-state verification record for the Oracle-hosted backend on `migration/express-prisma-neon`.
 
 ## Automated Checks
 
@@ -28,11 +28,11 @@ Use this checklist before merging `migration/express-prisma-neon` into `main`.
 
 ## Deployment Checks
 
-- [x] Neon staging database is provisioned
+- [x] Neon production database is provisioned
 - [x] Prisma production migrations were applied manually with `pnpm --filter backend exec prisma migrate deploy`
 - [x] Frontend deploy works on Vercel
 - [x] Backend deploy works on the Oracle Cloud VPS
-- [x] `VITE_API_BASE_URL` points to `https://api.reyslash.com/api`
+- [x] `VITE_API_BASE_URL` points to `https://job-tracker-api.reyslash.com/api`
 - [x] Firebase frontend env vars are configured on Vercel
 - [x] Firebase Admin env vars are configured for the backend container on the Oracle VM
 - [x] Firebase authorized domains include the deployed frontend origin
@@ -42,13 +42,13 @@ Use this checklist before merging `migration/express-prisma-neon` into `main`.
 - [x] Demo refresh cookie works in the browser
 - [x] Demo refresh cookie is `HttpOnly`, `Secure`, and `SameSite=None`
 - [x] Host Nginx proxies `/api`, `/health`, and `/ready` to the Dockerized backend
-- [x] Certbot issues a valid certificate for `api.reyslash.com`
-- [x] `GET /ready` passes on `https://api.reyslash.com/ready`
+- [x] Certbot issues a valid certificate for `job-tracker-api.reyslash.com`
+- [x] `GET /ready` passes on `https://job-tracker-api.reyslash.com/ready`
 - [x] Neon database connectivity is confirmed from the Oracle-hosted backend during manual verification
 - [x] No deployed runtime path depends on Supabase
 
 ## Signoff
 
-- Date: 2026-06-07
+- Date: 2026-07-02
 - Verified by: ReySlash
-- Notes: Use [staging-deployment-runbook.md](/Users/reynaldocarmenatearias/Documents/ReactProjects/job-application-tracker/docs/staging-deployment-runbook.md:1) for deploy order, env setup, and manual migration instructions.
+- Notes: Oracle is the current backend deployment state. Use [deployment.md](/Users/reynaldocarmenatearias/Documents/ReactProjects/job-application-tracker/docs/deployment.md:1) for first-time VPS setup, [production-operations-runbook.md](/Users/reynaldocarmenatearias/Documents/ReactProjects/job-application-tracker/docs/production-operations-runbook.md:1) for current Oracle deploy/redeploy operations, and [oracle-vps-deployment-runbook.md](/Users/reynaldocarmenatearias/Documents/ReactProjects/job-application-tracker/docs/oracle-vps-deployment-runbook.md:1) for the infrastructure and backend deployment contract.

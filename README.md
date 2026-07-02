@@ -222,7 +222,7 @@ The active deployment architecture is:
 
 - frontend deployed from `apps/frontend` to Vercel
 - backend deployed to an Oracle Cloud VPS as a Dockerized Express API behind host-installed Nginx and Certbot
-- backend public origin exposed at `https://api.reyslash.com`
+- backend public origin exposed at `https://job-tracker-api.reyslash.com`
 
 Deployment wiring already present in the repo:
 
@@ -230,27 +230,24 @@ Deployment wiring already present in the repo:
 
 Deployment documentation:
 
-- [docs/oracle-vps-deployment-runbook.md](job-application-tracker/docs/oracle-vps-deployment-runbook.md:1) is the source of truth for the Oracle VPS backend topology, Docker contract, Nginx/Certbot setup, and deployment procedure
-- [docs/staging-deployment-runbook.md](job-application-tracker/docs/staging-deployment-runbook.md:1) summarizes the staged deployment flow for Vercel + Oracle VPS + Neon
-
-Historical note:
-
-- [render.yaml](job-application-tracker/render.yaml:1) remains in the repo as the previous Render backend blueprint, but Render is no longer the active backend deployment target in this branch's docs
+- [docs/oracle-vps-deployment-runbook.md](job-application-tracker/docs/oracle-vps-deployment-runbook.md:1) is the infrastructure source of truth for the Oracle VPS backend topology, Docker contract, Nginx/Certbot setup, and deployment procedure
+- [docs/deployment.md](job-application-tracker/docs/deployment.md:1) is the from-scratch Oracle VPS deployment manual
+- [docs/production-operations-runbook.md](job-application-tracker/docs/production-operations-runbook.md:1) is the current Oracle production operations runbook for Vercel + Oracle VPS + Neon
 
 The old GitHub Pages deployment workflow has been removed from this branch because GitHub Pages is not the deployment target for the current stack.
 
-## Staging Deployment Flow
+## Current Deployment Flow
 
-Use [docs/oracle-vps-deployment-runbook.md](job-application-tracker/docs/oracle-vps-deployment-runbook.md:1) as the source of truth for the backend deployment contract and [docs/staging-deployment-runbook.md](job-application-tracker/docs/staging-deployment-runbook.md:1) for the staged rollout order.
+Use [docs/oracle-vps-deployment-runbook.md](job-application-tracker/docs/oracle-vps-deployment-runbook.md:1) as the infrastructure source of truth, [docs/deployment.md](job-application-tracker/docs/deployment.md:1) for first-time VPS setup, and [docs/production-operations-runbook.md](job-application-tracker/docs/production-operations-runbook.md:1) for current Oracle deploy and redeploy operations.
 
-Required deployment order:
+Current deployment workflow:
 
-1. Provision the Neon staging database
-2. Prepare the Oracle VPS with Docker, Nginx, Certbot, and DNS for `api.reyslash.com`
+1. Update the Oracle VPS repo checkout to the desired commit on `migration/express-prisma-neon`
+2. Verify the backend container env file on the Oracle VPS
 3. Apply Prisma migrations manually from the repo checkout on the VM with `pnpm --filter backend exec prisma migrate deploy`
 4. Build and replace the Dockerized backend on the Oracle VPS
-5. Deploy the Vercel frontend with `VITE_API_BASE_URL` pointed at `https://api.reyslash.com/api` and `VITE_APP_BASE_URL` pointed at the deployed frontend origin
-6. Run the full staging verification checklist
+5. Confirm the Vercel frontend is using `VITE_API_BASE_URL=https://job-tracker-api.reyslash.com/api`
+6. Run the current Oracle deployment verification checklist
 
 Provider-specific environment contract:
 
@@ -270,12 +267,12 @@ Provider-specific environment contract:
   - `FIREBASE_PRIVATE_KEY`
   - optional `COOKIE_DOMAIN`
 
-Staging URL topology:
+Current URL topology:
 
 - `FRONTEND_URL` should be the Vercel frontend origin
-- `VITE_API_BASE_URL` should be `https://api.reyslash.com/api`
+- `VITE_API_BASE_URL` should be `https://job-tracker-api.reyslash.com/api`
 - Leave `COOKIE_DOMAIN` unset unless you intentionally move frontend and backend under the same parent domain
-- Add the deployed frontend origin to Firebase Authentication authorized domains before verifying signup/reset flows
+- Ensure the deployed frontend origin remains present in Firebase Authentication authorized domains
 
 Operational expectations:
 
@@ -285,7 +282,7 @@ Operational expectations:
 - Oracle VPS health checks should use `GET /ready`
 - `GET /health` remains a process health endpoint, not a database readiness endpoint
 - Cross-origin demo auth in production depends on `HttpOnly`, `Secure`, `SameSite=None` cookies and a working `POST /api/auth/refresh` flow after a browser reload
-- No staged runtime path should depend on Supabase
+- No deployed runtime path should depend on Supabase
 
 ## Migration Verification
 

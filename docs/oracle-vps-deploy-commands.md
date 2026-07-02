@@ -1,6 +1,6 @@
 # Oracle VPS Deploy Commands
 
-These commands implement the deployment flow described in [oracle-vps-deployment-runbook.md](/Users/reynaldocarmenatearias/Documents/ReactProjects/job-application-tracker/docs/oracle-vps-deployment-runbook.md:1).
+These commands implement the deployment flow described in [oracle-vps-deployment-runbook.md](/Users/reynaldocarmenatearias/Documents/ReactProjects/job-application-tracker/docs/oracle-vps-deployment-runbook.md:1) and are used during the deploy/redeploy workflow documented in [production-operations-runbook.md](/Users/reynaldocarmenatearias/Documents/ReactProjects/job-application-tracker/docs/production-operations-runbook.md:1).
 
 For repeatable VM operations, use [scripts/deploy-backend-docker.sh](/Users/reynaldocarmenatearias/Documents/ReactProjects/job-application-tracker/scripts/deploy-backend-docker.sh:1).
 

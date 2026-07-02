@@ -1,0 +1,16 @@
+import { createContext } from 'react';
+import type { AuthUser } from '../types/AuthUser';
+
+export type AuthContextValue = {
+  user: AuthUser | null;
+  accessToken: string | null;
+  isAuthLoading: boolean;
+  signIn: (email: string, password: string) => Promise<void>;
+  signUp: (email: string, password: string) => Promise<void>;
+  requestPasswordReset: (email: string) => Promise<void>;
+  updatePassword: (token: string, password: string) => Promise<void>;
+  startDemoSession: () => Promise<void>;
+  signOut: () => Promise<void>;
+};
+
+export const AuthContext = createContext<AuthContextValue | null>(null);

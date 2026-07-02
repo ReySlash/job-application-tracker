@@ -1,0 +1,28 @@
+services:
+  - type: web
+    name: job-application-tracker-backend
+    runtime: node
+    plan: free
+    # Prisma production migrations are intentionally run as a separate release step:
+    # pnpm --filter backend exec prisma migrate deploy
+    buildCommand: pnpm install --frozen-lockfile && pnpm --filter backend prisma:generate && pnpm --filter backend build
+    startCommand: pnpm --filter backend start
+    healthCheckPath: /ready
+    autoDeploy: false
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: FRONTEND_URL
+        sync: false
+      - key: FIREBASE_PROJECT_ID
+        sync: false
+      - key: FIREBASE_CLIENT_EMAIL
+        sync: false
+      - key: FIREBASE_PRIVATE_KEY
+        sync: false
+      - key: COOKIE_DOMAIN
+        sync: false

@@ -1,0 +1,253 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+
+import type { ApplicationsFormSchema } from '../schemas/ApplicationsFormSchema';
+
+const { fetchMock } = vi.hoisted(() => ({
+  fetchMock: vi.fn(),
+}));
+
+vi.stubGlobal('fetch', fetchMock);
+
+import {
+  createApplication,
+  deleteApplicationById,
+  fetchApplications,
+  resetDemoApplications,
+  updateApplication,
+} from './applications';
+
+function createFormInput(overrides: Partial<ApplicationsFormSchema> = {}): ApplicationsFormSchema {
+  return {
+    company: 'Acme',
+    role: 'Frontend Engineer',
+    status: 'interview',
+    appliedAt: '2026-04-21',
+    location: 'Remote',
+    jobUrl: 'https://example.com/jobs/1',
+    notes: 'Prepare for interview',
+    ...overrides,
+  };
+}
+
+function backendApplication(overrides: Partial<Record<string, unknown>> = {}) {
+  return {
+    id: 'application-1',
+    company: 'Acme',
+    role: 'Frontend Engineer',
+    status: 'INTERVIEWING',
+    appliedAt: '2026-04-21',
+    location: 'Remote',
+    jobUrl: 'https://example.com/jobs/1',
+    notes: 'Prepare for interview',
+    createdAt: '2026-04-21T00:00:00.000Z',
+    updatedAt: '2026-04-22T00:00:00.000Z',
+    userId: 'user-123',
+    ...overrides,
+  };
+}
+
+function jsonResponse(body: unknown, init: ResponseInit = {}) {
+  return new Response(JSON.stringify(body), {
+    status: 200,
+    headers: { 'Content-Type': 'application/json' },
+    ...init,
+  });
+}
+
+describe('applications API wrappers', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('fetchApplications requests the backend list and maps the response', async () => {
+    fetchMock.mockResolvedValue(
+      jsonResponse({
+        applicationsList: [
+          backendApplication(),
+          backendApplication({ id: 'application-2', status: 'OFFER' }),
+        ],
+      }),
+    );
+
+    await expect(fetchApplications('token-123')).resolves.toEqual([
+      {
+        id: 'application-1',
+        company: 'Acme',
+        role: 'Frontend Engineer',
+        status: 'interview',
+        appliedAt: '2026-04-21',
+        location: 'Remote',
+        jobUrl: 'https://example.com/jobs/1',
+        notes: 'Prepare for interview',
+        createdAt: '2026-04-21T00:00:00.000Z',
+        updatedAt: '2026-04-22T00:00:00.000Z',
+      },
+      {
+        id: 'application-2',
+        company: 'Acme',
+        role: 'Frontend Engineer',
+        status: 'offer',
+        appliedAt: '2026-04-21',
+        location: 'Remote',
+        jobUrl: 'https://example.com/jobs/1',
+        notes: 'Prepare for interview',
+        createdAt: '2026-04-21T00:00:00.000Z',
+        updatedAt: '2026-04-22T00:00:00.000Z',
+      },
+    ]);
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      'http://localhost:4000/api/applications',
+      expect.objectContaining({
+        method: 'GET',
+        headers: { Authorization: 'Bearer token-123' },
+      }),
+    );
+  });
+
+  it('normalizes ISO datetime and null appliedAt values in list responses', async () => {
+    fetchMock.mockResolvedValue(
+      jsonResponse({
+        applicationsList: [
+          backendApplication({ id: 'application-iso', appliedAt: '2026-04-21T00:00:00.000Z' }),
+          backendApplication({ id: 'application-null', appliedAt: null }),
+        ],
+      }),
+    );
+
+    await expect(fetchApplications('token-123')).resolves.toEqual([
+      expect.objectContaining({
+        id: 'application-iso',
+        appliedAt: '2026-04-21',
+      }),
+      expect.objectContaining({
+        id: 'application-null',
+        appliedAt: '',
+      }),
+    ]);
+  });
+
+  it('createApplication sends the backend payload without userId', async () => {
+    fetchMock.mockResolvedValue(jsonResponse({ message: 'Application created successfully' }));
+
+    await expect(createApplication(createFormInput(), 'token-123')).resolves.toBeUndefined();
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      'http://localhost:4000/api/applications',
+      expect.objectContaining({
+        method: 'POST',
+        headers: {
+          Authorization: 'Bearer token-123',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          company: 'Acme',
+          role: 'Frontend Engineer',
+          status: 'interview',
+          appliedAt: '2026-04-21',
+          location: 'Remote',
+          jobUrl: 'https://example.com/jobs/1',
+          notes: 'Prepare for interview',
+        }),
+      }),
+    );
+  });
+
+  it('updateApplication sends the backend payload to the PUT route', async () => {
+    fetchMock.mockResolvedValue(jsonResponse({ message: 'Application updated successfully' }));
+
+    await expect(updateApplication('application-123', createFormInput({ jobUrl: '', notes: '' }), 'token-123')).resolves.toBeUndefined();
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      'http://localhost:4000/api/applications/application-123',
+      expect.objectContaining({
+        method: 'PUT',
+        headers: {
+          Authorization: 'Bearer token-123',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          company: 'Acme',
+          role: 'Frontend Engineer',
+          status: 'interview',
+          appliedAt: '2026-04-21',
+          location: 'Remote',
+          jobUrl: null,
+          notes: null,
+        }),
+      }),
+    );
+  });
+
+  it('deleteApplicationById calls the backend delete route', async () => {
+    fetchMock.mockResolvedValue(jsonResponse({ message: 'Application deleted successfully' }));
+
+    await expect(deleteApplicationById('application-123', 'token-123')).resolves.toBeUndefined();
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      'http://localhost:4000/api/applications/application-123',
+      expect.objectContaining({
+        method: 'DELETE',
+        headers: { Authorization: 'Bearer token-123' },
+      }),
+    );
+  });
+
+  it('resetDemoApplications calls the protected backend demo-reset route', async () => {
+    fetchMock.mockResolvedValue(jsonResponse({ message: 'Demo data restored successfully' }));
+
+    await expect(resetDemoApplications('token-123')).resolves.toBeUndefined();
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      'http://localhost:4000/api/applications/demo-reset',
+      expect.objectContaining({
+        method: 'POST',
+        headers: { Authorization: 'Bearer token-123' },
+      }),
+    );
+  });
+
+  it('throws backend error messages for application CRUD failures', async () => {
+    fetchMock
+      .mockResolvedValueOnce(jsonResponse({ message: 'Fetch failed' }, { status: 500 }))
+      .mockResolvedValueOnce(jsonResponse({ message: 'Create failed' }, { status: 500 }))
+      .mockResolvedValueOnce(jsonResponse({ message: 'Update failed' }, { status: 500 }))
+      .mockResolvedValueOnce(jsonResponse({ message: 'Delete failed' }, { status: 500 }));
+
+    await expect(fetchApplications('token-123')).rejects.toThrow('Fetch failed');
+    await expect(createApplication(createFormInput(), 'token-123')).rejects.toThrow('Create failed');
+    await expect(updateApplication('application-123', createFormInput(), 'token-123')).rejects.toThrow('Update failed');
+    await expect(deleteApplicationById('application-123', 'token-123')).rejects.toThrow('Delete failed');
+  });
+
+  it('throws backend error messages for demo reset failures', async () => {
+    fetchMock.mockResolvedValueOnce(jsonResponse({ message: 'Reset failed' }, { status: 500 }));
+
+    await expect(resetDemoApplications('token-123')).rejects.toThrow('Reset failed');
+  });
+
+  it('uses fallback messages when backend or demo reset responses omit error text', async () => {
+    fetchMock
+      .mockResolvedValueOnce(jsonResponse({}, { status: 500 }))
+      .mockResolvedValueOnce(jsonResponse({}, { status: 500 }))
+      .mockResolvedValueOnce(jsonResponse({}, { status: 500 }))
+      .mockResolvedValueOnce(jsonResponse({}, { status: 500 }));
+    fetchMock.mockResolvedValueOnce(jsonResponse({}, { status: 500 }));
+
+    await expect(fetchApplications('token-123')).rejects.toThrow('Failed to fetch applications');
+    await expect(createApplication(createFormInput(), 'token-123')).rejects.toThrow('Failed to create application');
+    await expect(updateApplication('application-123', createFormInput(), 'token-123')).rejects.toThrow('Failed to update application');
+    await expect(deleteApplicationById('application-123', 'token-123')).rejects.toThrow('Failed to delete application');
+    await expect(resetDemoApplications('token-123')).rejects.toThrow('Failed to reset demo applications');
+  });
+
+  it('uses fallback messages when failing responses do not include a JSON body', async () => {
+    fetchMock.mockResolvedValueOnce(
+      new Response(null, {
+        status: 500,
+      }),
+    );
+
+    await expect(fetchApplications('token-123')).rejects.toThrow('Failed to fetch applications');
+  });
+});

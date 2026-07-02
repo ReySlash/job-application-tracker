@@ -1,0 +1,9 @@
+services:
+  api:
+    image: job-tracker-api:latest
+    container_name: job-tracker-api
+    restart: unless-stopped
+    env_file:
+      - .env.production
+    ports:
+      - "4000:4000"
